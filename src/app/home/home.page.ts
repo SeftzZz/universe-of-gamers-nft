@@ -35,6 +35,8 @@ export class HomePage implements OnInit {
   };
   selectedFile: File | null = null;
 
+  nft: any[] = []; // daftar NFT dari backend
+
   constructor(private fb: FormBuilder, private http: HttpClient, private idlService: Idl) {}
 
   async ngOnInit() {
@@ -58,6 +60,8 @@ export class HomePage implements OnInit {
       this.userAddress = saved;
       this.updateBalance();
     }
+
+    await this.loadNft();
   }
 
   async connectWallet() {
@@ -157,4 +161,15 @@ export class HomePage implements OnInit {
       }
     }
   }
+
+  async loadNft() {
+    try {
+      const data: any = await this.http.get(`${environment.apiUrl}/nft`).toPromise();
+      this.nft = data;
+      console.log('📦 NFT List:', this.nft);
+    } catch (err) {
+      console.error('❌ Error loading NFT:', err);
+    }
+  }
+
 }
