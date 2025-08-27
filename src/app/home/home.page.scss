@@ -25,3 +25,20 @@
 #container a {
   text-decoration: none;
 }
+
+@media (max-width: 1200px) {
+    .swiper-container-horizontal>.swiper-pagination-bullets, .swiper-pagination-custom, .swiper-pagination-fraction {
+        bottom: 20px;
+        left: 0px;
+        width: 100%;
+    }
+    .style-bottom .swiper-button-prev {
+        left: 36%;
+    }
+    .style-bottom .swiper-button-next {
+        right: 35%;
+    }
+    .swiper-button-next, .swiper-button-prev, .next-3d, .prev-3d, .swiper-pagination {
+        display: block;
+    }
+}
