@@ -237,16 +237,152 @@
                       <div class="widget-tabs relative">
                           <ul class="widget-menu-tab">
                               <li class="item-title active">
-                                  <span class="inner"><span class="order">1</span>Submit NFT <i class="icon-keyboard_arrow_right"></i></span>
+                                  <span class="inner"><span class="order">1</span>Create Characters <i class="icon-keyboard_arrow_right"></i></span>
                               </li>
                               <li class="item-title">
-                                  <span class="inner"><span class="order">2</span> Payment <i class="icon-keyboard_arrow_right"></i></span>
+                                  <span class="inner"><span class="order">2</span>Submit NFT <i class="icon-keyboard_arrow_right"></i></span>
                               </li>
                               <li class="item-title">
-                                  <span class="inner"><span class="order">3</span>Submit Result</span>
+                                  <span class="inner"><span class="order">3</span>Create Rune Items</span>
                               </li>
                           </ul>
                           <div class="widget-content-tab">
+                              <div class="widget-content-inner submit">
+                                  <div class="wrap-content w-full">
+                                      <form id="character-form" class="comment-form" (ngSubmit)="submitCharacter()" novalidate>
+                                          <div class="flex gap30">
+                                              <fieldset class="name">
+                                                  <label>Display name *</label>
+                                                  <input type="text" id="name" placeholder="Display name" [(ngModel)]="charData.displayName" name="displayName" tabindex="2" value="" aria-required="true" required="">
+                                              </fieldset>
+                                              <fieldset class="element">
+                                                <label>Element *</label>
+                                                <select id="element" [(ngModel)]="charData.element" name="element" required>
+                                                  <option value="Fire">Fire</option>
+                                                  <option value="Water">Water</option>
+                                                  <option value="Earth">Earth</option>
+                                                  <option value="Wind">Wind</option>
+                                                </select>
+                                              </fieldset>
+                                              <fieldset class="Level">
+                                                  <label>Level</label>
+                                                  <input type="number" id="level" placeholder="Level" [(ngModel)]="charData.level" name="level" tabindex="2" value="1" disabled aria-required="true" required="">
+                                              </fieldset>
+                                          </div>
+                                          <div class="flex gap30">
+                                              <fieldset class="hp">
+                                                  <label>HP *</label>
+                                                  <input type="number" id="hp" placeholder="HP *" [(ngModel)]="charData.hp" name="hp" tabindex="2" value="" aria-required="true" required="">
+                                              </fieldset>
+                                              <fieldset class="atk">
+                                                  <label>ATK *</label>
+                                                  <input type="number" id="atk" placeholder="Attack *" [(ngModel)]="charData.atk" name="atk" tabindex="2" value="" aria-required="true" required="">
+                                              </fieldset>
+                                              <fieldset class="def">
+                                                  <label>DEF *</label>
+                                                  <input type="number" id="def" placeholder="Defense *" [(ngModel)]="charData.def" name="def" tabindex="2" value="" aria-required="true" required="">
+                                              </fieldset>
+                                              <fieldset class="spd">
+                                                  <label>SPD *</label>
+                                                  <input type="number" id="spd" placeholder="SPD *" [(ngModel)]="charData.spd" name="spd" tabindex="2" value="" aria-required="true" required="">
+                                              </fieldset>
+                                              <fieldset class="critRate">
+                                                  <label>Critical Rate % *</label>
+                                                  <input type="number" id="critRate" placeholder="Critical Rate *" [(ngModel)]="charData.critRate" name="critRate" tabindex="2" value="" aria-required="true" required="">
+                                              </fieldset>
+                                              <fieldset class="critDmg">
+                                                  <label>Critical Damage % *</label>
+                                                  <input type="number" id="critDmg" placeholder="Critical Damage *" [(ngModel)]="charData.critDmg" name="critDmg" tabindex="2" value="" aria-required="true" required="">
+                                              </fieldset>
+                                          </div>
+                                          <div class="divider"></div>
+                                          <!-- Basic Attack -->
+                                          <fieldset class="blockchain pt-10">
+                                              <label>Basic Attack</label>
+                                              <div class="flex gap30">
+                                                  <fieldset class="basicSkillName">
+                                                      <label>Skill Name</label>
+                                                      <input type="number" id="basicSkillName" placeholder="Basic skill name *" [(ngModel)]="charData.basicAttack.skillName" name="basicSkillName" tabindex="2" value="" aria-required="true" required="">
+                                                  </fieldset>
+                                                  <fieldset class="basicAtkMultiplier">
+                                                      <label>ATK Multiplier</label>
+                                                      <input type="number" id="basicAtkMultiplier" placeholder="ATK Multiplier *" [(ngModel)]="charData.basicAttack.atkMultiplier" name="basicAtkMultiplier" step="0.1" tabindex="2" value="" aria-required="true" required="">
+                                                  </fieldset>
+                                                  <fieldset class="basicDefMultiplier">
+                                                      <label>DEF Multiplier</label>
+                                                      <input type="number" id="basicDefMultiplier" placeholder="DEF Multiplier *" [(ngModel)]="charData.basicAttack.defMultiplier" name="basicDefMultiplier" step="0.1" tabindex="2" value="" aria-required="true" required="">
+                                                  </fieldset>
+                                                  <fieldset class="basicHpMultiplier">
+                                                      <label>HP Multiplier</label>
+                                                      <input type="number" id="basicHpMultiplier" placeholder="HP Multiplier *" [(ngModel)]="charData.basicAttack.hpMultiplier" name="basicHpMultiplier" step="0.1" tabindex="2" value="" aria-required="true" required="">
+                                                  </fieldset>
+                                              </div>
+                                              <fieldset class="basicDesc">
+                                                <label>Description</label>
+                                                <textarea id="basicDesc" [(ngModel)]="charData.basicAttack.description" name="basicDesc" rows="3" placeholder='{"symbol":"XYZ","royalty":5}'></textarea>
+                                              </fieldset>
+                                          </fieldset>
+                                          <div class="divider"></div>
+                                          <!-- Skill Attack -->
+                                          <fieldset class="blockchain pt-10">
+                                              <label>Skill Attack</label>
+                                              <div class="flex gap30">
+                                                  <fieldset class="skillSkillName">
+                                                      <label>Skill Name</label>
+                                                      <input type="number" id="skillSkillName" placeholder="Skill name *" [(ngModel)]="charData.skillAttack.skillName" name="skillSkillName" tabindex="2" value="" aria-required="true" required="">
+                                                  </fieldset>
+                                                  <fieldset class="skillAtkMultiplier">
+                                                      <label>ATK Multiplier</label>
+                                                      <input type="number" id="skillAtkMultiplier" placeholder="ATK Multiplier *" [(ngModel)]="charData.skillAttack.atkMultiplier" name="skillAtkMultiplier" step="0.1" tabindex="2" value="" aria-required="true" required="">
+                                                  </fieldset>
+                                                  <fieldset class="skillDefMultiplier">
+                                                      <label>DEF Multiplier</label>
+                                                      <input type="number" id="skillDefMultiplier" placeholder="DEF Multiplier *" [(ngModel)]="charData.skillAttack.defMultiplier" name="skillDefMultiplier" step="0.1" tabindex="2" value="" aria-required="true" required="">
+                                                  </fieldset>
+                                                  <fieldset class="skillHpMultiplier">
+                                                      <label>HP Multiplier</label>
+                                                      <input type="number" id="skillHpMultiplier" placeholder="HP Multiplier *" [(ngModel)]="charData.skillAttack.hpMultiplier" name="skillHpMultiplier" step="0.1" tabindex="2" value="" aria-required="true" required="">
+                                                  </fieldset>
+                                              </div>
+                                              <fieldset class="skillDesc">
+                                                <label>Description</label>
+                                                <textarea id="skillDesc" [(ngModel)]="charData.skillAttack.description" name="skillDesc" rows="3" placeholder='{"symbol":"XYZ","royalty":5}'></textarea>
+                                              </fieldset>
+                                          </fieldset>
+                                          <div class="divider"></div>
+                                          <!-- Ultimate Attack -->
+                                          <fieldset class="blockchain pt-10">
+                                              <label>Ultimate Attack</label>
+                                              <div class="flex gap30">
+                                                  <fieldset class="ultimateSkillName">
+                                                      <label>Skill Name</label>
+                                                      <input type="number" id="ultimateSkillName" placeholder="Skill name *" [(ngModel)]="charData.ultimateAttack.skillName" name="ultimateSkillName" tabindex="2" value="" aria-required="true" required="">
+                                                  </fieldset>
+                                                  <fieldset class="ultimateAtkMultiplier">
+                                                      <label>ATK Multiplier</label>
+                                                      <input type="number" id="ultimateAtkMultiplier" placeholder="ATK Multiplier *" [(ngModel)]="charData.ultimateAttack.atkMultiplier" name="ultimateAtkMultiplier" step="0.1" tabindex="2" value="" aria-required="true" required="">
+                                                  </fieldset>
+                                                  <fieldset class="ultimateDefMultiplier">
+                                                      <label>DEF Multiplier</label>
+                                                      <input type="number" id="ultimateDefMultiplier" placeholder="DEF Multiplier *" [(ngModel)]="charData.ultimateAttack.defMultiplier" name="ultimateDefMultiplier" step="0.1" tabindex="2" value="" aria-required="true" required="">
+                                                  </fieldset>
+                                                  <fieldset class="ultimateHpMultiplier">
+                                                      <label>HP Multiplier</label>
+                                                      <input type="number" id="ultimateHpMultiplier" placeholder="HP Multiplier *" [(ngModel)]="charData.ultimateAttack.hpMultiplier" name="ultimateHpMultiplier" step="0.1" tabindex="2" value="" aria-required="true" required="">
+                                                  </fieldset>
+                                              </div>
+                                              <fieldset class="ultimateDesc">
+                                                <label>Description</label>
+                                                <textarea id="ultimateDesc" [(ngModel)]="charData.ultimateAttack.description" name="ultimateDesc" rows="3" placeholder='{"symbol":"XYZ","royalty":5}'></textarea>
+                                              </fieldset>
+                                          </fieldset>                                          
+                                          <div class="btn-submit flex gap30 justify-center">
+                                              <button class="tf-button style-1 h50 w320 active">Preview<i class="icon-arrow-up-right2"></i></button>
+                                              <button class="tf-button style-1 h50 w320" type="submit">Submit item<i class="icon-arrow-up-right2"></i></button>
+                                          </div>
+                                      </form>
+                                  </div>
+                              </div>
                               <div class="widget-content-inner description active">
                                   <div class="wrap-upload">
                                     <form action="#" class="h-full">
@@ -263,39 +399,35 @@
                                   </div>
 
                                   <div class="wrap-content w-full">
-                                    <form id="commentform-description" class="comment-form" (ngSubmit)="submit()" novalidate>
+                                    <form id="nft-form" class="comment-form" (ngSubmit)="submit()" novalidate>
                                       <div class="flex gap30">
                                         <fieldset class="name">
-                                          <label>Product name *</label>
-                                          <input type="text" id="name-product-description" [(ngModel)]="formData.name" name="name" required>
+                                          <label>Name *</label>
+                                          <input type="text" id="name-nft" [(ngModel)]="formData.name" name="name" required>
                                         </fieldset>
-                                        <fieldset class="symbol">
-                                          <label>Symbol *</label>
-                                          <input type="text" id="symbol-product-description" [(ngModel)]="formData.symbol" name="symbol" required>
+                                        <fieldset class="image">
+                                          <label>Image URL *</label>
+                                          <input type="text" id="image-nft" [(ngModel)]="formData.image" name="image" required>
                                         </fieldset>
-                                        <fieldset class="uri">
-                                          <label>Uri Metadata *</label>
-                                          <input type="text" id="uri-product-description" [(ngModel)]="formData.uri" name="uri" required>
+                                        <fieldset class="character">
+                                          <label>Character (ID Reference)</label>
+                                          <input type="text" id="character-nft" [(ngModel)]="formData.character" name="character" placeholder="ObjectId Character">
                                         </fieldset>
                                       </div>
 
-                                      <fieldset class="message">
+                                      <fieldset class="description">
                                         <label>Description *</label>
-                                        <textarea id="message-description" [(ngModel)]="formData.description" name="description" rows="4" required></textarea>
+                                        <textarea id="description-nft" [(ngModel)]="formData.description" name="description" rows="4" required></textarea>
                                       </fieldset>
 
                                       <div class="flex gap30">
                                         <fieldset class="price">
                                           <label>Price</label>
-                                          <input type="text" id="price-description" [(ngModel)]="formData.price" name="price" required>
+                                          <input type="number" id="price-nft" [(ngModel)]="formData.price" name="price" required>
                                         </fieldset>
-                                        <fieldset class="properties">
-                                          <label>Properties</label>
-                                          <input type="text" id="properties-description" [(ngModel)]="formData.properties" name="properties" required>
-                                        </fieldset>
-                                        <fieldset class="size">
-                                          <label>Size</label>
-                                          <input type="text" id="size-description" [(ngModel)]="formData.size" name="size" required>
+                                        <fieldset class="metadata">
+                                          <label>Metadata (JSON)</label>
+                                          <textarea id="metadata-nft" [(ngModel)]="formData.metadata" name="metadata" rows="3" placeholder='{"symbol":"XYZ","royalty":5}'></textarea>
                                         </fieldset>
                                       </div>
 
@@ -304,31 +436,31 @@
                                         <div class="widget-coins flex gap30 flex-wrap">
                                           <div class="widget-coins-item flex items-center"
                                                [class.active]="formData.blockchain === 'Bitcoin'"
-                                               (click)="selectBlockchain('Bitcoin')">
+                                               (click)="formData.blockchain = 'Bitcoin'">
                                             <img src="assets/images/box-icon/coin-01.png" alt="">
                                             <p>Bitcoin</p>
                                           </div>
                                           <div class="widget-coins-item flex items-center"
                                                [class.active]="formData.blockchain === 'Ethereum'"
-                                               (click)="selectBlockchain('Ethereum')">
+                                               (click)="formData.blockchain = 'Ethereum'">
                                             <img src="assets/images/box-icon/coin-02.png" alt="">
                                             <p>Ethereum</p>
                                           </div>
                                           <div class="widget-coins-item flex items-center"
                                                [class.active]="formData.blockchain === 'Cardano'"
-                                               (click)="selectBlockchain('Cardano')">
+                                               (click)="formData.blockchain = 'Cardano'">
                                             <img src="assets/images/box-icon/coin-03.png" alt="">
                                             <p>Cardano</p>
                                           </div>
                                           <div class="widget-coins-item flex items-center"
                                                [class.active]="formData.blockchain === 'Solana'"
-                                               (click)="selectBlockchain('Solana')">
+                                               (click)="formData.blockchain = 'Solana'">
                                             <img src="assets/images/box-icon/coin-04.png" alt="">
                                             <p>Solana</p>
                                           </div>
                                           <div class="widget-coins-item flex items-center"
                                                [class.active]="formData.blockchain === 'Litecoin'"
-                                               (click)="selectBlockchain('Litecoin')">
+                                               (click)="formData.blockchain = 'Litecoin'">
                                             <img src="assets/images/box-icon/coin-05.png" alt="">
                                             <p>Litecoin</p>
                                           </div>
@@ -337,12 +469,12 @@
 
                                       <fieldset class="collection">
                                         <label>Collection</label>
-                                        <input type="text" id="collection-description" [(ngModel)]="formData.collection" name="collection" required>
+                                        <input type="text" id="collection-nft" [(ngModel)]="formData.collection" name="collection">
                                       </fieldset>
 
                                       <fieldset class="royalty">
-                                        <label>Royalty</label>
-                                        <input type="text" id="royalty-description" [(ngModel)]="formData.royalty" name="royalty" required>
+                                        <label>Royalty (%)</label>
+                                        <input type="number" id="royalty-nft" [(ngModel)]="formData.royalty" name="royalty">
                                       </fieldset>
 
                                       <div class="btn-submit flex gap30 justify-center">
@@ -350,6 +482,96 @@
                                         <button class="tf-button style-1 h50" type="submit">Submit item<i class="icon-arrow-up-right2"></i></button>
                                       </div>
                                     </form>
+                                  </div>
+                              </div>
+                              <div class="widget-content-inner create">
+                                  <div class="wrap-content w-full">
+                                      <form id="rune-form" class="comment-form" (ngSubmit)="submitRune()" novalidate>
+
+                                        <!-- Rune pertama (default selalu ada) -->
+                                        <fieldset class="blockchain">
+                                          <label>Rune (Default)</label>
+                                          <fieldset class="itemName">
+                                            <label>Item Name</label>
+                                            <input type="text" id="itemNameDefault" placeholder="Item name *"
+                                                   [(ngModel)]="runeDefault.itemName" name="runeNameDefault" required>
+                                          </fieldset>
+
+                                          <div class="flex gap30">
+                                            <fieldset class="hpBonus">
+                                              <label>HP Bonus</label>
+                                              <input type="number" id="hpBonusDefault" placeholder="HP Bonus *"
+                                                     [(ngModel)]="runeDefault.hpBonus" name="runeHpDefault" step="0.1" required>
+                                            </fieldset>
+                                            <fieldset class="atkBonus">
+                                              <label>ATK Bonus</label>
+                                              <input type="number" id="atkBonusDefault" placeholder="ATK Bonus *"
+                                                     [(ngModel)]="runeDefault.atkBonus" name="runeAtkDefault" step="0.1" required>
+                                            </fieldset>
+                                            <fieldset class="defBonus">
+                                              <label>DEF Bonus</label>
+                                              <input type="number" id="defBonusDefault" placeholder="DEF Bonus *"
+                                                     [(ngModel)]="runeDefault.defBonus" name="runeDefDefault" step="0.1" required>
+                                            </fieldset>
+                                            <fieldset class="spdBonus">
+                                              <label>SPD Bonus</label>
+                                              <input type="number" id="spdBonusDefault" placeholder="SPD Bonus *"
+                                                     [(ngModel)]="runeDefault.spdBonus" name="runeSpdDefault" step="0.1" required>
+                                            </fieldset>
+                                          </div>
+
+                                          <div class="flex gap30">
+                                            <fieldset class="critRateBonus">
+                                              <label>Critical Rate Bonus %</label>
+                                              <input type="number" id="critRateBonusDefault" placeholder="Critical Rate Bonus *"
+                                                     [(ngModel)]="runeDefault.critRateBonus" name="runeCritRateDefault" step="0.1" required>
+                                            </fieldset>
+                                            <fieldset class="critDmgBonus">
+                                              <label>Critical Damage Bonus %</label>
+                                              <input type="number" id="critDmgBonusDefault" placeholder="Critical Damage Bonus *"
+                                                     [(ngModel)]="runeDefault.critDmgBonus" name="runeCritDmgDefault" step="0.1" required>
+                                            </fieldset>
+                                          </div>
+
+                                          <fieldset class="ultimateDesc">
+                                            <label>Description</label>
+                                            <textarea id="ultimateDescDefault" [(ngModel)]="runeDefault.description"
+                                                      name="runeDescDefault" rows="3" placeholder="Description"></textarea>
+                                          </fieldset>
+                                        </fieldset>
+
+                                        <!-- Rune tambahan (dinamis lewat *ngFor) -->
+                                        <fieldset class="blockchain" *ngFor="let rune of runeList; let i = index">
+                                          <label>Rune {{ i+2 }}</label>
+                                          <fieldset class="itemName">
+                                            <label>Item Name</label>
+                                            <input type="text" placeholder="Item name *" [(ngModel)]="rune.itemName" name="runeName{{i}}">
+                                          </fieldset>
+
+                                          <div class="flex gap30">
+                                            <fieldset><label>HP Bonus</label><input type="number" [(ngModel)]="rune.hpBonus" name="runeHp{{i}}" step="0.1"></fieldset>
+                                            <fieldset><label>ATK Bonus</label><input type="number" [(ngModel)]="rune.atkBonus" name="runeAtk{{i}}" step="0.1"></fieldset>
+                                            <fieldset><label>DEF Bonus</label><input type="number" [(ngModel)]="rune.defBonus" name="runeDef{{i}}" step="0.1"></fieldset>
+                                            <fieldset><label>SPD Bonus</label><input type="number" [(ngModel)]="rune.spdBonus" name="runeSpd{{i}}" step="0.1"></fieldset>
+                                          </div>
+
+                                          <div class="flex gap30">
+                                            <fieldset><label>Critical Rate Bonus %</label><input type="number" [(ngModel)]="rune.critRateBonus" name="runeCritRate{{i}}" step="0.1"></fieldset>
+                                            <fieldset><label>Critical Damage Bonus %</label><input type="number" [(ngModel)]="rune.critDmgBonus" name="runeCritDmg{{i}}" step="0.1"></fieldset>
+                                          </div>
+
+                                          <fieldset>
+                                            <label>Description</label>
+                                            <textarea [(ngModel)]="rune.description" name="runeDesc{{i}}" rows="3"></textarea>
+                                          </fieldset>
+                                        </fieldset>
+
+                                        <button type="button" class="tf-button style-1" (click)="addRune()" style="color: #161616;">+ Add Rune</button>
+
+                                        <div class="btn-submit flex gap30 justify-center">
+                                          <button class="tf-button style-1 h50 w320" type="submit">Submit Rune<i class="icon-arrow-up-right2"></i></button>
+                                        </div>
+                                      </form>
                                   </div>
                               </div>
                           </div>

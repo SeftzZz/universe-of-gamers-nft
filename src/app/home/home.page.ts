@@ -37,6 +37,34 @@ export class HomePage implements OnInit {
 
   nft: any[] = []; // daftar NFT dari backend
 
+  charData: any = {
+    displayName: "",
+    element: "Fire",
+    level: 1,
+    hp: 0,
+    atk: 0,
+    def: 0,
+    spd: 0,
+    critRate: 0,
+    critDmg: 0,
+    basicAttack: { skillName: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" },
+    skillAttack: { skillName: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" },
+    ultimateAttack: { skillName: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" }
+  };
+
+  runeDefault = {
+    itemName: "",
+    hpBonus: 0,
+    atkBonus: 0,
+    defBonus: 0,
+    spdBonus: 0,
+    critRateBonus: 0,
+    critDmgBonus: 0,
+    description: ""
+  };
+
+  runeList: any[] = [];
+
   constructor(private fb: FormBuilder, private http: HttpClient, private idlService: Idl) {}
 
   async ngOnInit() {
@@ -170,6 +198,34 @@ export class HomePage implements OnInit {
     } catch (err) {
       console.error('❌ Error loading NFT:', err);
     }
+  }
+
+  submitCharacter() {
+    console.log("Submitting character:", this.charData);
+    this.http.post(`${environment.apiUrl}/nft/character`, this.charData).subscribe(res => {
+      console.log("✅ Character saved", res);
+    });
+  }
+
+  addRune() {
+    this.runeList.push({
+      itemName: "",
+      hpBonus: 0,
+      atkBonus: 0,
+      defBonus: 0,
+      spdBonus: 0,
+      critRateBonus: 0,
+      critDmgBonus: 0,
+      description: ""
+    });
+  }
+
+  submitRune() {
+    const allRunes = [this.runeDefault, ...this.runeList];
+    console.log("Submitting Runes:", allRunes);
+    this.http.post(`${environment.apiUrl}/nft/rune`, this.runeDefault).subscribe(res => {
+      console.log("✅ Rune saved", res);
+    });
   }
 
 }
