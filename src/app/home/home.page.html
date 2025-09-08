@@ -302,7 +302,7 @@
                                               <div class="flex gap30">
                                                   <fieldset class="basicSkillName">
                                                       <label>Skill Name</label>
-                                                      <input type="number" id="basicSkillName" placeholder="Basic skill name *" [(ngModel)]="charData.basicAttack.skillName" name="basicSkillName" tabindex="2" value="" aria-required="true" required="">
+                                                      <input type="text" id="basicSkillName" placeholder="Basic skill name *" [(ngModel)]="charData.basicAttack.skillName" name="basicSkillName" tabindex="2" value="" aria-required="true" required="">
                                                   </fieldset>
                                                   <fieldset class="basicAtkMultiplier">
                                                       <label>ATK Multiplier</label>
@@ -329,7 +329,7 @@
                                               <div class="flex gap30">
                                                   <fieldset class="skillSkillName">
                                                       <label>Skill Name</label>
-                                                      <input type="number" id="skillSkillName" placeholder="Skill name *" [(ngModel)]="charData.skillAttack.skillName" name="skillSkillName" tabindex="2" value="" aria-required="true" required="">
+                                                      <input type="text" id="skillSkillName" placeholder="Skill name *" [(ngModel)]="charData.skillAttack.skillName" name="skillSkillName" tabindex="2" value="" aria-required="true" required="">
                                                   </fieldset>
                                                   <fieldset class="skillAtkMultiplier">
                                                       <label>ATK Multiplier</label>
@@ -356,7 +356,7 @@
                                               <div class="flex gap30">
                                                   <fieldset class="ultimateSkillName">
                                                       <label>Skill Name</label>
-                                                      <input type="number" id="ultimateSkillName" placeholder="Skill name *" [(ngModel)]="charData.ultimateAttack.skillName" name="ultimateSkillName" tabindex="2" value="" aria-required="true" required="">
+                                                      <input type="text" id="ultimateSkillName" placeholder="Ultimate Skill name *" [(ngModel)]="charData.ultimateAttack.skillName" name="ultimateSkillName" tabindex="2" value="" aria-required="true" required="">
                                                   </fieldset>
                                                   <fieldset class="ultimateAtkMultiplier">
                                                       <label>ATK Multiplier</label>
@@ -409,10 +409,29 @@
                                           <label>Image URL *</label>
                                           <input type="text" id="image-nft" [(ngModel)]="formData.image" name="image" required>
                                         </fieldset>
+                                        
+                                        <!-- === edit by fpp 05/09/25 === -->
+                                        <!-- <fieldset class="character"> -->
+                                          <!-- <label>Character (ID Reference)</label> -->
+                                          <!-- <input type="text" id="character-nft" [(ngModel)]="formData.character" name="character" placeholder="ObjectId Character"> -->
+                                        <!-- </fieldset> -->
+
+                                        <!-- === add by fpp 05/09/25 === -->
                                         <fieldset class="character">
                                           <label>Character (ID Reference)</label>
-                                          <input type="text" id="character-nft" [(ngModel)]="formData.character" name="character" placeholder="ObjectId Character">
+                                          <ion-item>
+                                            <ion-select 
+                                              [(ngModel)]="formData.character" 
+                                              name="character" 
+                                              interface="popover" 
+                                              placeholder="Select Character">
+                                              <ion-select-option *ngFor="let c of characters" [value]="c._id">
+                                                {{ c.displayName }}
+                                              </ion-select-option>
+                                            </ion-select>
+                                          </ion-item>
                                         </fieldset>
+                                        <!-- =========================== -->
                                       </div>
 
                                       <fieldset class="description">

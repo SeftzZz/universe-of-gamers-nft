@@ -6,6 +6,8 @@ import { environment } from '../../environments/environment';
 import { Transaction } from '@solana/web3.js';
 import { Idl } from '../services/idl';
 
+import { ToastController } from '@ionic/angular'; // untuk notif ===add by fpp 05/09/25===
+
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -36,6 +38,8 @@ export class HomePage implements OnInit {
   selectedFile: File | null = null;
 
   nft: any[] = []; // daftar NFT dari backend
+  characters: any[] = [];   // daftar karakter dari backend ===add by fpp 05/09/25===
+  selectedCharacter: string | null = null; // ===add by fpp 05/09/25===
 
   charData: any = {
     displayName: "",
@@ -65,7 +69,12 @@ export class HomePage implements OnInit {
 
   runeList: any[] = [];
 
-  constructor(private fb: FormBuilder, private http: HttpClient, private idlService: Idl) {}
+  constructor(
+    private fb: FormBuilder,
+    private http: HttpClient,
+    private idlService: Idl,
+    private toastCtrl: ToastController   // untuk notif ===add by fpp 05/09/25===
+  ) {}
 
   async ngOnInit() {
     this.program = await this.idlService.loadProgram();
@@ -90,6 +99,7 @@ export class HomePage implements OnInit {
     }
 
     await this.loadNft();
+    await this.loadCharacters();   // load data karakter ===add by fpp 05/09/25===
   }
 
   async connectWallet() {
@@ -200,11 +210,76 @@ export class HomePage implements OnInit {
     }
   }
 
+  // ===add by fpp 05/09/25===
+  async loadCharacters() {
+    try {
+      const data: any = await this.http.get(`${environment.apiUrl}/characters`).toPromise();
+      this.characters = data;
+      console.log("Characters:", this.characters);
+    } catch (err) {
+      console.error("Error loading characters:", err);
+    }
+  }
+  // =========================
+
+  // ===add by fpp 05/09/25===
+  resetFormCreateCharacter() {
+    this.charData = {
+      displayName: "",
+      element: "Fire",
+      level: 1,
+      hp: 0,
+      atk: 0,
+      def: 0,
+      spd: 0,
+      critRate: 0,
+      critDmg: 0,
+      basicAttack: { skillName: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" },
+      skillAttack: { skillName: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" },
+      ultimateAttack: { skillName: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" }
+    };
+  }
+  // ==========================
+
   submitCharacter() {
     console.log("Submitting character:", this.charData);
-    this.http.post(`${environment.apiUrl}/nft/character`, this.charData).subscribe(res => {
-      console.log("✅ Character saved", res);
+    // ===edit by fpp 05/09/25===
+    // this.http.post(`${environment.apiUrl}/nft/character`, this.charData).subscribe(res => {
+    //   console.log("✅ Character saved", res);
+    // });
+    // ==========================
+
+    // ===add by fpp 05/09/25===
+    this.http.post(`${environment.apiUrl}/nft/character`, this.charData).subscribe({
+      next: async (res) => {
+        console.log("Character saved", res);
+        
+        // tampilkan toast sukses
+        const toast = await this.toastCtrl.create({
+          message: 'Character Successfully Created!',
+          duration: 5000,
+          color: 'success',
+          position: 'top'
+        });
+        toast.present();
+
+        // reset form setelah toast tampil
+        this.resetFormCreateCharacter();
+      },
+      error: async (err) => {
+        console.error("Error saving character", err);
+
+        // tampilkan toast error
+        const toast = await this.toastCtrl.create({
+          message: 'Failed to Create a Character!',
+          duration: 5000,
+          color: 'danger',
+          position: 'top'
+        });
+        toast.present();
+      }
     });
+    // ==========================
   }
 
   addRune() {
