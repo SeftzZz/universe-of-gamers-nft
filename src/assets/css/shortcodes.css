@@ -3935,6 +3935,19 @@ button.follow:hover {
     color: rgba(255, 255, 255, 0.53);
 }
 
+.widget-coins-item {
+  border: 2px solid transparent;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  &.active {
+    border-color: #DDf247; /* hijau */
+    background-color: rgba(221, 242, 71, 0.8);
+  }
+}
+
 /* widget-tabs */
 .widget-tabs .tf-soft {
     position: absolute;

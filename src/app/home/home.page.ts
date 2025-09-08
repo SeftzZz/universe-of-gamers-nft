@@ -161,35 +161,98 @@ export class HomePage implements OnInit {
     alert('Preview:\n' + JSON.stringify(data, null, 2));
   }
 
-  async submit() {
-    if (!this.userAddress) {
-      alert("Please connect wallet first");
-      return;
-    }
+  // async submit() {
+  //   if (!this.userAddress) {
+  //     alert("Please connect wallet first");
+  //     return;
+  //   }
 
-    this.formData.owner = this.userAddress;
+  //   this.formData.owner = this.userAddress;
+
+  //   try {
+  //     // 1. Request serialized tx dari backend
+  //     const txResp: any = await this.http.post(
+  //       `${environment.apiUrl}/nft/make-tx`,
+  //       { owner: this.userAddress, metadata: this.formData }
+  //     ).toPromise();
+
+  //     const txBase64 = txResp.tx;
+  //     const tx = Transaction.from(Buffer.from(txBase64, "base64"));
+
+  //     // 2. Phantom sign
+  //     const signedTx = await (window as any).solana.signTransaction(tx);
+
+  //     // 3. Kirim ke cluster
+  //     const connection = new Connection(environment.rpcUrl, 'confirmed');
+  //     const sig = await connection.sendRawTransaction(signedTx.serialize());
+  //     await connection.confirmTransaction(sig, 'confirmed');
+
+  //     console.log("✅ NFT Minted, signature:", sig);
+  //     alert("✅ NFT Minted\nTx: " + sig);
+
+  //   } catch (err) {
+  //     console.error("❌ Submit error", err);
+  //     if (err instanceof Error) {
+  //       alert("❌ Error: " + err.message);
+  //     } else {
+  //       alert("❌ Error: " + JSON.stringify(err));
+  //     }
+  //   }
+  // }
+
+  async submit() {
+    // if (!this.userAddress) {
+    //   alert("Please connect wallet first");
+    //   return;
+    // }
+
+    // this.formData.owner = this.userAddress;
 
     try {
-      // 1. Request serialized tx dari backend
-      const txResp: any = await this.http.post(
-        `${environment.apiUrl}/nft/make-tx`,
-        { owner: this.userAddress, metadata: this.formData }
+      // // === 1. Request tx dari backend
+      // const txResp: any = await this.http.post(
+      //   `${environment.apiUrl}/nft/make-tx`,
+      //   { owner: this.userAddress, metadata: this.formData }
+      // ).toPromise();
+
+      // const txBase64 = txResp.tx;
+      // const tx = Transaction.from(Buffer.from(txBase64, "base64"));
+
+      // // === 2. Phantom sign
+      // const signedTx = await (window as any).solana.signTransaction(tx);
+
+      // // === 3. Kirim ke cluster
+      // const connection = new Connection(environment.rpcUrl, 'confirmed');
+      // const sig = await connection.sendRawTransaction(signedTx.serialize());
+      // await connection.confirmTransaction(sig, 'confirmed');
+
+      // console.log("NFT Minted, signature:", sig);
+
+      // === 4. Simpan NFT ke MongoDB
+      const saveResp: any = await this.http.post(
+        `${environment.apiUrl}/nft`,
+        // { ...this.formData, owner: this.userAddress, txSignature: sig }  // pakai baris ini bila signya ada
+        { ...this.formData, owner: this.userAddress }
       ).toPromise();
 
-      const txBase64 = txResp.tx;
-      const tx = Transaction.from(Buffer.from(txBase64, "base64"));
+      console.log("NFT saved:", saveResp);
 
-      // 2. Phantom sign
-      const signedTx = await (window as any).solana.signTransaction(tx);
+      // alert("NFT Minted & Saved!\nTx: " + sig); // pakai baris ini bila signya ada
+      alert("NFT Minted & Saved!\nTx: ");
 
-      // 3. Kirim ke cluster
-      const connection = new Connection(environment.rpcUrl, 'confirmed');
-      const sig = await connection.sendRawTransaction(signedTx.serialize());
-      await connection.confirmTransaction(sig, 'confirmed');
-
-      console.log("✅ NFT Minted, signature:", sig);
-      alert("✅ NFT Minted\nTx: " + sig);
-
+      // reset form
+      this.formData = {
+        name: '',
+        description: '',
+        image: '',
+        price: 0,
+        metadata: '',
+        blockchain: '',
+        collection: '',
+        royalty: 0,
+        character: '',
+        owner: ''
+      };
     } catch (err) {
       console.error("❌ Submit error", err);
       if (err instanceof Error) {
@@ -199,6 +262,7 @@ export class HomePage implements OnInit {
       }
     }
   }
+
 
   async loadNft() {
     try {
