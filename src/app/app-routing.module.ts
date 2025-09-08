@@ -11,6 +11,10 @@ const routes: Routes = [
     redirectTo: 'home',
     pathMatch: 'full'
   },
+  {
+    path: 'token',
+    loadChildren: () => import('./pages/token/token.module').then( m => m.TokenPageModule)
+  },
 ];
 
 @NgModule({
