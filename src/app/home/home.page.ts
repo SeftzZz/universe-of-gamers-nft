@@ -201,44 +201,44 @@ export class HomePage implements OnInit {
   // }
 
   async submit() {
-    // if (!this.userAddress) {
-    //   alert("Please connect wallet first");
-    //   return;
-    // }
+    if (!this.userAddress) {
+      alert("Please connect wallet first");
+      return;
+    }
 
-    // this.formData.owner = this.userAddress;
+    this.formData.owner = this.userAddress;
 
     try {
-      // // === 1. Request tx dari backend
-      // const txResp: any = await this.http.post(
-      //   `${environment.apiUrl}/nft/make-tx`,
-      //   { owner: this.userAddress, metadata: this.formData }
-      // ).toPromise();
+      // === 1. Request tx dari backend
+      const txResp: any = await this.http.post(
+        `${environment.apiUrl}/nft/make-tx`,
+        { owner: this.userAddress, metadata: this.formData }
+      ).toPromise();
 
-      // const txBase64 = txResp.tx;
-      // const tx = Transaction.from(Buffer.from(txBase64, "base64"));
+      const txBase64 = txResp.tx;
+      const tx = Transaction.from(Buffer.from(txBase64, "base64"));
 
-      // // === 2. Phantom sign
-      // const signedTx = await (window as any).solana.signTransaction(tx);
+      // === 2. Phantom sign
+      const signedTx = await (window as any).solana.signTransaction(tx);
 
-      // // === 3. Kirim ke cluster
-      // const connection = new Connection(environment.rpcUrl, 'confirmed');
-      // const sig = await connection.sendRawTransaction(signedTx.serialize());
-      // await connection.confirmTransaction(sig, 'confirmed');
+      // === 3. Kirim ke cluster
+      const connection = new Connection(environment.rpcUrl, 'confirmed');
+      const sig = await connection.sendRawTransaction(signedTx.serialize());
+      await connection.confirmTransaction(sig, 'confirmed');
 
-      // console.log("NFT Minted, signature:", sig);
+      console.log("NFT Minted, signature:", sig);
 
       // === 4. Simpan NFT ke MongoDB
       const saveResp: any = await this.http.post(
         `${environment.apiUrl}/nft`,
-        // { ...this.formData, owner: this.userAddress, txSignature: sig }  // pakai baris ini bila signya ada
-        { ...this.formData, owner: this.userAddress }
+        { ...this.formData, owner: this.userAddress, txSignature: sig }  // pakai baris ini bila signya ada
+        // { ...this.formData, owner: this.userAddress }
       ).toPromise();
 
       console.log("NFT saved:", saveResp);
 
-      // alert("NFT Minted & Saved!\nTx: " + sig); // pakai baris ini bila signya ada
-      alert("NFT Minted & Saved!\nTx: ");
+      alert("NFT Minted & Saved!\nTx: " + sig); // pakai baris ini bila signya ada
+      // alert("NFT Minted & Saved!\nTx: ");
 
       // reset form
       this.formData = {
@@ -277,7 +277,7 @@ export class HomePage implements OnInit {
   // ===add by fpp 05/09/25===
   async loadCharacters() {
     try {
-      const data: any = await this.http.get(`${environment.apiUrl}/characters`).toPromise();
+      const data: any = await this.http.get(`${environment.apiUrl}/nft/character`).toPromise();
       this.characters = data;
       console.log("Characters:", this.characters);
     } catch (err) {
