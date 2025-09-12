@@ -1,0 +1,613 @@
+{
+  "version": "0.1.0",
+  "name": "universe_of_gamers",
+  "instructions": [
+    {
+      "name": "initializeMarket",
+      "docs": [
+        "Initialize Market Config + save fee rates"
+      ],
+      "accounts": [
+        {
+          "name": "marketConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryPda",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "mintFeeBps",
+          "type": "u16"
+        },
+        {
+          "name": "tradeFeeBps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "mintAndList",
+      "docs": [
+        "Mint + Create Metadata + Approve Escrow + Pay Minting Fee"
+      ],
+      "accounts": [
+        {
+          "name": "listing",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "escrowSigner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "seller",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "mint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sellerNftAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mintAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "marketConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "metadata",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMetadataProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "payer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "updateAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "price",
+          "type": "u64"
+        },
+        {
+          "name": "useSol",
+          "type": "bool"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "symbol",
+          "type": "string"
+        },
+        {
+          "name": "uri",
+          "type": "string"
+        },
+        {
+          "name": "sellerFeeBasisPoints",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "buyNft",
+      "docs": [
+        "Buy NFT"
+      ],
+      "accounts": [
+        {
+          "name": "listing",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "escrowSigner",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "buyer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "seller",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryPda",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "buyerNftAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "sellerNftAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "marketConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "withdrawTreasury",
+      "docs": [
+        "Withdraw treasury funds"
+      ],
+      "accounts": [
+        {
+          "name": "marketConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryPda",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initializeTreasury",
+      "accounts": [
+        {
+          "name": "treasuryPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "updateMarketConfig",
+      "accounts": [
+        {
+          "name": "marketConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": false,
+          "isSigner": true
+        }
+      ],
+      "args": [
+        {
+          "name": "newMintFeeBps",
+          "type": "u16"
+        },
+        {
+          "name": "newTradeFeeBps",
+          "type": "u16"
+        },
+        {
+          "name": "newTreasuryBump",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "migrateMarketConfig",
+      "accounts": [
+        {
+          "name": "legacyMarketConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "newMarketConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "mintFeeBps",
+          "type": "u16"
+        },
+        {
+          "name": "tradeFeeBps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "sendToken",
+      "accounts": [
+        {
+          "name": "sender",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "recipient",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mint",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "senderTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "recipientTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "marketConfig",
+          "isMut": false,
+          "isSigner": false,
+          "docs": [
+            "Market config (contains trade_fee_bps)"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "swapToken",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "dexProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "marketConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "data",
+          "type": "bytes"
+        },
+        {
+          "name": "inAmount",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Listing",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "seller",
+            "type": "publicKey"
+          },
+          {
+            "name": "nftMint",
+            "type": "publicKey"
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "useSol",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MarketConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "publicKey"
+          },
+          {
+            "name": "mintFeeBps",
+            "type": "u16"
+          },
+          {
+            "name": "tradeFeeBps",
+            "type": "u16"
+          },
+          {
+            "name": "treasuryBump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "Minted",
+      "fields": [
+        {
+          "name": "seller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "nftMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "price",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "Listed",
+      "fields": [
+        {
+          "name": "seller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "nftMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "price",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "Bought",
+      "fields": [
+        {
+          "name": "buyer",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "seller",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "nftMint",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "price",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "tradeFee",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "Swapped",
+      "fields": [
+        {
+          "name": "user",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "dexProgram",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "inAmount",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "tradeFee",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "tradeFeeBps",
+          "type": "u16",
+          "index": false
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidPrice",
+      "msg": "Invalid price"
+    },
+    {
+      "code": 6001,
+      "name": "FeeTooHigh",
+      "msg": "Fee too high"
+    },
+    {
+      "code": 6002,
+      "name": "UnsupportedProgram",
+      "msg": "Unsupported program id"
+    },
+    {
+      "code": 6003,
+      "name": "AccountDeserializeFailed",
+      "msg": "Account deserialization failed"
+    }
+  ]
+}

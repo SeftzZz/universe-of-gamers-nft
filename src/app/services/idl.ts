@@ -12,7 +12,7 @@ export class Idl {
   async loadProgram(): Promise<any> {
     console.log('🔄 Fetching IDL...');
     const idl = await this.http
-      .get('assets/idl/uog_marketplace.json', {
+      .get('assets/idl/universe_of_gamers.json', {
         headers: { 'Cache-Control': 'no-cache' }
       })
       .toPromise();
