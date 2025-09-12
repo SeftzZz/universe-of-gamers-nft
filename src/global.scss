@@ -244,3 +244,9 @@ textarea {
 .progress-wrap svg.progress-circle path {
   stroke: #3e77fc;
 }
+
+/* scrollbar */
+.section-menu-left .over-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(216.56deg,#524afc 5.32%,#1ac4fc 94.32%);
+    border-radius: 6px;
+}
