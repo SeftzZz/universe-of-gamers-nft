@@ -617,7 +617,7 @@
     content: "";
     top: 0;
     left: -36%;
-    background: linear-gradient(270deg, rgba(22, 22, 22, 0.00) 0%, #161616 100%);
+    /*background: linear-gradient(270deg, rgba(22, 22, 22, 0.00) 0%, #161616 100%);*/
     width: 255px;
     height: 408px;
     z-index: 10;
@@ -628,7 +628,7 @@
     content: "";
     top: 0;
     right: -36%;
-    background: linear-gradient(90deg, rgba(22, 22, 22, 0.00) 0%, #161616 100%);
+    /*background: linear-gradient(90deg, rgba(22, 22, 22, 0.00) 0%, #161616 100%);*/
     width: 255px;
     height: 408px;
     z-index: 10;

@@ -1830,7 +1830,7 @@ a:focus {
 }
 
 .tf-button.style-1.type-1:hover {
-    background-color: #DDF247;
+    /*background-color: #DDF247;*/
     color: #161616;
 }
 
@@ -2440,7 +2440,7 @@ animation-delay: 0.8s;
     line-height: 44px;
     font-size: 16px;
     font-weight: 900;
-    color: #DDF247;
+    color: #1ac4fc;
     left: 0;
     top: 0;
     height: 44px;
@@ -2467,7 +2467,7 @@ animation-delay: 0.8s;
   
 .progress-wrap svg.progress-circle path {
     box-sizing: border-box;
-    stroke: #DDF247;
+    stroke: #1ac4fc;
     stroke-width: 5;
     transition-property: all;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -2506,7 +2506,7 @@ animation-delay: 0.8s;
     margin-top: -40px;
     width: 80px;
     height: 80px;
-    background-color: #DDF247;
+    background-color: #1ac4fc;
     opacity: .3
 }
 

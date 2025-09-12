@@ -23,16 +23,16 @@ export class HomePage implements OnInit {
   blockchainSelected: string | null = null;
 
   formData: any = {
-    name: 'Monster UOG',
-    symbol: 'MUOG',
-    uri: 'https://metadata.universeofgamers.io/muog.json',
-    description: 'Monster with Trident',
-    price: '0.001',
-    properties: 'No Properties',
-    size: '10',
-    blockchain: 'Solana',
-    collection: 'UOG Collections',
-    royalty: '8',
+    name: '',
+    symbol: '',
+    uri: '',
+    description: '',
+    price: '',
+    properties: '',
+    size: '',
+    blockchain: '',
+    collection: '',
+    royalty: '',
     owner: this.userAddress,
   };
   selectedFile: File | null = null;
