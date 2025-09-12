@@ -1,0 +1,252 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import "~@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "~@ionic/angular/css/normalize.css";
+@import "~@ionic/angular/css/structure.css";
+@import "~@ionic/angular/css/typography.css";
+@import '~@ionic/angular/css/display.css';
+
+/* Optional CSS utils that can be commented out */
+@import "~@ionic/angular/css/padding.css";
+@import "~@ionic/angular/css/float-elements.css";
+@import "~@ionic/angular/css/text-alignment.css";
+@import "~@ionic/angular/css/text-transformation.css";
+@import "~@ionic/angular/css/flex-utils.css";
+
+a {
+    background-color: transparent;
+    color: var(--ion-color-light, #3d74fc);
+}
+
+.sc-ion-searchbar-md-h {
+    --background: var(--ion-background-color, #fff);
+    --border-radius: 10px;
+    --box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+    --cancel-button-color: var(--ion-color-step-900, var(--ion-text-color-step-100, #1a1a1a));
+    --clear-button-color: initial;
+    --color: var(--ion-color-step-850, var(--ion-text-color-step-150, #262626));
+    --icon-color: var(--ion-color-step-600, var(--ion-text-color-step-400, #666666));
+    -webkit-padding-start: 8px;
+    padding-inline-start: 8px;
+    -webkit-padding-end: 8px;
+    padding-inline-end: 8px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    background: inherit;
+}
+
+.widget-menu-tab li:hover, 
+.widget-menu-tab li.active {
+    color: #161616;
+    background: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+}
+
+button, input[type="button"], input[type="reset"], input[type="submit"] {
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 22px;
+    background: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+    color: rgba(22, 22, 22, 1);
+    border-radius: 14px;
+    padding: 10px;
+    height: 50px;
+    border: none;
+    display: inline-block;
+    -webkit-appearance: none;
+    -webkit-transition: all 
+ease 0.3s;
+    -moz-transition: all ease 0.3s;
+    transition: all 
+ease 0.3s;
+}
+
+.tf-button.style-1.active:hover {
+    background: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+}
+
+.widget-table-ranking .table-ranking-content .fl-row-ranking .td1, .widget-table-ranking .table-ranking-content .fl-row-ranking .td2, .widget-table-ranking .table-ranking-content .fl-row-ranking .td3, .widget-table-ranking .table-ranking-content .fl-row-ranking .td4, .widget-table-ranking .table-ranking-content .fl-row-ranking .td5, .widget-table-ranking .table-ranking-content .fl-row-ranking .td6, .widget-table-ranking .table-ranking-content .fl-row-ranking .td7 {
+    width: 101px;
+    display: flex
+;
+    align-items: center;
+    gap: 14px;
+    color: #fff;
+    font-size: 16px;
+    font-family: 'Azeret Mono';
+    font-weight: 500;
+    line-height: 15px;
+}
+
+#menu-mobile-menu li.current-menu-item > a, #menu-mobile-menu li a:hover, #menu-mobile-menu li.current-item a {
+    color: #3d74fc;
+}
+
+/* global.scss atau theme/variables.scss */
+ion-toast::part(message) {
+  font-size: 12px;
+}
+
+:root {
+    --ion-color-primary: linear-gradient(90deg, #524afc 0%, #1ac4fc 100%);
+    --ion-color-primary-rgb: 0, 84, 233;
+    --ion-color-primary-contrast: #fff;
+    --ion-color-primary-contrast-rgb: 255, 255, 255;
+    --ion-color-primary-shade: #004acd;
+    --ion-color-primary-tint: #1a65eb;
+    --ion-color-secondary: #0163aa;
+    --ion-color-secondary-rgb: 1, 99, 170;
+    --ion-color-secondary-contrast: #fff;
+    --ion-color-secondary-contrast-rgb: 255, 255, 255;
+    --ion-color-secondary-shade: #015796;
+    --ion-color-secondary-tint: #1a73b3;
+    --ion-color-tertiary: #6030ff;
+    --ion-color-tertiary-rgb: 96, 48, 255;
+    --ion-color-tertiary-contrast: #fff;
+    --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+    --ion-color-tertiary-shade: #542ae0;
+    --ion-color-tertiary-tint: #7045ff;
+    --ion-color-success: #2dd55b;
+    --ion-color-success-rgb: 45, 213, 91;
+    --ion-color-success-contrast: #000;
+    --ion-color-success-contrast-rgb: 0, 0, 0;
+    --ion-color-success-shade: #28bb50;
+    --ion-color-success-tint: #42d96b;
+    --ion-color-warning: #ffc409;
+    --ion-color-warning-rgb: 255, 196, 9;
+    --ion-color-warning-contrast: #000;
+    --ion-color-warning-contrast-rgb: 0, 0, 0;
+    --ion-color-warning-shade: #e0ac08;
+    --ion-color-warning-tint: #ffca22;
+    --ion-color-danger: #c5000f;
+    --ion-color-danger-rgb: 197, 0, 15;
+    --ion-color-danger-contrast: #fff;
+    --ion-color-danger-contrast-rgb: 255, 255, 255;
+    --ion-color-danger-shade: #ad000d;
+    --ion-color-danger-tint: #cb1a27;
+    --ion-color-light: #f4f5f8;
+    --ion-color-light-rgb: 244, 245, 248;
+    --ion-color-light-contrast: #000;
+    --ion-color-light-contrast-rgb: 0, 0, 0;
+    --ion-color-light-shade: #d7d8da;
+    --ion-color-light-tint: #f5f6f9;
+    --ion-color-medium: #636469;
+    --ion-color-medium-rgb: 99, 100, 105;
+    --ion-color-medium-contrast: #fff;
+    --ion-color-medium-contrast-rgb: 255, 255, 255;
+    --ion-color-medium-shade: #57585c;
+    --ion-color-medium-tint: #737478;
+    --ion-color-dark: #232323;
+    --ion-color-dark-rgb: 34, 36, 40;
+    --ion-color-dark-contrast: #fff;
+    --ion-color-dark-contrast-rgb: 255, 255, 255;
+    --ion-color-dark-shade: #1e2023;
+    --ion-color-dark-tint: #383a3e;
+}
+
+.btn-submit button.style-1 {
+    color: #161616;
+    background-image: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+}
+
+.section-menu-left .create a.tf-button.active {
+    color: #161616;
+    background-image: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    color: #fff;
+}
+
+.widget-coins-item {
+    &.active {
+        border-color: #1ac4fc;
+        background-color: rgba(26, 196, 252, 1);
+    }
+}
+
+textarea {
+    color: #8A8AA0;
+    font-size: 14px;
+    font-family: 'Azeret Mono';
+}
+
+#create .widget-menu-tab .item-title .order {
+    background-color: #1ac4fc;
+}
+
+.section-menu-left ul.menu-tab li.active, .section-menu-left ul.menu-tab li:hover {
+    color: #1ac4fc;
+}
+
+.section-menu-left ul.menu-tab li::before {
+    background-color: #1ac4fc;
+}
+
+.action__body {
+    background-image: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+}
+
+.tf-button.style-2 {
+    color: #1ac4fc;
+}
+
+.section-menu-left .create a.tf-button.active {
+    color: #161616;
+    background-image: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+}
+
+.tf-button.style-1.type-1:hover {
+  background-image: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+  transition: all 0.3s ease;
+}
+
+
+
+.tf-mouse-inner {
+    background-color: #1ac4fc;
+}
+
+.tf-mouse-inner.mouse-hover {
+    background-image: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+}
+
+.tf-mouse-outer {
+    border: 2px solid #1ac4fc;
+}
+
+/* preload */
+.preload-container .bar {
+  background: #3e77fc;
+}
+
+@keyframes loader {
+  0%   { transform: scaleY(0.1); }
+  50%  { transform: scaleY(1); }
+  100% { transform: scaleY(0.1); }
+}
+
+.progress-wrap::after {
+  color: #3e77fc;
+}
+
+.progress-wrap svg.progress-circle path {
+  stroke: #3e77fc;
+}
+
+/* scrollbar */
+.section-menu-left .over-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(216.56deg,#524afc 5.32%,#1ac4fc 94.32%);
+    border-radius: 6px;
+}

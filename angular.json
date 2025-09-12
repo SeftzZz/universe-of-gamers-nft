@@ -31,7 +31,11 @@
                 "output": "./svg"
               }
             ],
-            "styles": [],
+            "styles": [
+              {
+                "input": "src/global.scss"
+              },
+            ],
             "scripts": [],
             "allowedCommonJsDependencies": [
               "@solana/buffer-layout",
