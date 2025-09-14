@@ -5,6 +5,7 @@ import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { environment } from '../../environments/environment';
 import { Transaction } from '@solana/web3.js';
 import { Idl } from '../services/idl';
+import { NftService } from '../services/nft.service';
 
 import { ToastController } from '@ionic/angular'; // untuk notif ===add by fpp 05/09/25===
 
@@ -24,16 +25,12 @@ export class HomePage implements OnInit {
 
   formData: any = {
     name: '',
-    symbol: '',
-    uri: '',
     description: '',
-    price: '',
-    properties: '',
-    size: '',
-    blockchain: '',
-    collection: '',
+    image: '',
+    price: 0,
     royalty: '',
-    owner: this.userAddress,
+    character: '',
+    owner: ''
   };
   selectedFile: File | null = null;
 
@@ -42,22 +39,26 @@ export class HomePage implements OnInit {
   selectedCharacter: string | null = null; // ===add by fpp 05/09/25===
 
   charData: any = {
-    displayName: "",
+    name: "",
+    description: "",
+    image: "",
     element: "Fire",
-    level: 1,
-    hp: 0,
-    atk: 0,
-    def: 0,
-    spd: 0,
-    critRate: 0,
-    critDmg: 0,
-    basicAttack: { skillName: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" },
-    skillAttack: { skillName: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" },
-    ultimateAttack: { skillName: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" }
+
+    baseHp: 0,
+    baseAtk: 0,
+    baseDef: 0,
+    baseSpd: 0,
+    baseCritRate: 0,
+    baseCritDmg: 0,
+
+    basicAttack: { name: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" },
+    skillAttack: { name: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" },
+    ultimateAttack: { name: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" }
   };
 
   runeDefault = {
-    itemName: "",
+    name: "",
+    image: "",
     hpBonus: 0,
     atkBonus: 0,
     defBonus: 0,
@@ -73,7 +74,8 @@ export class HomePage implements OnInit {
     private fb: FormBuilder,
     private http: HttpClient,
     private idlService: Idl,
-    private toastCtrl: ToastController   // untuk notif ===add by fpp 05/09/25===
+    private toastCtrl: ToastController,   // untuk notif ===add by fpp 05/09/25===
+    private nftService: NftService
   ) {}
 
   async ngOnInit() {
@@ -161,112 +163,9 @@ export class HomePage implements OnInit {
     alert('Preview:\n' + JSON.stringify(data, null, 2));
   }
 
-  // async submit() {
-  //   if (!this.userAddress) {
-  //     alert("Please connect wallet first");
-  //     return;
-  //   }
-
-  //   this.formData.owner = this.userAddress;
-
-  //   try {
-  //     // 1. Request serialized tx dari backend
-  //     const txResp: any = await this.http.post(
-  //       `${environment.apiUrl}/nft/make-tx`,
-  //       { owner: this.userAddress, metadata: this.formData }
-  //     ).toPromise();
-
-  //     const txBase64 = txResp.tx;
-  //     const tx = Transaction.from(Buffer.from(txBase64, "base64"));
-
-  //     // 2. Phantom sign
-  //     const signedTx = await (window as any).solana.signTransaction(tx);
-
-  //     // 3. Kirim ke cluster
-  //     const connection = new Connection(environment.rpcUrl, 'confirmed');
-  //     const sig = await connection.sendRawTransaction(signedTx.serialize());
-  //     await connection.confirmTransaction(sig, 'confirmed');
-
-  //     console.log("✅ NFT Minted, signature:", sig);
-  //     alert("✅ NFT Minted\nTx: " + sig);
-
-  //   } catch (err) {
-  //     console.error("❌ Submit error", err);
-  //     if (err instanceof Error) {
-  //       alert("❌ Error: " + err.message);
-  //     } else {
-  //       alert("❌ Error: " + JSON.stringify(err));
-  //     }
-  //   }
-  // }
-
-  async submit() {
-    if (!this.userAddress) {
-      alert("Please connect wallet first");
-      return;
-    }
-
-    this.formData.owner = this.userAddress;
-
-    try {
-      // === 1. Request tx dari backend
-      const txResp: any = await this.http.post(
-        `${environment.apiUrl}/nft/make-tx`,
-        { owner: this.userAddress, metadata: this.formData }
-      ).toPromise();
-
-      const txBase64 = txResp.tx;
-      const tx = Transaction.from(Buffer.from(txBase64, "base64"));
-
-      // === 2. Phantom sign
-      const signedTx = await (window as any).solana.signTransaction(tx);
-
-      // === 3. Kirim ke cluster
-      const connection = new Connection(environment.rpcUrl, 'confirmed');
-      const sig = await connection.sendRawTransaction(signedTx.serialize());
-      await connection.confirmTransaction(sig, 'confirmed');
-
-      console.log("NFT Minted, signature:", sig);
-
-      // === 4. Simpan NFT ke MongoDB
-      const saveResp: any = await this.http.post(
-        `${environment.apiUrl}/nft`,
-        { ...this.formData, owner: this.userAddress, txSignature: sig }  // pakai baris ini bila signya ada
-        // { ...this.formData, owner: this.userAddress }
-      ).toPromise();
-
-      console.log("NFT saved:", saveResp);
-
-      alert("NFT Minted & Saved!\nTx: " + sig); // pakai baris ini bila signya ada
-      // alert("NFT Minted & Saved!\nTx: ");
-
-      // reset form
-      this.formData = {
-        name: '',
-        description: '',
-        image: '',
-        price: 0,
-        metadata: '',
-        blockchain: '',
-        collection: '',
-        royalty: 0,
-        character: '',
-        owner: ''
-      };
-    } catch (err) {
-      console.error("❌ Submit error", err);
-      if (err instanceof Error) {
-        alert("❌ Error: " + err.message);
-      } else {
-        alert("❌ Error: " + JSON.stringify(err));
-      }
-    }
-  }
-
-
   async loadNft() {
     try {
-      const data: any = await this.http.get(`${environment.apiUrl}/nft`).toPromise();
+      const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-nft`).toPromise();
       this.nft = data;
       console.log('📦 NFT List:', this.nft);
     } catch (err) {
@@ -277,7 +176,7 @@ export class HomePage implements OnInit {
   // ===add by fpp 05/09/25===
   async loadCharacters() {
     try {
-      const data: any = await this.http.get(`${environment.apiUrl}/nft/character`).toPromise();
+      const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-character`).toPromise();
       this.characters = data;
       console.log("Characters:", this.characters);
     } catch (err) {
@@ -289,66 +188,56 @@ export class HomePage implements OnInit {
   // ===add by fpp 05/09/25===
   resetFormCreateCharacter() {
     this.charData = {
-      displayName: "",
+      name: "",
+      description: "",
+      image: "",
       element: "Fire",
-      level: 1,
-      hp: 0,
-      atk: 0,
-      def: 0,
-      spd: 0,
-      critRate: 0,
-      critDmg: 0,
-      basicAttack: { skillName: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" },
-      skillAttack: { skillName: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" },
-      ultimateAttack: { skillName: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" }
+
+      baseHp: 0,
+      baseAtk: 0,
+      baseDef: 0,
+      baseSpd: 0,
+      baseCritRate: 0,
+      baseCritDmg: 0,
+
+      basicAttack: { name: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" },
+      skillAttack: { name: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" },
+      ultimateAttack: { name: "", atkMultiplier: 0, defMultiplier: 0, hpMultiplier: 0, description: "" }
     };
   }
   // ==========================
 
-  submitCharacter() {
-    console.log("Submitting character:", this.charData);
-    // ===edit by fpp 05/09/25===
-    // this.http.post(`${environment.apiUrl}/nft/character`, this.charData).subscribe(res => {
-    //   console.log("✅ Character saved", res);
-    // });
-    // ==========================
+  resetFormCreateNft() {
+    this.formData = {
+      name: '',
+      description: '',
+      image: '',
+      price: 0,
+      royalty: '',
+      attributes: [],
+      character: '',
+      owner: ''
+    };
+  }
 
-    // ===add by fpp 05/09/25===
-    this.http.post(`${environment.apiUrl}/nft/character`, this.charData).subscribe({
-      next: async (res) => {
-        console.log("Character saved", res);
-        
-        // tampilkan toast sukses
-        const toast = await this.toastCtrl.create({
-          message: 'Character Successfully Created!',
-          duration: 5000,
-          color: 'success',
-          position: 'top'
-        });
-        toast.present();
-
-        // reset form setelah toast tampil
-        this.resetFormCreateCharacter();
-      },
-      error: async (err) => {
-        console.error("Error saving character", err);
-
-        // tampilkan toast error
-        const toast = await this.toastCtrl.create({
-          message: 'Failed to Create a Character!',
-          duration: 5000,
-          color: 'danger',
-          position: 'top'
-        });
-        toast.present();
-      }
-    });
-    // ==========================
+  resetFormCreateRune() {
+    this.runeDefault = {
+      name: "",
+      image: "",
+      hpBonus: 0,
+      atkBonus: 0,
+      defBonus: 0,
+      spdBonus: 0,
+      critRateBonus: 0,
+      critDmgBonus: 0,
+      description: ""
+    };
   }
 
   addRune() {
     this.runeList.push({
-      itemName: "",
+      name: "",
+      image: "",
       hpBonus: 0,
       atkBonus: 0,
       defBonus: 0,
@@ -359,12 +248,110 @@ export class HomePage implements OnInit {
     });
   }
 
+  async submitNft() {
+    if (!this.userAddress) {
+      alert('Please connect wallet first');
+      return;
+    }
+
+    this.formData.owner = this.userAddress;
+
+    try {
+      // === 1. Mint NFT (web3 tx)
+      // const sig = await this.nftService.makeTransaction(this.userAddress, this.formData);
+      const sig = "txSignature";
+
+      // === 2. Simpan ke MongoDB
+      const saveResp = await this.nftService.saveNft({
+        ...this.formData,
+        owner: this.userAddress,
+        txSignature: sig
+      });
+
+      console.log('✅ NFT saved:', saveResp);
+
+      const toast = await this.toastCtrl.create({
+          message: "Character Successfully Created!",
+          duration: 5000,
+          color: "success",
+          position: "top"
+        });
+        toast.present();
+
+      // === 3. Reset form ===
+      this.resetFormCreateNft();
+    } catch (err) {
+      console.error('❌ Submit error', err);
+      if (err instanceof Error) {
+        alert('❌ Error: ' + err.message);
+      } else {
+        alert('❌ Error: ' + JSON.stringify(err));
+      }
+    }
+  }
+
+  submitCharacter() {
+    console.log("Submitting character:", this.charData);
+
+    this.http.post(`${environment.apiUrl}/nft/character`, this.charData).subscribe({
+      next: async (res) => {
+        console.log("✅ Character saved", res);
+
+        const toast = await this.toastCtrl.create({
+          message: "Character Successfully Created!",
+          duration: 5000,
+          color: "success",
+          position: "top"
+        });
+        toast.present();
+
+        this.resetFormCreateCharacter();
+      },
+      error: async (err) => {
+        console.error("❌ Error saving character", err);
+
+        const toast = await this.toastCtrl.create({
+          message: "Failed to Create a Character!",
+          duration: 5000,
+          color: "danger",
+          position: "top"
+        });
+        toast.present();
+      }
+    });
+  }
+
   submitRune() {
     const allRunes = [this.runeDefault, ...this.runeList];
     console.log("Submitting Runes:", allRunes);
-    this.http.post(`${environment.apiUrl}/nft/rune`, this.runeDefault).subscribe(res => {
-      console.log("✅ Rune saved", res);
+
+    this.http.post(`${environment.apiUrl}/nft/rune`, allRunes).subscribe({
+      next: async (res) => {
+        console.log("✅ Runes saved", res);
+
+        const toast = await this.toastCtrl.create({
+          message: "Rune Successfully Created!",
+          duration: 5000,
+          color: "success",
+          position: "top"
+        });
+        toast.present();
+
+        this.resetFormCreateRune();
+      },
+      error: async (err) => {
+        console.error("❌ Error saving runes", err);
+
+        const toast = await this.toastCtrl.create({
+          message: "Failed to Create a Rune!",
+          duration: 5000,
+          color: "danger",
+          position: "top"
+        });
+        toast.present();
+      }
     });
   }
+
 
 }

@@ -26,6 +26,23 @@
   text-decoration: none;
 }
 
+select {
+    border: none;
+    outline: 0;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    font-size: 14px;
+    font-family: 'Azeret Mono';
+    line-height: 22px;
+    border-radius: 12px;
+    padding: 15px 26px;
+    width: 100%;
+    background: #161616;
+    color: #fff;
+    height: 51.99px;
+}
+
 @media (max-width: 1200px) {
     .swiper-container-horizontal>.swiper-pagination-bullets, .swiper-pagination-custom, .swiper-pagination-fraction {
         bottom: 20px;
