@@ -28,7 +28,7 @@ export class HomePage implements OnInit {
     description: '',
     image: '',
     price: 0,
-    royalty: '',
+    royalty: 0,
     character: '',
     owner: ''
   };
@@ -43,6 +43,7 @@ export class HomePage implements OnInit {
     description: "",
     image: "",
     element: "Fire",
+    rarity: "Common",
 
     baseHp: 0,
     baseAtk: 0,
@@ -59,6 +60,7 @@ export class HomePage implements OnInit {
   runeDefault = {
     name: "",
     image: "",
+    rarity: "Common",
     hpBonus: 0,
     atkBonus: 0,
     defBonus: 0,
@@ -69,6 +71,18 @@ export class HomePage implements OnInit {
   };
 
   runeList: any[] = [];
+
+  // === Gatcha Pack ===
+  gatchaData: any = {
+    name: "",
+    description: "",
+    priceUOG: 0,
+    priceSOL: 0,
+  };
+  gatchaRewards: any[] = [
+    { type: "character", rarity: "Common", chance: 50 },
+    { type: "rune", rarity: "Rare", chance: 50 }
+  ];
 
   constructor(
     private fb: FormBuilder,
@@ -192,6 +206,7 @@ export class HomePage implements OnInit {
       description: "",
       image: "",
       element: "Fire",
+      rarity: "Common",
 
       baseHp: 0,
       baseAtk: 0,
@@ -213,7 +228,7 @@ export class HomePage implements OnInit {
       description: '',
       image: '',
       price: 0,
-      royalty: '',
+      royalty: 0,
       attributes: [],
       character: '',
       owner: ''
@@ -224,6 +239,7 @@ export class HomePage implements OnInit {
     this.runeDefault = {
       name: "",
       image: "",
+      rarity: "Common",
       hpBonus: 0,
       atkBonus: 0,
       defBonus: 0,
@@ -232,6 +248,17 @@ export class HomePage implements OnInit {
       critDmgBonus: 0,
       description: ""
     };
+    this.runeList = [];
+  }
+
+  resetFormCreateGatcha() {
+    this.gatchaData = {
+      name: "",
+      description: "",
+      priceUOG: 0,
+      priceSOL: 0,
+    };
+    this.gatchaRewards = [];
   }
 
   addRune() {
@@ -245,6 +272,14 @@ export class HomePage implements OnInit {
       critRateBonus: 0,
       critDmgBonus: 0,
       description: ""
+    });
+  }
+
+  addReward() {
+    this.gatchaRewards.push({
+      type: "character",
+      rarity: "Common",
+      chance: 0,
     });
   }
 
@@ -271,7 +306,7 @@ export class HomePage implements OnInit {
       console.log('✅ NFT saved:', saveResp);
 
       const toast = await this.toastCtrl.create({
-          message: "Character Successfully Created!",
+          message: "NFT Successfully Created!",
           duration: 5000,
           color: "success",
           position: "top"
@@ -353,5 +388,39 @@ export class HomePage implements OnInit {
     });
   }
 
+  submitGatcha() {
+    const payload = {
+      ...this.gatchaData,
+      rewards: this.gatchaRewards,
+    };
 
+    console.log("Submitting Gatcha Pack:", payload);
+
+    this.http.post(`${environment.apiUrl}/gatcha`, payload).subscribe({
+      next: async (res) => {
+        console.log("✅ Gatcha Pack saved", res);
+
+        const toast = await this.toastCtrl.create({
+          message: "Gatcha Pack Successfully Created!",
+          duration: 5000,
+          color: "success",
+          position: "top",
+        });
+        toast.present();
+
+        this.resetFormCreateGatcha();
+      },
+      error: async (err) => {
+        console.error("❌ Error saving gatcha pack", err);
+
+        const toast = await this.toastCtrl.create({
+          message: "Failed to Create Gatcha Pack!",
+          duration: 5000,
+          color: "danger",
+          position: "top",
+        });
+        toast.present();
+      },
+    });
+  }
 }
