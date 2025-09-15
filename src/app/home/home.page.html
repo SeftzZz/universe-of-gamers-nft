@@ -248,6 +248,9 @@
                               <li class="item-title">
                                   <span class="inner"><span class="order">4</span>Create Gatcha</span>
                               </li>
+                              <li class="item-title">
+                                  <span class="inner"><span class="order">5</span>Buy Gatcha</span>
+                              </li>
                           </ul>
                           <div class="widget-content-tab">
                               <div class="widget-content-inner submit active">
@@ -709,6 +712,41 @@
                                           </button>
                                         </div>
                                       </form>
+                                  </div>
+                              </div>
+                              <div class="widget-content-inner buy-gatcha">
+                                  <div class="wrap-content w-full">
+                                      <form id="gatcha-mint-form" class="comment-form" (ngSubmit)="buyAndMint()" novalidate>
+      
+                                        <!-- Select Gatcha Pack -->
+                                        <fieldset class="pack">
+                                          <label>Choose Gatcha Pack *</label>
+                                          <select id="packId" [(ngModel)]="gatchaForm.packId" name="packId" required>
+                                            <option *ngFor="let pack of gatchaPacks" [value]="pack._id">
+                                              {{ pack.name }} ({{ pack.priceUOG }} UOG / {{ pack.priceSOL }} SOL)
+                                            </option>
+                                          </select>
+                                        </fieldset>
+
+                                        <div class="btn-submit flex gap30 justify-center">
+                                          <button class="tf-button style-1 h50" type="submit">
+                                            Buy & Mint <i class="icon-arrow-up-right2"></i>
+                                          </button>
+                                        </div>
+                                      </form>
+
+                                      <!-- Result -->
+                                      <div *ngIf="mintResult" class="results mt-4">
+                                        <h3>🎉 Mint Success</h3>
+                                        <img [src]="mintResult.nft.image" alt="NFT" width="120" />
+                                        <p><strong>{{ mintResult.nft.name }}</strong> ({{ mintResult.rewardInfo.rarity }})</p>
+                                        <p>{{ mintResult.nft.description }}</p>
+                                        <p>Tx Signature: 
+                                          <a [href]="'https://explorer.solana.com/tx/' + mintResult.txSig + '?cluster=devnet'" target="_blank">
+                                            {{ mintResult.txSig }}
+                                          </a>
+                                        </p>
+                                      </div>
                                   </div>
                               </div>
                           </div>

@@ -84,6 +84,13 @@ export class HomePage implements OnInit {
     { type: "rune", rarity: "Rare", chance: 50 }
   ];
 
+  gatchaPacks: any[] = [];
+  mintResult: any = null;
+
+  gatchaForm: any = {
+    packId: '',
+  };
+
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
@@ -116,6 +123,7 @@ export class HomePage implements OnInit {
 
     await this.loadNft();
     await this.loadCharacters();   // load data karakter ===add by fpp 05/09/25===
+    await this.loadGatchaPacks();
   }
 
   async connectWallet() {
@@ -422,5 +430,49 @@ export class HomePage implements OnInit {
         toast.present();
       },
     });
+  }
+
+  async loadGatchaPacks() {
+    try {
+      const data: any = await this.http.get(`${environment.apiUrl}/gatcha`).toPromise();
+      this.gatchaPacks = data;
+    } catch (err) {
+      console.error("❌ Error loading gatcha packs:", err);
+    }
+  }
+
+  async buyAndMint() {
+    if (!this.userAddress) {
+      alert("⚠️ Please login with wallet first");
+      return;
+    }
+
+    try {
+      const resp: any = await this.http.post(
+        `${environment.apiUrl}/gatcha/${this.gatchaForm.packId}/pull`,
+        { user: this.userAddress }
+      ).toPromise();
+
+      console.log("🎲 Gatcha Mint Response:", resp);
+      this.mintResult = resp;
+
+      const toast = await this.toastCtrl.create({
+        message: `Mint success! NFT: ${resp.nft.name}`,
+        duration: 4000,
+        color: "success",
+        position: "top"
+      });
+      toast.present();
+
+    } catch (err) {
+      console.error("❌ Error minting gatcha:", err);
+      const toast = await this.toastCtrl.create({
+        message: "Failed to mint gatcha!",
+        duration: 4000,
+        color: "danger",
+        position: "top"
+      });
+      toast.present();
+    }
   }
 }
