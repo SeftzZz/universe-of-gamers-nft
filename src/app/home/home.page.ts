@@ -6,8 +6,24 @@ import { environment } from '../../environments/environment';
 import { Transaction } from '@solana/web3.js';
 import { Idl } from '../services/idl';
 import { NftService } from '../services/nft.service';
-
+import { firstValueFrom } from 'rxjs';
 import { ToastController } from '@ionic/angular'; // untuk notif ===add by fpp 05/09/25===
+
+interface IGatchaReward {
+  type: "character" | "rune";
+  rarity: string;
+  chance: number;
+  previewImages?: string[];
+}
+
+interface IGatchaPack {
+  _id: string;
+  name: string;
+  description: string;
+  priceUOG: number;
+  priceSOL: number;
+  rewards: IGatchaReward[];
+}
 
 @Component({
   selector: 'app-home',
@@ -36,6 +52,7 @@ export class HomePage implements OnInit {
 
   nft: any[] = []; // daftar NFT dari backend
   characters: any[] = [];   // daftar karakter dari backend ===add by fpp 05/09/25===
+  runes: any[] = [];   // daftar rune dari backend
   selectedCharacter: string | null = null; // ===add by fpp 05/09/25===
 
   charData: any = {
@@ -91,6 +108,16 @@ export class HomePage implements OnInit {
     packId: '',
   };
 
+  characterMap: Record<string, any[]> = {};
+  runeMap: Record<string, any[]> = {};
+
+  private shuffleArray<T>(array: T[]): T[] {
+    return array
+      .map(value => ({ value, sort: Math.random() }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ value }) => value);
+  }
+
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
@@ -123,6 +150,7 @@ export class HomePage implements OnInit {
 
     await this.loadNft();
     await this.loadCharacters();   // load data karakter ===add by fpp 05/09/25===
+    await this.loadRunes();
     await this.loadGatchaPacks();
   }
 
@@ -198,14 +226,89 @@ export class HomePage implements OnInit {
   // ===add by fpp 05/09/25===
   async loadCharacters() {
     try {
-      const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-character`).toPromise();
+      const data = await firstValueFrom(
+        this.http.get<any[]>(`${environment.apiUrl}/nft/fetch-character`)
+      );
       this.characters = data;
       console.log("Characters:", this.characters);
+
+      this.characterMap = data.reduce((acc: Record<string, any[]>, c: any) => {
+        acc[c.rarity] = [...(acc[c.rarity] || []), c];
+        return acc;
+      }, {} as Record<string, any[]>);
     } catch (err) {
-      console.error("Error loading characters:", err);
+      console.error("❌ Error loading characters:", err);
+      this.characters = [];
+      this.characterMap = {};
     }
   }
   // =========================
+
+  async loadRunes() {
+    try {
+      const data = await firstValueFrom(
+        this.http.get<any[]>(`${environment.apiUrl}/nft/rune`)
+      );
+      this.runes = data;
+      console.log("Runes:", this.runes);
+
+      this.runeMap = data.reduce((acc: Record<string, any[]>, r: any) => {
+        acc[r.rarity] = [...(acc[r.rarity] || []), r];
+        return acc;
+      }, {} as Record<string, any[]>);
+    } catch (err) {
+      console.error("❌ Error loading runes:", err);
+      this.runes = [];
+      this.runeMap = {};
+    }
+  }
+
+  async loadGatchaPacks() {
+    try {
+      const data = await firstValueFrom(
+        this.http.get<IGatchaPack[]>(`${environment.apiUrl}/gatcha`)
+      );
+
+      this.gatchaPacks = data.map((pack) => {
+        const rewardsWithPreview = pack.rewards.map((reward) => {
+          let pool: { image: string }[] = [];
+          if (reward.type === "character") {
+            pool = this.characterMap[reward.rarity] || [];
+          } else if (reward.type === "rune") {
+            pool = this.runeMap[reward.rarity] || [];
+          }
+
+          // 🔥 ambil acak maksimal 2 gambar
+          const preview = this.getRandomImages(pool, 2);
+
+          return { ...reward, previewImages: preview };
+        });
+        return { ...pack, rewards: rewardsWithPreview };
+      });
+
+      console.log("🎲 Loaded gatcha packs with previews:", this.gatchaPacks);
+    } catch (err) {
+      console.error("❌ Error loading gatcha packs:", err);
+      this.gatchaPacks = [];
+    }
+  }
+
+  getRewardImages(reward: any): string[] {
+    return reward.previewImages || ["fallback.png"];
+  }
+
+  private getRandomImages(pool: { image: string }[], max: number): string[] {
+    const result: string[] = [];
+    const copy = [...pool];
+
+    while (result.length < max && copy.length > 0) {
+      const idx = Math.floor(Math.random() * copy.length);
+      result.push(copy[idx].image);
+      copy.splice(idx, 1); // hapus supaya tidak dobel
+    }
+
+    return result;
+  }
 
   // ===add by fpp 05/09/25===
   resetFormCreateCharacter() {
@@ -432,15 +535,6 @@ export class HomePage implements OnInit {
     });
   }
 
-  async loadGatchaPacks() {
-    try {
-      const data: any = await this.http.get(`${environment.apiUrl}/gatcha`).toPromise();
-      this.gatchaPacks = data;
-    } catch (err) {
-      console.error("❌ Error loading gatcha packs:", err);
-    }
-  }
-
   async buyAndMint() {
     if (!this.userAddress) {
       alert("⚠️ Please login with wallet first");
@@ -473,6 +567,83 @@ export class HomePage implements OnInit {
         position: "top"
       });
       toast.present();
+    }
+  }
+
+  async buyAndMintPack(packId: string) {
+    if (!this.userAddress) {
+      alert("⚠️ Please login with wallet first");
+      return;
+    }
+
+    const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
+    if (packIndex === -1) return;
+
+    // Aktifkan animasi shuffle
+    this.gatchaPacks[packIndex].isShuffling = true;
+
+    // Shuffle 30 kali (100ms interval)
+    await this.shufflePackRewards(packId, 30, 100);
+
+    // Matikan animasi setelah shuffle selesai
+    this.gatchaPacks[packIndex].isShuffling = false;
+
+    try {
+      const resp: any = await this.http.post(
+        `${environment.apiUrl}/gatcha/${packId}/pull`,
+        { user: this.userAddress }
+      ).toPromise();
+
+      this.mintResult = resp;
+
+      // Simpan hasil akhir → trigger overlay
+      this.gatchaPacks[packIndex] = {
+        ...this.gatchaPacks[packIndex],
+        finalImage: resp.nft.image
+      };
+
+      const toast = await this.toastCtrl.create({
+        message: `Mint success! NFT: ${resp.nft.name}`,
+        duration: 4000,
+        color: "success",
+        position: "top"
+      });
+      toast.present();
+
+    } catch (err) {
+      console.error("❌ Error minting gatcha:", err);
+      const toast = await this.toastCtrl.create({
+        message: "Failed to mint gatcha!",
+        duration: 4000,
+        color: "danger",
+        position: "top"
+      });
+      toast.present();
+    }
+  }
+
+  private async shufflePackRewards(packId: string, times: number, delay: number) {
+    const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
+    if (packIndex === -1) return;
+
+    for (let i = 0; i < times; i++) {
+      const pack = this.gatchaPacks[packIndex];
+      pack.rewards = pack.rewards.map((reward: IGatchaReward) => {
+        let pool: { image: string }[] = [];
+        if (reward.type === "character") {
+          pool = this.characterMap[reward.rarity] || [];
+        } else if (reward.type === "rune") {
+          pool = this.runeMap[reward.rarity] || [];
+        }
+        const preview = this.getRandomImages(pool, 2);
+        return { ...reward, previewImages: preview };
+      });
+
+      // Replace biar Angular rerender
+      this.gatchaPacks[packIndex] = { ...pack };
+
+      // jeda sebentar (contoh 100ms)
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
 }

@@ -88,7 +88,7 @@
                       <i class="icon-create"></i>
                   </a>
               </div>
-              <div class="over-content">
+              <!-- <div class="over-content">
                   <div class="content">
                       <h6>Marketplace</h6>
                       <ul class="menu-tab">
@@ -221,7 +221,7 @@
                           </li>
                       </ul>
                   </div>
-              </div>
+              </div> -->
               <div class="bottom">
                   <p>© 2023 OpeN9</p>
                   <p>Made By Themesflat</p>
@@ -248,7 +248,7 @@
                               <li class="item-title">
                                   <span class="inner"><span class="order">4</span>Create Gatcha</span>
                               </li>
-                              <li class="item-title">
+                              <li class="item-title" (click)="loadGatchaPacks()">
                                   <span class="inner"><span class="order">5</span>Buy Gatcha</span>
                               </li>
                           </ul>
@@ -716,36 +716,88 @@
                               </div>
                               <div class="widget-content-inner buy-gatcha">
                                   <div class="wrap-content w-full">
-                                      <form id="gatcha-mint-form" class="comment-form" (ngSubmit)="buyAndMint()" novalidate>
-      
-                                        <!-- Select Gatcha Pack -->
-                                        <fieldset class="pack">
-                                          <label>Choose Gatcha Pack *</label>
-                                          <select id="packId" [(ngModel)]="gatchaForm.packId" name="packId" required>
-                                            <option *ngFor="let pack of gatchaPacks" [value]="pack._id">
-                                              {{ pack.name }} ({{ pack.priceUOG }} UOG / {{ pack.priceSOL }} SOL)
-                                            </option>
-                                          </select>
-                                        </fieldset>
+                                      <div class="inner-content">
+                                          <div class="heading-section">
+                                              <h2 class="tf-title pb-20">Buy Gatcha</h2>
+                                          </div>
+                                          <div class="top-collections style-bottom mb-40">
+                                              <div class="featured pt-10 swiper-container carousel3-type1" data-swiper='{
+                                                  "loop":false,
+                                                  "slidesPerView": 1,
+                                                  "spaceBetween": 25,
+                                                  "observer": true,
+                                                  "observeParents": true,
+                                                  "navigation": {
+                                                      "clickable": true,
+                                                      "nextEl": ".next-type1",
+                                                      "prevEl": ".prev-type1"
+                                                  },
+                                                  "pagination": {
+                                                      "el": ".pagination-type1",
+                                                      "clickable": true
+                                                  },
+                                                  "breakpoints": {
+                                                      "768": {
+                                                          "slidesPerView": 1
+                                                      },
+                                                      "1024": {
+                                                          "slidesPerView": 1
+                                                      }
+                                                  }
+                                              }'>
+                                                  <div class="swiper-wrapper">
+                                                    <div class="swiper-slide" *ngFor="let pack of gatchaPacks">
+                                                      <div class="tf-card-collection">
+                                                        <a href="javascript:void(0)">
+                                                          <div class="media-images-collection grid-2x2" [class.shuffling]="pack.isShuffling">
+                                                            <ng-container *ngFor="let reward of pack.rewards">
+                                                              <img *ngFor="let img of reward.previewImages | slice:0:4"
+                                                                   [src]="img"
+                                                                   [alt]="reward.type + ' ' + reward.rarity"
+                                                                   class="reward-img" />
+                                                            </ng-container>
 
-                                        <div class="btn-submit flex gap30 justify-center">
-                                          <button class="tf-button style-1 h50" type="submit">
-                                            Buy & Mint <i class="icon-arrow-up-right2"></i>
-                                          </button>
-                                        </div>
-                                      </form>
+                                                            <!-- Final Result Overlay -->
+                                                            <div class="final-overlay" *ngIf="pack.finalImage">
+                                                              <img [src]="pack.finalImage" alt="Final Result" class="final-img" />
+                                                            </div>
+                                                          </div>
+                                                        </a>
+                                                        <div class="card-bottom">
+                                                          <div class="author">
+                                                            <h5 style="font-size: 24px;">{{ pack.name }}</h5>
+                                                            <!-- <p>{{ pack.description }}</p> -->
+                                                          </div>
+                                                          <div class="bottom-right">
+                                                            <div class="shop"> 
+                                                              <div class="icon">
+                                                                <img src="assets/images/box-icon/coin-00.png" alt="">
+                                                              </div>
+                                                              <p>{{ pack.priceUOG }}</p>
+                                                            </div>
+                                                            <div class="shop" style="margin-right: 0px;border-right: 0px;"> 
+                                                              <div class="icon">
+                                                                <img src="assets/images/box-icon/coin-04.png" alt="">
+                                                              </div>
+                                                              <p>{{ pack.priceSOL }}</p>
+                                                            </div>
+                                                          </div>
+                                                        </div>
+                                                        <!-- Tombol Buy & Mint -->
+                                                        <div class="btn-submit flex gap30 justify-center mt-3">
+                                                          <button class="tf-button style-1 h40" (click)="buyAndMintPack(pack._id)">
+                                                            Buy & Mint <i class="icon-arrow-up-right2"></i>
+                                                          </button>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
 
-                                      <!-- Result -->
-                                      <div *ngIf="mintResult" class="results mt-4">
-                                        <h3>🎉 Mint Success</h3>
-                                        <img [src]="mintResult.nft.image" alt="NFT" width="120" />
-                                        <p><strong>{{ mintResult.nft.name }}</strong> ({{ mintResult.rewardInfo.rarity }})</p>
-                                        <p>{{ mintResult.nft.description }}</p>
-                                        <p>Tx Signature: 
-                                          <a [href]="'https://explorer.solana.com/tx/' + mintResult.txSig + '?cluster=devnet'" target="_blank">
-                                            {{ mintResult.txSig }}
-                                          </a>
-                                        </p>
+                                                  <div class="swiper-pagination pagination-type1"></div>
+                                                  <div class="swiper-button-next next-type1"></div>
+                                                  <div class="swiper-button-prev prev-type1"></div>
+                                              </div>
+                                          </div>
                                       </div>
                                   </div>
                               </div>
@@ -762,8 +814,7 @@
                               </div>
                               <h2>Discover, create and sell your own NFT</h2>
                               <div class="flat-button flex">
-                                  <a href="#" class="tf-button style-2 h50 w190 mr-10">Explore now<i class="icon-arrow-up-right2"></i></a>
-                                  <a href="#" class="tf-button style-2 h50 w230">Create your first NFT<i class="icon-arrow-up-right2"></i></a>
+                                  <a href="#" class="tf-button style-2 h50 w190 mr-10">Gatcha Now<i class="icon-arrow-up-right2"></i></a>
                               </div>
                               <div class="bg-home7">
                                   <div class="swiper-container autoslider3reverse" data-swiper='{
@@ -830,6 +881,81 @@
                                           </div>
                                           <div class="swiper-slide">
                                               <img src="assets/images/item-background/bg-action-1.png" alt="">
+                                          </div>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="widget-content-tab pt-10">
+                                  <div class="widget-content-inner active">
+                                      <div class="featured-item style-bottom">
+                                          <div class="featured pt-10 swiper-container carousel1" data-swiper='{
+                                              "loop":false,
+                                              "slidesPerView": 4,
+                                              "spaceBetween": 26.7,
+                                              "observer": true,
+                                              "observeParents": true,
+                                              "navigation": {
+                                                  "clickable": true,
+                                                  "nextEl": ".swiper-button-next",
+                                                  "prevEl": ".swiper-button-prev"
+                                              },
+                                              "pagination": {
+                                                  "el": ".swiper-pagination",
+                                                  "clickable": true
+                                              },
+                                              "breakpoints": {
+                                                  "768": {
+                                                      "slidesPerView": 2
+                                                  },
+                                                  "1300": {
+                                                      "slidesPerView": 3
+                                                  },
+                                                  "1500": {
+                                                      "slidesPerView": 4
+                                                  }
+                                              }
+                                          }'>
+                                              <div class="swiper-wrapper">
+                                                  <div class="swiper-slide">
+                                                      <div class="tf-card-box style-4" style="padding: 5px;border-radius: 12px;">
+                                                          <div class="card-media" style="margin-bottom: 0px;">
+                                                              <a href="#">
+                                                                  <img src="https://api.universeofgamers.io/uploads/characters/rakajin.jpg" alt="">
+                                                              </a>
+                                                          </div>
+                                                      </div>
+                                                  </div>
+                                                  <div class="swiper-slide">
+                                                      <div class="tf-card-box style-4" style="padding: 5px;border-radius: 12px;">
+                                                          <div class="card-media" style="margin-bottom: 0px;">
+                                                              <a href="#">
+                                                                  <img src="https://api.universeofgamers.io/uploads/characters/shinen.jpg" alt="">
+                                                              </a>
+                                                          </div>
+                                                      </div>
+                                                  </div>
+                                                  <div class="swiper-slide">
+                                                      <div class="tf-card-box style-4" style="padding: 5px;border-radius: 12px;">
+                                                          <div class="card-media" style="margin-bottom: 0px;">
+                                                              <a href="#">
+                                                                  <img src="https://api.universeofgamers.io/uploads/characters/thalmor.jpg" alt="">
+                                                              </a>
+                                                          </div>
+                                                      </div>
+                                                  </div>
+                                                  <div class="swiper-slide">
+                                                      <div class="tf-card-box style-4" style="padding: 5px;border-radius: 12px;">
+                                                          <div class="card-media" style="margin-bottom: 0px;">
+                                                              <a href="#">
+                                                                  <img src="https://api.universeofgamers.io/uploads/characters/eld.jpg" alt="">
+                                                              </a>
+                                                          </div>
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                              <div class="swiper-pagination"></div>
+                                              <div class="swiper-button-next"></div>
+                                              <div class="swiper-button-prev"></div>
                                           </div>
                                       </div>
                                   </div>
