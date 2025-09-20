@@ -4,17 +4,17 @@ import { FormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
-import { TokenPageRoutingModule } from './token-routing.module';
+import { ExplorerPageRoutingModule } from './explorer-routing.module';
 
-import { TokenPage } from './token.page';
+import { ExplorerPage } from './explorer.page';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    TokenPageRoutingModule
+    ExplorerPageRoutingModule
   ],
-  declarations: [TokenPage]
+  declarations: [ExplorerPage]
 })
-export class TokenPageModule {}
+export class ExplorerPageModule {}

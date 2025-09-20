@@ -1,11 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { environment } from '../../environments/environment';
-import { Transaction } from '@solana/web3.js';
-import { Idl } from '../services/idl';
-import { NftService } from '../services/nft.service';
+import { environment } from '../../../environments/environment';
+import { Idl } from '../../services/idl';
+import { NftService } from '../../services/nft.service';
 import { firstValueFrom } from 'rxjs';
 import { ToastController } from '@ionic/angular'; // untuk notif ===add by fpp 05/09/25===
 
@@ -100,6 +98,8 @@ export class HomePage implements OnInit {
     { type: "character", rarity: "Common", chance: 50 },
     { type: "rune", rarity: "Rare", chance: 50 }
   ];
+  uogToSolRate: number = 0; // rate 1 UOG → SOL
+  solToUogRate: number = 0; // rate 1 SOL → UOG
 
   gatchaPacks: any[] = [];
   mintResult: any = null;
@@ -145,49 +145,19 @@ export class HomePage implements OnInit {
     const saved = localStorage.getItem('walletAddress');
     if (saved) {
       this.userAddress = saved;
-      this.updateBalance();
     }
 
     await this.loadNft();
     await this.loadCharacters();   // load data karakter ===add by fpp 05/09/25===
     await this.loadRunes();
     await this.loadGatchaPacks();
-  }
-
-  async connectWallet() {
-    try {
-      const resp = await (window as any).solana.connect();
-      this.userAddress = resp.publicKey.toString();
-
-      if (this.userAddress) {
-        localStorage.setItem('walletAddress', this.userAddress);
-
-        // ✅ update ke formData
-        this.formData.owner = this.userAddress;
-      }
-
-      await this.updateBalance();
-    } catch (err) {
-      console.error('Wallet connect error', err);
-    }
+    await this.fetchRates();
   }
 
   disconnectWallet() {
     localStorage.removeItem('walletAddress');
     this.userAddress = null;
     this.balance = null;
-  }
-
-  async updateBalance() {
-    if (!this.userAddress) return;
-    try {
-      const connection = new Connection(environment.rpcUrl, 'confirmed');
-      const pubkey = new PublicKey(this.userAddress);
-      const lamports = await connection.getBalance(pubkey);
-      this.balance = lamports / LAMPORTS_PER_SOL;
-    } catch (err) {
-      console.error('Error fetch balance', err);
-    }
   }
 
   shorten(addr: string) {
@@ -535,41 +505,6 @@ export class HomePage implements OnInit {
     });
   }
 
-  async buyAndMint() {
-    if (!this.userAddress) {
-      alert("⚠️ Please login with wallet first");
-      return;
-    }
-
-    try {
-      const resp: any = await this.http.post(
-        `${environment.apiUrl}/gatcha/${this.gatchaForm.packId}/pull`,
-        { user: this.userAddress }
-      ).toPromise();
-
-      console.log("🎲 Gatcha Mint Response:", resp);
-      this.mintResult = resp;
-
-      const toast = await this.toastCtrl.create({
-        message: `Mint success! NFT: ${resp.nft.name}`,
-        duration: 4000,
-        color: "success",
-        position: "top"
-      });
-      toast.present();
-
-    } catch (err) {
-      console.error("❌ Error minting gatcha:", err);
-      const toast = await this.toastCtrl.create({
-        message: "Failed to mint gatcha!",
-        duration: 4000,
-        color: "danger",
-        position: "top"
-      });
-      toast.present();
-    }
-  }
-
   async buyAndMintPack(packId: string) {
     if (!this.userAddress) {
       alert("⚠️ Please login with wallet first");
@@ -578,6 +513,9 @@ export class HomePage implements OnInit {
 
     const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
     if (packIndex === -1) return;
+
+    // 🔥 Reset finalImage dulu sebelum mulai shuffle
+    this.gatchaPacks[packIndex].finalImage = null;
 
     // Aktifkan animasi shuffle
     this.gatchaPacks[packIndex].isShuffling = true;
@@ -588,15 +526,22 @@ export class HomePage implements OnInit {
     // Matikan animasi setelah shuffle selesai
     this.gatchaPacks[packIndex].isShuffling = false;
 
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4Yzc0MzllNWNkNGFmMTNiZjk0M2E3MCIsImVtYWlsIjoiYXJ5YXNlZnR6enpAZ21haWwuY29tIiwicHJvdmlkZXIiOiJjdXN0b2RpYWwiLCJpYXQiOjE3NTgzMzI5ODAsImV4cCI6MTc1ODQxOTM4MH0.asLYoQuoYWt7FnpfkF4rvxHj_ZtPhLc4KiNuNAcf1cI";
+
     try {
       const resp: any = await this.http.post(
-        `${environment.apiUrl}/gatcha/${packId}/pull`,
-        { user: this.userAddress }
+        `${environment.apiUrl}/gatcha/${packId}/pull/custodian`,
+        { user: this.userAddress },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       ).toPromise();
 
       this.mintResult = resp;
 
-      // Simpan hasil akhir → trigger overlay
+      // Simpan hasil akhir → trigger overlay baru
       this.gatchaPacks[packIndex] = {
         ...this.gatchaPacks[packIndex],
         finalImage: resp.nft.image
@@ -644,6 +589,34 @@ export class HomePage implements OnInit {
 
       // jeda sebentar (contoh 100ms)
       await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  async fetchRates() {
+    try {
+      const resp: any = await this.http
+        .get("https://api.coingecko.com/api/v3/simple/price?ids=universe-of-gamers&vs_currencies=sol")
+        .toPromise();
+
+      this.uogToSolRate = resp["universe-of-gamers"].sol; // 1 UOG = X SOL
+      this.solToUogRate = 1 / this.uogToSolRate;          // 1 SOL = Y UOG
+      console.log("✅ Rates loaded:", this.uogToSolRate, "SOL per UOG");
+    } catch (err) {
+      console.error("❌ Failed to fetch Coingecko rates", err);
+    }
+  }
+
+  // Dipanggil waktu user ubah priceUOG
+  onPriceUOGChange() {
+    if (this.uogToSolRate > 0) {
+      this.gatchaData.priceSOL = this.gatchaData.priceUOG * this.uogToSolRate;
+    }
+  }
+
+  // Dipanggil waktu user ubah priceSOL
+  onPriceSOLChange() {
+    if (this.solToUogRate > 0) {
+      this.gatchaData.priceUOG = this.gatchaData.priceSOL * this.solToUogRate;
     }
   }
 }

@@ -667,11 +667,19 @@
                                         <div class="flex gap30">
                                           <fieldset>
                                             <label>Price (UOG)</label>
-                                            <input type="number" [(ngModel)]="gatchaData.priceUOG" name="gatchaPriceUOG" step="0.1" />
+                                            <input type="number"
+                                                   [(ngModel)]="gatchaData.priceUOG"
+                                                   name="gatchaPriceUOG"
+                                                   step="0.1"
+                                                   (ngModelChange)="onPriceUOGChange()" />
                                           </fieldset>
                                           <fieldset>
                                             <label>Price (SOL)</label>
-                                            <input type="number" [(ngModel)]="gatchaData.priceSOL" name="gatchaPriceSOL" step="0.0001" />
+                                            <input type="number"
+                                                   [(ngModel)]="gatchaData.priceSOL"
+                                                   name="gatchaPriceSOL"
+                                                   step="0.0001"
+                                                   (ngModelChange)="onPriceSOLChange()" />
                                           </fieldset>
                                         </div>
 
@@ -741,7 +749,7 @@
                                                           "slidesPerView": 1
                                                       },
                                                       "1024": {
-                                                          "slidesPerView": 1
+                                                          "slidesPerView": 3
                                                       }
                                                   }
                                               }'>
@@ -890,7 +898,7 @@
                                       <div class="featured-item style-bottom">
                                           <div class="featured pt-10 swiper-container carousel1" data-swiper='{
                                               "loop":false,
-                                              "slidesPerView": 4,
+                                              "slidesPerView": 2,
                                               "spaceBetween": 26.7,
                                               "observer": true,
                                               "observeParents": true,
@@ -2756,12 +2764,12 @@
                                       <h6><a href="#">Phantom</a></h6>
                                       <p>Solana</p>
                                   </div>
-                                  <a (click)="connectWallet()" *ngIf="!userAddress" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
-                                  <div *ngIf="userAddress">
+                                  <!-- <a (click)="connectWallet()" *ngIf="!userAddress" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a> -->
+                                  <!-- <div *ngIf="userAddress">
                                     <p>Connected: {{ shorten(userAddress) }}</p>
                                     <p>Balance: {{ balance }} SOL</p>
                                     <button (click)="disconnectWallet()">Disconnect</button>
-                                  </div>
+                                  </div> -->
                               </div>
                           </div>
                       </div>
