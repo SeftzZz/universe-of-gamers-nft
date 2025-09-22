@@ -13,6 +13,7 @@ import { Browser } from '@capacitor/browser';
 import nacl from 'tweetnacl';
 import bs58 from 'bs58';
 import { GoogleLoginService } from '../services/google-login-service';
+import { AuthRedirect } from '../services/auth-redirect';
 
 let dappKeyPair: nacl.BoxKeyPair | null = null;
 
@@ -69,6 +70,7 @@ export class LoginPage implements OnInit {
     private modalService: Modal,
     private userService: User,
     private google: GoogleLoginService,
+    private authRedirect: AuthRedirect,
   ) {}
 
   ngOnInit() {
@@ -170,7 +172,7 @@ export class LoginPage implements OnInit {
               }
 
               this.showToast('Wallet connected ✅', 'success');
-              window.location.href = '/tabs/home';
+              this.authRedirect.redirectAfterLogin('/home');
             },
             error: (err) => {
               this.dismissLoading();
@@ -291,7 +293,7 @@ export class LoginPage implements OnInit {
 
         this.showToast('Login success 🎉', 'success');
         this.clearForm();
-        window.location.href = '/tabs/home';
+        this.authRedirect.redirectAfterLogin('/home');
       },
       error: (err) => {
         this.dismissLoading();
@@ -441,7 +443,7 @@ export class LoginPage implements OnInit {
       if (resp.authId) localStorage.setItem('userId', resp.authId);
       if (resp.token) this.auth.setToken(resp.token, resp.authId);
 
-      window.location.href = '/tabs/home';
+      this.authRedirect.redirectAfterLogin('/home');
 
     } catch (err) {
       console.error("❌ Import phrase error", err);
@@ -486,7 +488,7 @@ export class LoginPage implements OnInit {
       if (resp.authId) localStorage.setItem('userId', resp.authId);
       if (resp.token) this.auth.setToken(resp.token, resp.authId);
 
-      window.location.href = '/tabs/home';
+      this.authRedirect.redirectAfterLogin('/home');
 
     } catch (err) {
       console.error("❌ Import private key error", err);

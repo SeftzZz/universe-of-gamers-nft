@@ -4,9 +4,6 @@
   "instructions": [
     {
       "name": "initializeMarket",
-      "docs": [
-        "Initialize Market Config + save fee rates"
-      ],
       "accounts": [
         {
           "name": "marketConfig",
@@ -37,14 +34,36 @@
         {
           "name": "tradeFeeBps",
           "type": "u16"
+        },
+        {
+          "name": "relistFeeBps",
+          "type": "u16"
         }
       ]
     },
     {
-      "name": "mintAndList",
-      "docs": [
-        "Mint + Create Metadata + Approve Escrow + Pay Minting Fee"
+      "name": "initializeTreasury",
+      "accounts": [
+        {
+          "name": "treasuryPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
+      "args": []
+    },
+    {
+      "name": "mintAndList",
       "accounts": [
         {
           "name": "listing",
@@ -150,10 +169,47 @@
       ]
     },
     {
-      "name": "buyNft",
-      "docs": [
-        "Buy NFT"
+      "name": "relistNft",
+      "accounts": [
+        {
+          "name": "listing",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "seller",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "treasuryPda",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "marketConfig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
       ],
+      "args": [
+        {
+          "name": "newPrice",
+          "type": "u64"
+        },
+        {
+          "name": "useSol",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "buyNft",
       "accounts": [
         {
           "name": "listing",
@@ -210,9 +266,6 @@
     },
     {
       "name": "withdrawTreasury",
-      "docs": [
-        "Withdraw treasury funds"
-      ],
       "accounts": [
         {
           "name": "marketConfig",
@@ -221,7 +274,7 @@
         },
         {
           "name": "treasuryPda",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
@@ -241,27 +294,6 @@
           "type": "u64"
         }
       ]
-    },
-    {
-      "name": "initializeTreasury",
-      "accounts": [
-        {
-          "name": "treasuryPda",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "admin",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
     },
     {
       "name": "updateMarketConfig",
@@ -287,43 +319,12 @@
           "type": "u16"
         },
         {
+          "name": "newRelistFeeBps",
+          "type": "u16"
+        },
+        {
           "name": "newTreasuryBump",
           "type": "u8"
-        }
-      ]
-    },
-    {
-      "name": "migrateMarketConfig",
-      "accounts": [
-        {
-          "name": "legacyMarketConfig",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "newMarketConfig",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "admin",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "mintFeeBps",
-          "type": "u16"
-        },
-        {
-          "name": "tradeFeeBps",
-          "type": "u16"
         }
       ]
     },
@@ -370,7 +371,7 @@
           "isMut": false,
           "isSigner": false,
           "docs": [
-            "Market config (contains trade_fee_bps)"
+            "Market config"
           ]
         },
         {
@@ -415,8 +416,18 @@
           "isSigner": false
         },
         {
-          "name": "systemProgram",
+          "name": "outputMint",
           "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "treasuryTokenAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userOutTokenAccount",
+          "isMut": true,
           "isSigner": false
         }
       ],
@@ -479,113 +490,15 @@
             "type": "u16"
           },
           {
+            "name": "relistFeeBps",
+            "type": "u16"
+          },
+          {
             "name": "treasuryBump",
             "type": "u8"
           }
         ]
       }
-    }
-  ],
-  "events": [
-    {
-      "name": "Minted",
-      "fields": [
-        {
-          "name": "seller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "nftMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "price",
-          "type": "u64",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "Listed",
-      "fields": [
-        {
-          "name": "seller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "nftMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "price",
-          "type": "u64",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "Bought",
-      "fields": [
-        {
-          "name": "buyer",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "seller",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "nftMint",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "price",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "tradeFee",
-          "type": "u64",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "Swapped",
-      "fields": [
-        {
-          "name": "user",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "dexProgram",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "inAmount",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "tradeFee",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "tradeFeeBps",
-          "type": "u16",
-          "index": false
-        }
-      ]
     }
   ],
   "errors": [
@@ -601,13 +514,8 @@
     },
     {
       "code": 6002,
-      "name": "UnsupportedProgram",
-      "msg": "Unsupported program id"
-    },
-    {
-      "code": 6003,
-      "name": "AccountDeserializeFailed",
-      "msg": "Account deserialization failed"
+      "name": "InvalidOwner",
+      "msg": "Invalid Owner"
     }
   ]
 }

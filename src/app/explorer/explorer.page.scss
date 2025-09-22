@@ -1,0 +1,17 @@
+h1 {
+    font-size: 40px;
+}
+.tf-button.style-1 {
+    width: 170px;
+    height: 44px;
+    gap: 10px;
+    flex-shrink: 0;
+    background: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+}
+.tf-soft .btn-secondary:active, .btn-secondary.active, .tf-soft .show > .btn-secondary.dropdown-toggle {
+    background: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+    color: #161616;
+}
+h5.name {
+    font-size: 22px;
+}

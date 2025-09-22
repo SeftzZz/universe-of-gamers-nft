@@ -11,8 +11,12 @@ const routes: Routes = [
     canActivate: [LoginGuard]
   },
   {
+    path: 'explorer',
+    loadChildren: () => import('./explorer/explorer.module').then( m => m.ExplorerPageModule)
+  },
+  {
     path: '',
-    redirectTo: 'login',
+    redirectTo: 'explorer',
     pathMatch: 'full'
   },
   {
@@ -28,6 +32,12 @@ const routes: Routes = [
   {
     path: 'offline',
     loadChildren: () => import('./pages/offline/offline.module').then( m => m.OfflinePageModule)
+  },
+  {
+    path: 'nft-detail/:mintAddress',
+    loadChildren: () =>
+      import('./pages/nft-detail/nft-detail.module').then((m) => m.NftDetailPageModule),
+    canActivate: [AuthGuard], // ✅ Proteksi home (semua child termasuk home)
   },
 ];
 
