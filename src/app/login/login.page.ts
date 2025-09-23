@@ -536,4 +536,16 @@ export class LoginPage implements OnInit {
     }
   }
 
+  // === Logout user ===
+  logout() {
+    this.auth.logout(); // hapus token, authId, userId (sudah ada di Auth service)
+    localStorage.removeItem('walletAddress');
+    localStorage.removeItem('wallets');
+
+    this.showToast('You have been logged out', 'success');
+
+    //redirect ke explorer
+    window.location.href = 'http://localhost:8100/explorer';
+  }
+
 }

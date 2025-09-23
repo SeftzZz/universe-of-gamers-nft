@@ -250,3 +250,74 @@ textarea {
     background: linear-gradient(216.56deg,#524afc 5.32%,#1ac4fc 94.32%);
     border-radius: 6px;
 }
+
+.tf-color {
+    color: #1ac4fc !important;
+}
+
+input:checked~.btn-checkbox {
+    background-color: #1ac4fc;
+    border: 1px solid #1ac4fc;
+}
+
+.tf-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    border: none;
+    color: #161616;
+    background-color: #DEE8E8;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    width: 116px;
+    height: 42px;
+    text-transform: capitalize;
+    -webkit-transition: all 0.3s ease;
+    -moz-transition   : all 0.3s ease;
+    -ms-transition    : all 0.3s ease;
+    -o-transition     : all 0.3s ease;
+    transition        : all 0.3s ease;
+}
+
+.tf-button:hover,
+.tf-button.active {
+    color: #161616;
+    background: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+}
+
+.tf-button-loadmore {
+    width: 160px;
+    height: 44px;
+    padding: 10px;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    border-radius: 12px;
+    background: #DEE8E8;
+    cursor: pointer;
+    -webkit-transition: all 0.3s ease;
+    -moz-transition   : all 0.3s ease;
+    -ms-transition    : all 0.3s ease;
+    -o-transition     : all 0.3s ease;
+    transition        : all 0.3s ease;
+}
+
+.tf-button-loadmore:hover {
+    background: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+}
+
+a:hover,
+a:focus {
+    color             : #1ac4fc;
+    text-decoration   : none;
+    outline           : 0;
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition   : all 0.3s ease-in-out;
+    -ms-transition    : all 0.3s ease-in-out;
+    -o-transition     : all 0.3s ease-in-out;
+    transition        : all 0.3s ease-in-out;
+}

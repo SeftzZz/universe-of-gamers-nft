@@ -3,13 +3,19 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { Router } from '@angular/router';
+import { ToastController } from '@ionic/angular';
 
 @Injectable({
   providedIn: 'root'
 })
 export class Auth {
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private toastCtrl: ToastController   // inject ToastController
+  ) {}
 
   // === Register Local ===
   register(data: { name: string; email: string; password: string; acceptedTerms: boolean }): Observable<any> {
@@ -73,5 +79,23 @@ export class Auth {
     localStorage.removeItem('token');
     localStorage.removeItem('authId');
     localStorage.removeItem('userId');
+
+    localStorage.removeItem('walletAddress');
+    localStorage.removeItem('wallets');
+
+    // tampilkan toast
+    this.toastCtrl.create({
+      message: 'Logout Success',
+      duration: 5000,
+      color: 'success',
+      position: 'top'
+    }).then(toast => {
+      toast.present();
+    });
+
+    // redirect setelah 10 detik
+    setTimeout(() => {
+      this.router.navigateByUrl('/explorer', { replaceUrl: true });
+    }, 10000);
   }
 }
