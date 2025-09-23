@@ -114,7 +114,7 @@ export class NftDetailPage implements OnInit {
     this.loading = true;
     try {
       this.metadata = await this.http
-        .get(`${environment.apiUrl}/nft/${mintAddress}/metadata`)
+        .get(`${environment.apiUrl}/nft/${mintAddress}/onchain`)
         .toPromise();
 
       console.log('✅ NFT Metadata:', this.metadata);
