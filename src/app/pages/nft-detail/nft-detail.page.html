@@ -138,7 +138,7 @@
                                       </a>
                                     </div>
                                     <h6 class="price gem">
-                                      <i class="icon-gem"></i> {{ metadata.price || 0 }} SOL
+                                      <i class="icon-gem"></i>
                                     </h6>
                                     <div class="wishlist-button">10<i class="icon-heart"></i></div>
                                     <div class="featured-countdown">
@@ -184,24 +184,12 @@
                                     <!-- Nama NFT -->
                                     <h2>{{ metadata?.name }}</h2>
 
-                                    <!-- Owner -->
-                                    <div class="author flex items-center mb-30" *ngIf="metadata">
-                                      <div class="avatar">
-                                        <img src="assets/images/avatar/avatar-box-05.jpg" alt="Owner">
-                                      </div>
-                                      <div class="info">
-                                        <span>Owned by:</span>
-                                        <h6>
-                                          {{ shortenAddress(metadata.properties?.creators?.[0]?.address) || 'Unknown' }}
-                                        </h6>
-                                      </div>
-                                    </div>
-
                                     <!-- Meta -->
                                     <div class="meta mb-20">
-                                      <div class="meta-item view"><i class="icon-show"></i>208 views</div>
-                                      <div class="meta-item rating"><i class="icon-link-2"></i>Top trending</div>
+                                      <div class="meta-item view"><i class="icon-show"></i>{{ shortenAddress(metadata.properties?.creators?.[0]?.address) || 'Unknown' }}</div>
+                                      <div class="meta-item rating" (click)="openSolscan()"><i class="icon-arrow-up-right2"></i>View on Solscan</div>
                                       <div class="meta-item favorites"><i class="icon-heart"></i>10 favorites</div>
+                                      <div class="meta-item favorites"><i class="icon-heart"></i>Earnings {{ metadata.seller_fee_basis_points / 100 }}%</div>
                                     </div>
                                   </div>
 
@@ -225,7 +213,9 @@
                                       <p>{{ metadata.description }}</p>
                                     </div>
                                   </div>
+                                </div>
 
+                                <div class="col-md-12" *ngIf="metadata">
                                   <!-- Attributes -->
                                   <div class="product-item traits style-1">
                                     <h6><i class="icon-description"></i>Traits</h6>
@@ -237,22 +227,43 @@
                                       </div>
                                     </div>
                                   </div>
+                                </div>
 
-                                  <!-- Details -->
-                                  <div class="product-item details">
-                                    <h6><i class="icon-description"></i>Details</h6>
-                                    <i class="icon-keyboard_arrow_down"></i>
-                                    <div class="content">
-                                      <div class="details-item">
-                                        <span>External URL</span>
-                                        <span class="tf-color"><a [href]="metadata.external_url" target="_blank">{{ shortenUrl(metadata.external_url) }}</a></span>
-                                      </div>
-                                      <div class="details-item mb-0">
-                                        <span>Creator Earnings</span>
-                                        <span>{{ metadata.seller_fee_basis_points / 100 }}%</span>
-                                      </div>
+                                <div class="col-12" *ngIf="metadata">
+                                    <div class="product-item item-activity mb-0">
+                                        <h6><i class="icon-two-arrow rotateZ90"></i>Item activity</h6>
+                                        <i class="icon-keyboard_arrow_down"></i>
+                                        <div class="content">
+                                            <div class="table-heading">
+                                                <div class="column">Event</div>
+                                                <div class="column">Amount</div>
+                                                <div class="column">Form</div>
+                                                <div class="column">To</div>
+                                                <div class="column">Date</div>
+                                            </div>
+                                            <div 
+                                                class="table-item" 
+                                                *ngFor="let h of metadata.history">
+                                                <div class="column flex items-center">
+                                                  <i class="icon-two-arrow"></i>{{ h.event }}
+                                                </div>
+                                                <div class="column">{{ h.amount }}</div>
+                                                <div class="column">
+                                                  <span class="tf-color">
+                                                    {{ h.from ? shortenAddress(h.from) : '-' }}
+                                                  </span>
+                                                </div>
+                                                <div class="column">
+                                                  <span class="tf-color">
+                                                    {{ h.to ? shortenAddress(h.to) : (shortenAddress(metadata.properties?.creators?.[0]?.address) || 'Unknown') }}
+                                                  </span>
+                                                </div>
+                                                <div class="column">
+                                                  {{ h.blockTime }}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                  </div>
                                 </div>
 
                             </div>
