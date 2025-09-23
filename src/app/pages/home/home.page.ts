@@ -6,6 +6,7 @@ import { Idl } from '../../services/idl';
 import { NftService } from '../../services/nft.service';
 import { firstValueFrom } from 'rxjs';
 import { ToastController } from '@ionic/angular'; // untuk notif ===add by fpp 05/09/25===
+import { Auth } from '../../services/auth';
 
 interface IGatchaReward {
   type: "character" | "rune";
@@ -123,7 +124,8 @@ export class HomePage implements OnInit {
     private http: HttpClient,
     private idlService: Idl,
     private toastCtrl: ToastController,   // untuk notif ===add by fpp 05/09/25===
-    private nftService: NftService
+    private nftService: NftService,
+    private auth: Auth   //inject Auth service
   ) {}
 
   async ngOnInit() {
@@ -618,5 +620,9 @@ export class HomePage implements OnInit {
     if (this.solToUogRate > 0) {
       this.gatchaData.priceUOG = this.gatchaData.priceSOL * this.solToUogRate;
     }
+  }
+
+  logout() {
+    this.auth.logout();
   }
 }

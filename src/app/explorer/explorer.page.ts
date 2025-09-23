@@ -270,4 +270,16 @@ export class ExplorerPage implements OnInit {
       this.router.navigate([target]);
     }
   }
+
+  itemsToShowCharacter = 8; // jumlah awal tampil character
+  loadStepCharacter = 8;    // jumlah tambahan character tiap diklik
+  loadMoreCharacter() {
+    this.itemsToShowCharacter += this.loadStepCharacter;
+  }
+
+  itemsToShowRune = 8; // jumlah awal tampil rune
+  loadStepRune = 8;    // jumlah tambahan rune tiap diklik
+  loadMoreRune() {
+    this.itemsToShowRune += this.loadStepRune;
+  }
 }
