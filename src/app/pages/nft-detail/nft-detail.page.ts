@@ -18,7 +18,10 @@ import {
   transition,
   style,
   animate
-} from '@angular/animations'
+} from '@angular/animations';
+
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 @Component({
   selector: 'app-nft-detail',
@@ -154,7 +157,7 @@ export class NftDetailPage implements OnInit {
   async refreshMetadata() {
     try {
       await this.http
-        .post(`${environment.apiUrl}/nft/${this.mintAddress}/metadata`, {})
+        .post(`${environment.apiUrl}/nft/${this.mintAddress}/onchain`, {})
         .toPromise();
 
       await this.loadMetadata(this.mintAddress);
@@ -315,6 +318,19 @@ export class NftDetailPage implements OnInit {
       await toast.present();
     } finally {
       this.isSending = false;
+    }
+  }
+
+  async openSolscan() {
+    const mintAddress = this.route.snapshot.paramMap.get('mintAddress'); // ✅ pakai mintAddress
+    const solscanUrl = `https://solscan.io/token/${mintAddress}?cluster=mainnet-beta`;
+
+    if (Capacitor.isNativePlatform()) {
+      // buka in-app browser (native)
+      await Browser.open({ url: solscanUrl });
+    } else {
+      // fallback kalau di web biasa
+      window.open(solscanUrl, '_blank');
     }
   }
 

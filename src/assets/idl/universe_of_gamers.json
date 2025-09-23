@@ -233,7 +233,7 @@
         },
         {
           "name": "treasuryPda",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false
         },
         {
