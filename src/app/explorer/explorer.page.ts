@@ -271,15 +271,48 @@ export class ExplorerPage implements OnInit {
     }
   }
 
-  itemsToShowCharacter = 8; // jumlah awal tampil character
-  loadStepCharacter = 8;    // jumlah tambahan character tiap diklik
-  loadMoreCharacter() {
-    this.itemsToShowCharacter += this.loadStepCharacter;
+  isOpen = false;
+  selected = '';
+  activeTab: 'character' | 'rune' = 'character';
+
+  // pagination
+  itemsToShowCharacter = 8;
+  itemsToShowRune = 8;
+  loadStep = 8;
+
+  toggleDropdown() {
+    this.isOpen = !this.isOpen;
   }
 
-  itemsToShowRune = 8; // jumlah awal tampil rune
-  loadStepRune = 8;    // jumlah tambahan rune tiap diklik
-  loadMoreRune() {
-    this.itemsToShowRune += this.loadStepRune;
+  switchTab(tab: 'character' | 'rune') {
+    this.activeTab = tab;
+    this.isOpen = false; // tutup dropdown saat ganti tab
   }
+
+  sortData(type: string) {
+    let target = this.activeTab === 'character' ? this.nftCharacter : this.nftRune;
+
+    if (type === 'recent') {
+      target.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      this.selected = 'Recently added';
+    } else if (type === 'low') {
+      target.sort((a, b) => a.price - b.price);
+      this.selected = 'Price: Low to High';
+    } else if (type === 'high') {
+      target.sort((a, b) => b.price - a.price);
+      this.selected = 'Price: High to Low';
+    }
+
+    this.isOpen = false; // otomatis tutup dropdown setelah pilih
+  }
+
+  loadMoreCharacter() {
+    this.itemsToShowCharacter += this.loadStep;
+  }
+
+  loadMoreRune() {
+    this.itemsToShowRune += this.loadStep;
+  }
+
+
 }
