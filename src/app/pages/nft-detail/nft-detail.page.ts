@@ -282,7 +282,7 @@ export class NftDetailPage implements OnInit {
 
       // 🔥 Panggil backend (custodian yang handle buy_nft)
       const buyRes: any = await this.http
-        .post(`${environment.apiUrl}/auth/nft/${mintAddress}/buy?demo=true`, {})
+        .post(`${environment.apiUrl}/auth/nft/${mintAddress}/buy?demo=false`, {})
         .toPromise();
 
       if (!buyRes.signature) throw new Error("❌ No signature returned from backend");

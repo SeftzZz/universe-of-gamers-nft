@@ -321,3 +321,25 @@ a:focus {
     -o-transition     : all 0.3s ease-in-out;
     transition        : all 0.3s ease-in-out;
 }
+
+.tf-soft .dropdown-item:hover {
+    background-color: #1ac4fc;
+}
+
+.tf-soft .btn-secondary:active, .btn-secondary.active,
+.tf-soft .show > .btn-secondary.dropdown-toggle {
+    background-color: #1ac4fc;
+    color: #161616;
+    border-color: #1ac4fc;
+}
+
+.dropdown .btn-secondary:hover {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background-color: #1ac4fc;
+}
+
+.tf-soft .dropdown-menu h6 {
+    font-size: 18px;
+    margin: 5px 10px 0px 10px;
+    padding: 10px 10px 10px 0px;
+}
