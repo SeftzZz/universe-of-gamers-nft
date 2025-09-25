@@ -79,8 +79,9 @@ export class Auth {
     localStorage.removeItem('token');
     localStorage.removeItem('authId');
     localStorage.removeItem('userId');
-
+    localStorage.removeItem('userProfile');
     localStorage.removeItem('walletAddress');
+    localStorage.removeItem('walletTokens');
     localStorage.removeItem('wallets');
 
     // tampilkan toast

@@ -13,6 +13,7 @@ export interface UserProfile {
   notifyEmail: boolean;
   avatar: string;
   custodialWallets: CustodialWallet[];
+  role?: string;
 }
 
 @Injectable({
