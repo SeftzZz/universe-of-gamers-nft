@@ -1,0 +1,592 @@
+<ion-content>  
+  <app-market-layout>
+      <div class="content-tabs">
+          <div class="">
+            <div class="wrapper-content-create">
+                <div class="heading-section">
+                    <h2 class="tf-title pb-30">Create New File</h2>
+                </div>
+                <div class="widget-tabs relative">
+                    <ul class="widget-menu-tab">
+                        <li class="item-title">
+                            <span class="inner"><span class="order">1</span>Create Characters <i class="icon-keyboard_arrow_right"></i></span>
+                        </li>
+                        <li class="item-title">
+                            <span class="inner"><span class="order">2</span>Submit NFT <i class="icon-keyboard_arrow_right"></i></span>
+                        </li>
+                        <li class="item-title">
+                            <span class="inner"><span class="order">3</span>Create Rune Items <i class="icon-keyboard_arrow_right"></i></span>
+                        </li>
+                        <li class="item-title">
+                            <span class="inner"><span class="order">4</span>Create Gatcha</span>
+                        </li>
+                        <li class="item-title active" (click)="loadGatchaPacks()">
+                            <span class="inner"><span class="order">5</span>Buy Gatcha</span>
+                        </li>
+                    </ul>
+                    <div class="widget-content-tab">
+                        <div class="widget-content-inner submit">
+                            <div class="wrap-content w-full">
+                              <form id="character-form" class="comment-form" (ngSubmit)="submitCharacter()" novalidate>
+                                <div class="flex gap30">
+                                  <fieldset class="name">
+                                    <label>Name *</label>
+                                    <input 
+                                      type="text" 
+                                      id="name" 
+                                      placeholder="Character name" 
+                                      [(ngModel)]="charData.name" 
+                                      name="name" 
+                                      required>
+                                  </fieldset>
+
+                                  <fieldset class="element">
+                                    <label>Element *</label>
+                                    <select 
+                                      id="element" 
+                                      [(ngModel)]="charData.element" 
+                                      name="element" 
+                                      required>
+                                      <option value="Fire">🔥 Fire</option>
+                                      <option value="Water">💧 Water</option>
+                                      <option value="Earth">🌍 Earth</option>
+                                      <option value="Wind">🌪️ Wind</option>
+                                    </select>
+                                  </fieldset>
+
+                                  <fieldset class="rarity">
+                                    <label>Rarity *</label>
+                                    <select 
+                                      id="rarity" 
+                                      [(ngModel)]="charData.rarity" 
+                                      name="rarity" 
+                                      required>
+                                      <option value="Common">Common</option>
+                                      <option value="Rare">Rare</option>
+                                      <option value="Epic">Epic</option>
+                                      <option value="Legendary">Legendary</option>
+                                    </select>
+                                  </fieldset>
+                                </div>
+
+                                <fieldset class="desc">
+                                  <label>Description</label>
+                                  <textarea 
+                                    id="description" 
+                                    [(ngModel)]="charData.description" 
+                                    name="description" 
+                                    rows="2"></textarea>
+                                </fieldset>
+
+                                <fieldset class="image">
+                                  <label>Image URL *</label>
+                                  <input 
+                                    type="url" 
+                                    id="image" 
+                                    placeholder="https://..." 
+                                    [(ngModel)]="charData.image" 
+                                    name="image" 
+                                    required>
+                                </fieldset>
+
+                                <div class="divider"></div>
+                                <!-- Stats -->
+                                <fieldset>
+                                  <label>Character Stats</label>
+                                  <div class="flex gap30">
+                                    <fieldset>
+                                      <label>HP</label>
+                                      <input type="number" [(ngModel)]="charData.baseHp" name="baseHp" required>
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>ATK</label>
+                                      <input type="number" [(ngModel)]="charData.baseAtk" name="baseAtk" required>
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>DEF</label>
+                                      <input type="number" [(ngModel)]="charData.baseDef" name="baseDef" required>
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>SPD</label>
+                                      <input type="number" [(ngModel)]="charData.baseSpd" name="baseSpd" required>
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>Crit Rate %</label>
+                                      <input type="number" [(ngModel)]="charData.baseCritRate" name="baseCritRate">
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>Crit Dmg %</label>
+                                      <input type="number" [(ngModel)]="charData.baseCritDmg" name="baseCritDmg">
+                                    </fieldset>
+                                  </div>
+                                </fieldset>
+
+                                <div class="divider"></div>
+                                <!-- Basic Attack -->
+                                <fieldset>
+                                  <h4>Basic Attack</h4>
+                                  <div class="flex gap30">
+                                    <fieldset>
+                                      <label>Skill Name</label>
+                                      <input type="text" [(ngModel)]="charData.basicAttack.name" name="basicAttackName" required>
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>ATK Multiplier</label>
+                                      <input type="number" step="0.1" [(ngModel)]="charData.basicAttack.atkMultiplier" name="basicAtkMultiplier">
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>DEF Multiplier</label>
+                                      <input type="number" step="0.1" [(ngModel)]="charData.basicAttack.defMultiplier" name="basicDefMultiplier">
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>HP Multiplier</label>
+                                      <input type="number" step="0.1" [(ngModel)]="charData.basicAttack.hpMultiplier" name="basicHpMultiplier">
+                                    </fieldset>
+                                  </div>
+                                  <fieldset>
+                                    <label>Description</label>
+                                    <textarea [(ngModel)]="charData.basicAttack.description" name="basicDesc"></textarea>
+                                  </fieldset>
+                                </fieldset>
+
+                                <div class="divider"></div>
+                                <!-- Skill Attack -->
+                                <fieldset>
+                                  <h4>Skill Attack</h4>
+                                  <div class="flex gap30">
+                                    <fieldset>
+                                      <label>Skill Name</label>
+                                      <input type="text" [(ngModel)]="charData.skillAttack.name" name="skillName" required>
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>ATK Multiplier</label>
+                                      <input type="number" step="0.1" [(ngModel)]="charData.skillAttack.atkMultiplier" name="skillAtkMultiplier">
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>DEF Multiplier</label>
+                                      <input type="number" step="0.1" [(ngModel)]="charData.skillAttack.defMultiplier" name="skillDefMultiplier">
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>HP Multiplier</label>
+                                      <input type="number" step="0.1" [(ngModel)]="charData.skillAttack.hpMultiplier" name="skillHpMultiplier">
+                                    </fieldset>
+                                  </div>
+                                  <fieldset>
+                                    <label>Description</label>
+                                    <textarea [(ngModel)]="charData.skillAttack.description" name="skillDesc"></textarea>
+                                  </fieldset>
+                                </fieldset>
+
+                                <div class="divider"></div>
+                                <!-- Ultimate Attack -->
+                                <fieldset>
+                                  <h4>Ultimate Attack</h4>
+                                  <div class="flex gap30">
+                                    <fieldset>
+                                      <label>Skill Name</label>
+                                      <input type="text" [(ngModel)]="charData.ultimateAttack.name" name="ultimateName" required>
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>ATK Multiplier</label>
+                                      <input type="number" step="0.1" [(ngModel)]="charData.ultimateAttack.atkMultiplier" name="ultimateAtkMultiplier">
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>DEF Multiplier</label>
+                                      <input type="number" step="0.1" [(ngModel)]="charData.ultimateAttack.defMultiplier" name="ultimateDefMultiplier">
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>HP Multiplier</label>
+                                      <input type="number" step="0.1" [(ngModel)]="charData.ultimateAttack.hpMultiplier" name="ultimateHpMultiplier">
+                                    </fieldset>
+                                  </div>
+                                  <fieldset>
+                                    <label>Description</label>
+                                    <textarea [(ngModel)]="charData.ultimateAttack.description" name="ultimateDesc"></textarea>
+                                  </fieldset>
+                                </fieldset>
+
+                                <div class="btn-submit flex gap30 justify-center">
+                                  <button class="tf-button style-1 h50 w320" type="submit">
+                                    Save Character <i class="icon-arrow-up-right2"></i>
+                                  </button>
+                                </div>
+                              </form>
+                            </div>
+                        </div>
+                        <div class="widget-content-inner create">
+                            <div class="wrap-content w-full">
+                              <form id="nft-form" class="comment-form" (ngSubmit)="submitNft()" novalidate>
+                                <div class="flex gap30">
+                                  <fieldset class="name">
+                                    <label>Name *</label>
+                                    <input type="text" id="name-nft" [(ngModel)]="formData.name" name="name" required>
+                                  </fieldset>
+
+                                  <fieldset class="image">
+                                    <label>Image URL *</label>
+                                    <input type="url" id="image-nft" [(ngModel)]="formData.image" name="image" placeholder="https://..." required>
+                                  </fieldset>
+
+                                  <fieldset class="character">
+                                    <label>Character (ID Reference)</label>
+                                    <select 
+                                      id="character" 
+                                      [(ngModel)]="formData.character"
+                                      name="character" 
+                                      required>
+                                      <option *ngFor="let c of characters" [value]="c._id">{{ c.name }}</option>
+                                    </select>
+                                  </fieldset>
+                                </div>
+
+                                <fieldset class="description">
+                                  <label>Description *</label>
+                                  <textarea id="description-nft" [(ngModel)]="formData.description" name="description" rows="4" required></textarea>
+                                </fieldset>
+
+                                <div class="flex gap30">
+                                  <fieldset class="price">
+                                    <label>Price</label>
+                                    <input type="number" id="price-nft" [(ngModel)]="formData.price" name="price" required>
+                                  </fieldset>
+
+                                  <fieldset class="royalty">
+                                    <label>Royalty</label>
+                                    <input type="number" id="royalty-nft" [(ngModel)]="formData.royalty" name="royalty" placeholder="8%" required>
+                                  </fieldset>
+                                </div>
+                                
+                                <div class="btn-submit flex gap30 justify-center">
+                                  <button class="tf-button style-1 h50" type="submit">
+                                    Submit NFT <i class="icon-arrow-up-right2"></i>
+                                  </button>
+                                </div>
+                              </form>
+                            </div>
+                        </div>
+                        <div class="widget-content-inner create">
+                            <div class="wrap-content w-full">
+                                <form id="rune-form" class="comment-form" (ngSubmit)="submitRune()" novalidate>
+
+                                  <!-- Rune pertama (default selalu ada) -->
+                                  <fieldset class="blockchain">
+                                    <label>Rune (Default)</label>
+
+                                    <div class="flex gap30">
+                                      <fieldset class="runeName">
+                                        <label>Name *</label>
+                                        <input 
+                                          type="text" 
+                                          id="runeNameDefault" 
+                                          placeholder="Rune name *"
+                                          [(ngModel)]="runeDefault.name" 
+                                          name="runeNameDefault" 
+                                          required>
+                                      </fieldset>
+
+                                      <fieldset class="runeImage">
+                                        <label>Image URL *</label>
+                                        <input 
+                                          type="url" 
+                                          id="runeImageDefault" 
+                                          placeholder="https://..." 
+                                          [(ngModel)]="runeDefault.image" 
+                                          name="runeImageDefault" 
+                                          required>
+                                      </fieldset>
+
+                                      <fieldset class="rarity">
+                                        <label>Rarity *</label>
+                                        <select 
+                                          id="runeRarityDefault" 
+                                          [(ngModel)]="runeDefault.rarity" 
+                                          name="runeRarityDefault" 
+                                          required>
+                                          <option value="Common">Common</option>
+                                          <option value="Rare">Rare</option>
+                                          <option value="Epic">Epic</option>
+                                          <option value="Legendary">Legendary</option>
+                                        </select>
+                                      </fieldset>
+                                    </div>
+
+                                    <div class="flex gap30">
+                                      <fieldset>
+                                        <label>HP Bonus</label>
+                                        <input type="number" [(ngModel)]="runeDefault.hpBonus" name="runeHpDefault" step="0.1" required>
+                                      </fieldset>
+                                      <fieldset>
+                                        <label>ATK Bonus</label>
+                                        <input type="number" [(ngModel)]="runeDefault.atkBonus" name="runeAtkDefault" step="0.1" required>
+                                      </fieldset>
+                                      <fieldset>
+                                        <label>DEF Bonus</label>
+                                        <input type="number" [(ngModel)]="runeDefault.defBonus" name="runeDefDefault" step="0.1" required>
+                                      </fieldset>
+                                      <fieldset>
+                                        <label>SPD Bonus</label>
+                                        <input type="number" [(ngModel)]="runeDefault.spdBonus" name="runeSpdDefault" step="0.1" required>
+                                      </fieldset>
+                                    </div>
+
+                                    <div class="flex gap30">
+                                      <fieldset>
+                                        <label>Critical Rate Bonus %</label>
+                                        <input type="number" [(ngModel)]="runeDefault.critRateBonus" name="runeCritRateDefault" step="0.1" required>
+                                      </fieldset>
+                                      <fieldset>
+                                        <label>Critical Damage Bonus %</label>
+                                        <input type="number" [(ngModel)]="runeDefault.critDmgBonus" name="runeCritDmgDefault" step="0.1" required>
+                                      </fieldset>
+                                    </div>
+
+                                    <fieldset class="runeDesc">
+                                      <label>Description</label>
+                                      <textarea 
+                                        id="runeDescDefault" 
+                                        [(ngModel)]="runeDefault.description"
+                                        name="runeDescDefault" 
+                                        rows="3" 
+                                        placeholder="Description"></textarea>
+                                    </fieldset>
+                                  </fieldset>
+
+                                  <!-- Rune tambahan (dinamis lewat *ngFor) -->
+                                  <fieldset class="blockchain" *ngFor="let rune of runeList; let i = index">
+                                    <label>Rune {{ i+2 }}</label>
+
+                                    <div class="flex gap30">
+                                      <fieldset class="runeName">
+                                        <label>Name *</label>
+                                        <input 
+                                          type="text" 
+                                          id="runeName{{i}}" 
+                                          placeholder="Rune name *"
+                                          [(ngModel)]="rune.name" 
+                                          name="runeName{{i}}" 
+                                          required>
+                                      </fieldset>
+
+                                      <fieldset class="runeImage">
+                                        <label>Image URL *</label>
+                                        <input 
+                                          type="url" 
+                                          id="runeImage{{i}}" 
+                                          placeholder="https://..." 
+                                          [(ngModel)]="rune.image" 
+                                          name="runeImage{{i}}" 
+                                          required>
+                                      </fieldset>
+
+                                      <fieldset class="rarity">
+                                        <label>Rarity *</label>
+                                        <select 
+                                          id="runeRarity{{i}}" 
+                                          [(ngModel)]="rune.rarity" 
+                                          name="runeRarity{{i}}" 
+                                          required>
+                                          <option value="Common">Common</option>
+                                          <option value="Rare">Rare</option>
+                                          <option value="Epic">Epic</option>
+                                          <option value="Legendary">Legendary</option>
+                                        </select>
+                                      </fieldset>
+                                    </div>
+
+                                    <div class="flex gap30">
+                                      <fieldset><label>HP Bonus</label><input type="number" [(ngModel)]="rune.hpBonus" name="runeHp{{i}}" step="0.1"></fieldset>
+                                      <fieldset><label>ATK Bonus</label><input type="number" [(ngModel)]="rune.atkBonus" name="runeAtk{{i}}" step="0.1"></fieldset>
+                                      <fieldset><label>DEF Bonus</label><input type="number" [(ngModel)]="rune.defBonus" name="runeDef{{i}}" step="0.1"></fieldset>
+                                      <fieldset><label>SPD Bonus</label><input type="number" [(ngModel)]="rune.spdBonus" name="runeSpd{{i}}" step="0.1"></fieldset>
+                                    </div>
+
+                                    <div class="flex gap30">
+                                      <fieldset><label>Critical Rate Bonus %</label><input type="number" [(ngModel)]="rune.critRateBonus" name="runeCritRate{{i}}" step="0.1"></fieldset>
+                                      <fieldset><label>Critical Damage Bonus %</label><input type="number" [(ngModel)]="rune.critDmgBonus" name="runeCritDmg{{i}}" step="0.1"></fieldset>
+                                    </div>
+
+                                    <fieldset>
+                                      <label>Description</label>
+                                      <textarea [(ngModel)]="rune.description" name="runeDesc{{i}}" rows="3"></textarea>
+                                    </fieldset>
+                                  </fieldset>
+
+                                  <button type="button" class="tf-button style-1" (click)="addRune()" style="color: #161616;">+ Add Rune</button>
+
+                                  <div class="btn-submit flex gap30 justify-center">
+                                    <button class="tf-button style-1 h50 w320" type="submit">
+                                      Submit Rune <i class="icon-arrow-up-right2"></i>
+                                    </button>
+                                  </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="widget-content-inner create">
+                            <div class="wrap-content w-full">
+                                <form id="gatcha-form" class="comment-form" (ngSubmit)="submitGatcha()" novalidate>
+                                  
+                                  <!-- Basic Info -->
+                                  <fieldset>
+                                    <label>Name *</label>
+                                    <input type="text" [(ngModel)]="gatchaData.name" name="gatchaName" required />
+                                  </fieldset>
+
+                                  <fieldset>
+                                    <label>Description</label>
+                                    <textarea [(ngModel)]="gatchaData.description" name="gatchaDesc" rows="3"></textarea>
+                                  </fieldset>
+
+                                  <div class="flex gap30">
+                                    <fieldset>
+                                      <label>Price (UOG)</label>
+                                      <input type="number"
+                                             [(ngModel)]="gatchaData.priceUOG"
+                                             name="gatchaPriceUOG"
+                                             step="0.1"
+                                             (ngModelChange)="onPriceUOGChange()" />
+                                    </fieldset>
+                                    <fieldset>
+                                      <label>Price (SOL)</label>
+                                      <input type="number"
+                                             [(ngModel)]="gatchaData.priceSOL"
+                                             name="gatchaPriceSOL"
+                                             step="0.0001"
+                                             (ngModelChange)="onPriceSOLChange()" />
+                                    </fieldset>
+                                  </div>
+
+                                  <div class="divider"></div>
+
+                                  <!-- Rewards Section -->
+                                  <h4>Rewards</h4>
+                                  <div *ngFor="let reward of gatchaRewards; let i = index" class="flex gap30">
+                                    <fieldset>
+                                      <label>Type</label>
+                                      <select [(ngModel)]="reward.type" name="rewardType{{i}}">
+                                        <option value="character">Character</option>
+                                        <option value="rune">Rune</option>
+                                      </select>
+                                    </fieldset>
+
+                                    <fieldset>
+                                      <label>Rarity</label>
+                                      <select [(ngModel)]="reward.rarity" name="rewardRarity{{i}}">
+                                        <option>Common</option>
+                                        <option>Rare</option>
+                                        <option>Epic</option>
+                                        <option>Legendary</option>
+                                      </select>
+                                    </fieldset>
+
+                                    <fieldset>
+                                      <label>Chance (%)</label>
+                                      <input type="number" [(ngModel)]="reward.chance" name="rewardChance{{i}}" step="0.1" />
+                                    </fieldset>
+                                  </div>
+
+                                  <button type="button" class="tf-button style-1" (click)="addReward()">+ Add Reward</button>
+
+                                  <div class="btn-submit flex gap30 justify-center">
+                                    <button class="tf-button style-1 h50 w320" type="submit">
+                                      Submit Gatcha Pack <i class="icon-arrow-up-right2"></i>
+                                    </button>
+                                  </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="widget-content-inner buy-gatcha active">
+                            <div class="wrap-content w-full">
+                                <div class="inner-content">
+                                    <div class="heading-section">
+                                        <h2 class="tf-title pb-20">Buy Gatcha</h2>
+                                    </div>
+                                    <div class="top-collections style-bottom mb-40">
+                                        <div class="featured pt-10 swiper-container carousel3-type1" data-swiper='{
+                                            "loop":false,
+                                            "slidesPerView": 1,
+                                            "spaceBetween": 25,
+                                            "observer": true,
+                                            "observeParents": true,
+                                            "navigation": {
+                                                "clickable": true,
+                                                "nextEl": ".next-type1",
+                                                "prevEl": ".prev-type1"
+                                            },
+                                            "pagination": {
+                                                "el": ".pagination-type1",
+                                                "clickable": true
+                                            },
+                                            "breakpoints": {
+                                                "768": {
+                                                    "slidesPerView": 1
+                                                },
+                                                "1024": {
+                                                    "slidesPerView": 3
+                                                }
+                                            }
+                                        }'>
+                                            <div class="swiper-wrapper">
+                                              <div class="swiper-slide" *ngFor="let pack of gatchaPacks">
+                                                <div class="tf-card-collection">
+                                                  <a href="javascript:void(0)">
+                                                    <div class="media-images-collection grid-2x2" [class.shuffling]="pack.isShuffling">
+                                                      <ng-container *ngFor="let reward of pack.rewards">
+                                                        <img *ngFor="let img of reward.previewImages | slice:0:4"
+                                                             [src]="img"
+                                                             [alt]="reward.type + ' ' + reward.rarity"
+                                                             class="reward-img" />
+                                                      </ng-container>
+
+                                                      <!-- Final Result Overlay -->
+                                                      <div class="final-overlay" *ngIf="pack.finalImage">
+                                                        <img [src]="pack.finalImage" alt="Final Result" class="final-img" />
+                                                      </div>
+                                                    </div>
+                                                  </a>
+                                                  <div class="card-bottom">
+                                                    <div class="author">
+                                                      <h5 style="font-size: 24px;">{{ pack.name }}</h5>
+                                                      <!-- <p>{{ pack.description }}</p> -->
+                                                    </div>
+                                                    <div class="bottom-right">
+                                                      <!-- <div class="shop"> 
+                                                        <div class="icon">
+                                                          <img src="assets/images/box-icon/coin-00.png" alt="">
+                                                        </div>
+                                                        <p>{{ pack.priceUOG }}</p>
+                                                      </div> -->
+                                                      <div class="shop" style="margin-right: 0px;border-right: 0px;"> 
+                                                        <div class="icon">
+                                                          <img src="assets/images/box-icon/coin-04.png" alt="">
+                                                        </div>
+                                                        <p>{{ pack.priceSOL }}</p>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  <!-- Tombol Buy & Mint -->
+                                                  <div class="btn-submit flex gap30 justify-center mt-3">
+                                                    <button class="tf-button style-1 h40" (click)="buyAndMintPack(pack._id)">
+                                                      Buy & Mint <i class="icon-arrow-up-right2"></i>
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+
+                                            <div class="swiper-pagination pagination-type1"></div>
+                                            <div class="swiper-button-next next-type1"></div>
+                                            <div class="swiper-button-prev prev-type1"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+          
+      </div>
+  </app-market-layout>
+    <!-- /#page -->
+</ion-content>

@@ -10,7 +10,11 @@ import { Auth } from '../../services/auth';
 export class MarketLayoutPage implements OnInit {
 
   constructor(
+<<<<<<< HEAD
+    private auth: Auth,   //inject Auth service
+=======
     private auth: Auth,
+>>>>>>> 040fe826f61d1ad1ee603ecdd275aae64bb0414d
   ) { }
 
   ngOnInit() {

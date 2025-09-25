@@ -27,12 +27,12 @@ interface IGatchaPack {
 }
 
 @Component({
-  selector: 'app-home',
-  templateUrl: 'home.page.html',
-  styleUrls: ['home.page.scss'],
+  selector: 'app-gatcha',
+  templateUrl: 'gatcha.page.html',
+  styleUrls: ['gatcha.page.scss'],
   standalone: false,
 })
-export class HomePage implements OnInit {
+export class GatchaPage implements OnInit {
   program: any;
 
   userAddress: string | null = null;
@@ -685,7 +685,7 @@ export class HomePage implements OnInit {
 
     const result = `$${intPart}.0${zeroCountStr}${rest}`;
 
-    // console.log(`formatWithZeroCount(${num}) => ${result}`);
+    console.log(`formatWithZeroCount(${num}) => ${result}`);
     return result;
   }
 

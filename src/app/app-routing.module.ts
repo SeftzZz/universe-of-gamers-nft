@@ -38,13 +38,20 @@ const routes: Routes = [
     loadChildren: () =>
       import('./pages/nft-detail/nft-detail.module').then((m) => m.NftDetailPageModule),
     canActivate: [AuthGuard], // ✅ Proteksi home (semua child termasuk home)
-  },  {
+  },
+  {
     path: 'market-layout',
     loadChildren: () => import('./pages/market-layout/market-layout.module').then( m => m.MarketLayoutPageModule)
   },
   {
     path: 'explorer',
     loadChildren: () => import('./pages/explorer/explorer.module').then( m => m.ExplorerPageModule)
+  },
+  {
+    path: 'gatcha',
+    loadChildren: () => 
+      import('./pages/gatcha/gatcha.module').then( m => m.GatchaPageModule),
+    canActivate: [AuthGuard],
   },
 
 ];

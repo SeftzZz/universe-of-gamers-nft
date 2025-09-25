@@ -54,22 +54,7 @@ export class AppComponent implements AfterViewInit {
     this.initStatusBar();
 
     const userId = localStorage.getItem('userId');
-    if (userId) {
-      this.http.get(`${environment.apiUrl}/auth/user/${userId}`).subscribe((res: any) => {
-        const avatarUrl = res.avatar
-          ? `${environment.baseUrl}${res.avatar}`
-          : 'assets/images/app-logo.jpeg';
-
-        this.userService.setUser({
-          name: res.name,
-          email: res.email,
-          notifyNewItems: res.notifyNewItems || false,
-          notifyEmail: res.notifyEmail || false,
-          avatar: avatarUrl,
-        });
-      });
-    }
-
+    
     // Hanya untuk Web (PWA) supaya tidak nabrak gapi.auth2
     GoogleAuth.initialize({
       clientId: '542126096811-asmbfaoqgk3itq0amjjn85q4qvabl3aa.apps.googleusercontent.com',

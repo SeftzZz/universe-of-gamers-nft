@@ -268,21 +268,37 @@ export class LoginPage implements OnInit {
         console.log(res)
         this.dismissLoading();
         this.auth.setToken(res.token, res.authId);
-
         const avatarUrl = res.avatar
           ? `${environment.baseUrl}${res.avatar}`
           : 'assets/images/app-logo.jpeg';
 
+<<<<<<< HEAD
+=======
+        const avatarUrl = res.avatar
+          ? `${environment.baseUrl}${res.avatar}`
+          : 'assets/images/app-logo.jpeg';
+
+>>>>>>> 040fe826f61d1ad1ee603ecdd275aae64bb0414d
         this.userService.setUser({
           name: res.name,
           email: res.email,
           notifyNewItems: res.notifyNewItems || false,
           notifyEmail: res.notifyEmail || false,
           avatar: avatarUrl,
+<<<<<<< HEAD
+          role: res.role || null,
+        });
+
+        // simpan role terpisah
+        // localStorage.setItem('role', res.role || null);
+
+        // ambil walletAddress (custodial dulu, kalau tidak ada pakai external)
+=======
           role: res.role
         });
 
         // ✅ ambil walletAddress (custodial dulu, kalau tidak ada pakai external)
+>>>>>>> 040fe826f61d1ad1ee603ecdd275aae64bb0414d
         let walletAddr = null;
         if (res.custodialWallets?.length > 0) {
           walletAddr = res.custodialWallets[0].address;
@@ -290,7 +306,7 @@ export class LoginPage implements OnInit {
           walletAddr = res.wallets[0].address;
         }
 
-        // ✅ simpan ke localStorage
+        // simpan ke localStorage
         localStorage.setItem('userId', res.authId);
         if (walletAddr) {
           localStorage.setItem('walletAddress', walletAddr);
