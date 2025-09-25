@@ -54,6 +54,7 @@ a {
 }
 
 button, input[type="button"], input[type="reset"], input[type="submit"] {
+    font-family: 'Manrope', sans-serif;
     font-weight: 700;
     font-size: 14px;
     line-height: 22px;
@@ -65,11 +66,9 @@ button, input[type="button"], input[type="reset"], input[type="submit"] {
     border: none;
     display: inline-block;
     -webkit-appearance: none;
-    -webkit-transition: all 
-ease 0.3s;
+    -webkit-transition: all ease 0.3s;
     -moz-transition: all ease 0.3s;
-    transition: all 
-ease 0.3s;
+    transition: all ease 0.3s;
 }
 
 .tf-button.style-1.active:hover {
@@ -289,6 +288,7 @@ input:checked~.btn-checkbox {
     color: #161616;
     background-color: #DEE8E8;
     border-radius: 12px;
+    font-family: 'Manrope', sans-serif;
     font-size: 14px;
     font-weight: 800;
     width: 116px;
@@ -329,7 +329,6 @@ input:checked~.btn-checkbox {
 .tf-button-loadmore:hover {
     background: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
 }
-
 a:hover,
 a:focus {
     color             : #1ac4fc;
@@ -341,45 +340,39 @@ a:focus {
     -o-transition     : all 0.3s ease-in-out;
     transition        : all 0.3s ease-in-out;
 }
-
 .tf-soft .dropdown-item:hover {
     background-color: #1ac4fc;
 }
-
 .tf-soft .btn-secondary:active, .btn-secondary.active,
 .tf-soft .show > .btn-secondary.dropdown-toggle {
     background-color: #1ac4fc;
     color: #161616;
     border-color: #1ac4fc;
 }
-
 .dropdown .btn-secondary:hover {
     border: 1px solid rgba(255, 255, 255, 0.12);
     background-color: #1ac4fc;
 }
-
 .tf-soft .dropdown-menu h6 {
     font-size: 18px;
     margin: 5px 10px 0px 10px;
     padding: 10px 10px 10px 0px;
 }
-
 .card-small .author {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
 .card-small .author .nft-thumb {
   width: 60px;
   height: 60px;
   object-fit: cover; /* biar proporsional */
   border-radius: 8px; /* opsional, biar rounded */
 }
-
 .infor-product > .text {
     color: #1ac4fc;
     font-size: 14px;
+    font-family: 'Manrope', sans-serif;
     font-weight: 800;
     line-height: 19px;
     text-transform: capitalize;
@@ -388,12 +381,79 @@ a:focus {
     align-items: center;
     position: relative;
 }
-
-.icon-tick .path1::before {
-  content: "\e91a";
-  color: #1ac4fc;
+.infor-product h2 {
+    font-family: 'Manrope', sans-serif;
 }
-
+.infor-product .meta-item {
+    font-family: 'Manrope', sans-serif;
+}
+.icon-tick .path1::before {
+    content: "\e91a";
+    color: #1ac4fc;
+}
 .style-bottom .swiper-pagination-bullet-active::after {
     color: #1ac4fc;
+}
+.admin_active .popup-user .user span {
+    font-family: 'Manrope', sans-serif;
+}
+.content-tabs .side-bar .title-widget {
+    font-family: 'Manrope', sans-serif;
+}
+.widget-recently .card-small-main {
+    font-family: 'Manrope', sans-serif;
+}
+.widget-recently .date {
+    font-family: 'Manrope', sans-serif;
+}
+.side-bar .see-all {
+    font-family: 'Manrope', sans-serif;
+}
+.heading-section .tf-title {
+    font-family: 'Manrope', sans-serif;
+}
+.widget-menu-tab li {
+    font-family: 'Manrope', sans-serif;
+}
+.dropdown .btn-secondary {
+    font-family: 'Manrope', sans-serif;
+}
+.section-menu-left ul.menu-tab li {
+    font-family: 'Manrope', sans-serif;
+}
+.action__body h2 {
+    font-family: 'Manrope', sans-serif;
+}
+.price.gem {
+    font-family: 'Manrope', sans-serif;
+}
+.widget-creators-item .time {
+    font-family: 'Manrope', sans-serif;
+}
+.tf-card-box.style-1 .name {
+    font-family: 'Manrope', sans-serif;
+}
+.tf-card-box.style-4 h5 {
+    font-family: 'Manrope', sans-serif;
+}
+.tf-card-box.style-5 .wishlist-button {
+    font-family: 'Manrope', sans-serif;
+}
+.tf-soft .sort-filter span {
+    font-family: 'Manrope', sans-serif;
+}
+.admin_active .popup-user .avatar_popup2, .admin_active .popup-notification .avatar_popup {
+    font-family: 'Manrope', sans-serif;
+}
+.product-item > h6 {
+    font-family: 'Manrope', sans-serif;
+}
+.product-item.time-sales .content p {
+    font-family: 'Manrope', sans-serif;
+}
+.product-item.traits .content .trait-item .title {
+    font-family: 'Manrope', sans-serif;
+}
+.product-item .column {
+    font-family: 'Manrope', sans-serif;
 }
