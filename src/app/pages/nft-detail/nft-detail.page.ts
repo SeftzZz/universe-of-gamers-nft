@@ -334,4 +334,8 @@ export class NftDetailPage implements OnInit {
     }
   }
 
+  logout() {
+    this.auth.logout();
+  }
+
 }

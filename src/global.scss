@@ -343,3 +343,37 @@ a:focus {
     margin: 5px 10px 0px 10px;
     padding: 10px 10px 10px 0px;
 }
+
+.card-small .author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-small .author .nft-thumb {
+  width: 60px;
+  height: 60px;
+  object-fit: cover; /* biar proporsional */
+  border-radius: 8px; /* opsional, biar rounded */
+}
+
+.infor-product > .text {
+    color: #1ac4fc;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 19px;
+    text-transform: capitalize;
+    margin-bottom: 9px;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.icon-tick .path1::before {
+  content: "\e91a";
+  color: #1ac4fc;
+}
+
+.style-bottom .swiper-pagination-bullet-active::after {
+    color: #1ac4fc;
+}
