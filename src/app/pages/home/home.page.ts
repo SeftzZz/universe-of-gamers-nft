@@ -8,6 +8,7 @@ import { firstValueFrom } from 'rxjs';
 import { ToastController } from '@ionic/angular'; // untuk notif ===add by fpp 05/09/25===
 import { Auth } from '../../services/auth';
 import { MarketLayoutPage } from '../market-layout/market-layout.page';
+import { Router } from '@angular/router';
 
 interface IGatchaReward {
   type: "character" | "rune";
@@ -54,6 +55,7 @@ export class HomePage implements OnInit {
   characters: any[] = [];   // daftar karakter dari backend ===add by fpp 05/09/25===
   runes: any[] = [];   // daftar rune dari backend
   selectedCharacter: string | null = null; // ===add by fpp 05/09/25===
+  latestNfts: any[] = [];
 
   charData: any = {
     name: "",
@@ -129,7 +131,8 @@ export class HomePage implements OnInit {
     private idlService: Idl,
     private toastCtrl: ToastController,   // untuk notif ===add by fpp 05/09/25===
     private nftService: NftService,
-    private auth: Auth   //inject Auth service
+    private auth: Auth,   //inject Auth service
+    private router: Router
   ) {}
 
   async ngOnInit() {
@@ -159,6 +162,7 @@ export class HomePage implements OnInit {
     await this.loadGatchaPacks();
     await this.fetchRates();
     await this.onChainAll();
+    this.setLatestNfts();
   }
 
   disconnectWallet() {
@@ -627,10 +631,6 @@ export class HomePage implements OnInit {
     }
   }
 
-  logout() {
-    this.auth.logout();
-  }
-
   async onChainAll() {
     try {
       const resp = await firstValueFrom(
@@ -687,5 +687,27 @@ export class HomePage implements OnInit {
 
     console.log(`formatWithZeroCount(${num}) => ${result}`);
     return result;
+  }
+
+  goToNftDetail(mintAddress: string) {
+    if (!mintAddress) return;
+    console.log("Navigating to NFT detail:", mintAddress);
+    this.router.navigate(['/nft-detail', mintAddress]);
+  }
+
+  setLatestNfts() {
+    // gabungkan semua NFT dari Character & Rune
+    const allNft = [...this.nft, ...this.runes];
+
+    if (allNft.length > 0) {
+      // urutkan dari terbaru
+      this.latestNfts = allNft
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 4); // ambil 4 terbaru
+    }
+  }
+
+  logout() {
+    this.auth.logout();
   }
 }

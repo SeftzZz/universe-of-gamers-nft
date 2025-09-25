@@ -788,24 +788,30 @@
                       </div>
                   </div>
                   <div class="side-bar">
-                      <div class="widget widget-recently">
+                      <div class="widget widget-recently" *ngIf="latestNfts.length > 0">
                           <h5 class="title-widget">Recently added</h5>
+                          <!-- NFT utama besar -->
                           <div class="card-small-main">
-                              <img src="assets/images/blog/sidebar-05.jpg" alt="">
+                            <img [src]="latestNfts[0].image || 'assets/images/blog/sidebar-05.jpg'" alt="">
                               <div class="card-bottom">
-                                  <h5><a href="#">Photography</a></h5>
-                                  <span class="date">16hr ago</span>
+                                  <h5>
+                                    <a href="javascript:void(0)" (click)="goToNftDetail(latestNfts[0].mintAddress)">
+                                      {{ latestNfts[0].name }}
+                                    </a>
+                                  </h5>
+                                  <span class="date">{{ latestNfts[0].createdAt | date:'short' }}</span>
                               </div>
                           </div>
-                          <div class="card-small">
+                          <!-- 3 NFT kecil -->
+                          <div class="card-small" *ngFor="let nft of latestNfts.slice(1,4)">
                               <div class="author">
-                                  <img src="assets/images/blog/sidebar-06.jpg" alt="">
+                                  <img class="nft-thumb" [src]="nft.image || 'assets/images/sidebar-01.jpg'" alt="">
                                   <div class="info">
-                                      <h6><a href="#">Propw</a></h6>
-                                      <p><a href="#">@themes</a></p>
+                                      <h6><a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">{{ nft.name }}</a></h6>
+                                      <p>{{ nft.owner ? shorten(nft.owner) : 'Unknown' }}</p>
                                   </div>
                               </div>
-                              <span class="date">Mon, 08 May </span>
+                              <span class="date">{{ nft.createdAt | date:'shortDate' }}</span>
                           </div>
                       </div>
                       <div class="widget widget-creators">
