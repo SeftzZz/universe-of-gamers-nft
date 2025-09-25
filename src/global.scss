@@ -116,6 +116,7 @@ ion-content::part(scroll) {
     overflow: hidden;
     -ms-touch-action: pan-x pan-y pinch-zoom;
     touch-action: pan-x pan-y pinch-zoom;
+    font-family: 'Manrope', sans-serif;
 }
 
 :root {

@@ -216,10 +216,10 @@
                               </div>
                           </div>
                           <ul class="widget-menu-tab">
-                              <li class="item-title">
+                              <li class="item-title active">
                                   <span class="inner">Category</span>
                               </li>
-                              <li class="item-title active">
+                              <li class="item-title">
                                   <span class="inner">Items</span>
                               </li>
                               <li class="item-title">
@@ -230,7 +230,7 @@
                               </li>
                           </ul>
                           <div class="widget-content-tab">
-                              <div class="widget-content-inner">
+                              <div class="widget-content-inner active">
                                   <div class="featured-item style-bottom">
                                       <div class="featured pt-10 swiper-container carousel1" data-swiper='{
                                           "loop":false,
@@ -260,43 +260,70 @@
                                           }
                                       }'>
                                           <div class="swiper-wrapper">
-                                              <div class="swiper-slide">
-                                                  <div class="tf-card-box style-4">
-                                                      <div class="author flex items-center">
-                                                          <div class="avatar">
-                                                              <img src="assets/images/avatar/avatar-box-02.jpg" alt="Image">
-                                                          </div>
-                                                          <div class="info">
-                                                              <span>Created by:</span>
-                                                              <h6><a href="author-2.html">Marvin McKinney</a> </h6>
-                                                          </div>
-                                                      </div>
-                                                      <div class="card-media">
-                                                          <a href="#">
-                                                              <img src="assets/images/box-item/card-item-49.jpg" alt="">
-                                                          </a>
-                                                          <span class="wishlist-button icon-heart"></span>
-                                                      </div>
-                                                      <h5 class="name"><a href="nft-detail-2.html">Dayco serpentine belt</a></h5>
-                                                      <div class="meta-info flex items-center justify-between">
-                                                          <div>
-                                                              <span class="text-bid">Current Bid</span>
-                                                              <h6 class="price gem"><i class="icon-gem"></i>0,34</h6>
-                                                          </div>
-                                                          <div class="button-place-bid">
-                                                              <a href="#" data-toggle="modal" data-target="#popup_bid" class="tf-button"><span>Place Bid</span></a>
-                                                          </div>
-                                                      </div>
+                                            <div class="swiper-slide" *ngFor="let nft of nfts">
+                                              <div class="tf-card-box style-4">
+                                                <div class="author flex items-center">
+                                                  <div class="avatar">
+                                                    <img
+                                                      [src]="nft?.creatorImg || 'assets/images/avatar/avatar-box-02.jpg'"
+                                                      alt="Creator"
+                                                    />
                                                   </div>
+                                                  <div class="info">
+                                                    <span>Created by:</span>
+                                                    <h6>
+                                                      <a href="author-2.html">
+                                                        {{ nft?.metadata?.properties?.creators?.[0]?.address | slice:0:6 }}...
+                                                        {{ nft?.metadata?.properties?.creators?.[0]?.address | slice:-4 }}
+                                                      </a>
+                                                    </h6>
+                                                  </div>
+                                                </div>
+
+                                                <div class="card-media">
+                                                  <a href="#">
+                                                    <img
+                                                      [src]="nft?.image || nft?.metadata?.image || 'assets/images/box-item/card-item-49.jpg'"
+                                                      [alt]="nft?.name || nft?.metadata?.name || 'NFT'"
+                                                    />
+                                                  </a>
+                                                  <span class="wishlist-button icon-heart"></span>
+                                                </div>
+
+                                                <h5 class="name">
+                                                  <a href="nft-detail-2.html">{{ nft?.name || nft?.metadata?.name || 'Unnamed NFT' }}</a>
+                                                </h5>
+
+                                                <div class="meta-info flex items-center justify-between">
+                                                  <div>
+                                                    <span class="text-bid">Current Price</span>
+                                                    <h6 class="price gem" [innerHTML]="nft?.price ? formatWithZeroCount(nft.price) : '-'">
+                                                      <i class="icon-gem"></i>
+                                                    </h6>
+                                                  </div>
+                                                  <div class="button-place-bid">
+                                                    <a
+                                                      href="#"
+                                                      data-toggle="modal"
+                                                      data-target="#popup_bid"
+                                                      class="tf-button"
+                                                    >
+                                                      <span>Buy Now</span>
+                                                    </a>
+                                                  </div>
+                                                </div>
                                               </div>
+                                            </div>
+
                                           </div>
+
                                           <div class="swiper-pagination"></div>
                                           <div class="swiper-button-next"></div>
                                           <div class="swiper-button-prev"></div>
                                       </div>
                                   </div>
                               </div>
-                              <div class="widget-content-inner active">
+                              <div class="widget-content-inner">
                                   <div class="featured-item style-bottom">
                                       <div class="featured pt-10 swiper-container carousel1" data-swiper='{
                                           "loop":false,
@@ -685,7 +712,9 @@
                                       <div class="divider"></div>
                                       <div class="meta-info flex items-center justify-between">
                                         <span class="text-bid">Current Price</span>
-                                        <h6 class="price gem"><i class="icon-gem"></i>{{ nft.price }}</h6>
+                                        <h6 class="price gem" [innerHTML]="nft?.price ? formatWithZeroCount(nft.price) : '-'">
+                                          <i class="icon-gem"></i>
+                                        </h6>
                                       </div>
                                     </div>
                                   </div>
