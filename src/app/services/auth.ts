@@ -87,7 +87,7 @@ export class Auth {
     // tampilkan toast
     this.toastCtrl.create({
       message: 'Logout Success',
-      duration: 5000,
+      duration: 2000,
       color: 'success',
       position: 'top'
     }).then(toast => {
@@ -97,6 +97,6 @@ export class Auth {
     // redirect setelah 10 detik
     setTimeout(() => {
       this.router.navigateByUrl('/explorer', { replaceUrl: true });
-    }, 10000);
+    }, 2100);
   }
 }
