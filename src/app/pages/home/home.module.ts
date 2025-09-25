@@ -7,13 +7,15 @@ import { NftService } from '../../services/nft.service';
 
 import { HomePageRoutingModule } from './home-routing.module';
 
+import { MarketLayoutPageModule } from '../market-layout/market-layout.module';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    HomePageRoutingModule
+    HomePageRoutingModule,
+    MarketLayoutPageModule
   ],
   declarations: [HomePage]
 })

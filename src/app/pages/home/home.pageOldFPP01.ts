@@ -7,7 +7,11 @@ import { NftService } from '../../services/nft.service';
 import { firstValueFrom } from 'rxjs';
 import { ToastController } from '@ionic/angular'; // untuk notif ===add by fpp 05/09/25===
 import { Auth } from '../../services/auth';
+<<<<<<< HEAD
+import { Router } from '@angular/router';
+=======
 import { MarketLayoutPage } from '../market-layout/market-layout.page';
+>>>>>>> a378cda9940daf958adcd734a6f290056c5cb39a
 
 interface IGatchaReward {
   type: "character" | "rune";
@@ -54,6 +58,7 @@ export class HomePage implements OnInit {
   characters: any[] = [];   // daftar karakter dari backend ===add by fpp 05/09/25===
   runes: any[] = [];   // daftar rune dari backend
   selectedCharacter: string | null = null; // ===add by fpp 05/09/25===
+  latestNfts: any[] = [];
 
   charData: any = {
     name: "",
@@ -126,7 +131,8 @@ export class HomePage implements OnInit {
     private idlService: Idl,
     private toastCtrl: ToastController,   // untuk notif ===add by fpp 05/09/25===
     private nftService: NftService,
-    private auth: Auth   //inject Auth service
+    private auth: Auth,   //inject Auth service
+    private router: Router
   ) {}
 
   async ngOnInit() {
@@ -155,6 +161,7 @@ export class HomePage implements OnInit {
     await this.loadRunes();
     await this.loadGatchaPacks();
     await this.fetchRates();
+    this.setLatestNfts();
   }
 
   disconnectWallet() {
@@ -620,6 +627,24 @@ export class HomePage implements OnInit {
   onPriceSOLChange() {
     if (this.solToUogRate > 0) {
       this.gatchaData.priceUOG = this.gatchaData.priceSOL * this.solToUogRate;
+    }
+  }
+
+  goToNftDetail(mintAddress: string) {
+    if (!mintAddress) return;
+    console.log("Navigating to NFT detail:", mintAddress);
+    this.router.navigate(['/nft-detail', mintAddress]);
+  }
+
+  setLatestNfts() {
+    // gabungkan semua NFT dari Character & Rune
+    const allNft = [...this.nft, ...this.runes];
+
+    if (allNft.length > 0) {
+      // urutkan dari terbaru
+      this.latestNfts = allNft
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 4); // ambil 4 terbaru
     }
   }
 
