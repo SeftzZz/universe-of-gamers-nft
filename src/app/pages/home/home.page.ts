@@ -7,6 +7,7 @@ import { NftService } from '../../services/nft.service';
 import { firstValueFrom } from 'rxjs';
 import { ToastController } from '@ionic/angular'; // untuk notif ===add by fpp 05/09/25===
 import { Auth } from '../../services/auth';
+import { MarketLayoutPage } from '../market-layout/market-layout.page';
 
 interface IGatchaReward {
   type: "character" | "rune";

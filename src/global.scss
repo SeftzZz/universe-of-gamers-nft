@@ -98,6 +98,26 @@ ion-toast::part(message) {
   font-size: 12px;
 }
 
+ion-content::part(scroll) {
+    left: 0px;
+    right: 0px;
+    top: calc(var(--offset-top) * -1);
+    bottom: calc(var(--offset-bottom) * -1);
+    -webkit-padding-start: var(--padding-start);
+    padding-inline-start: var(--padding-start);
+    -webkit-padding-end: var(--padding-end);
+    padding-inline-end: var(--padding-end);
+    padding-top: calc(var(--padding-top) + var(--offset-top));
+    padding-bottom: calc(var(--padding-bottom) + var(--keyboard-offset) + var(--offset-bottom));
+    position: absolute;
+    color: #fff !important;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    overflow: hidden;
+    -ms-touch-action: pan-x pan-y pinch-zoom;
+    touch-action: pan-x pan-y pinch-zoom;
+}
+
 :root {
     --ion-color-primary: linear-gradient(90deg, #524afc 0%, #1ac4fc 100%);
     --ion-color-primary-rgb: 0, 84, 233;
