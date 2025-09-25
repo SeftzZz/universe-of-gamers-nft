@@ -265,8 +265,22 @@ export class LoginPage implements OnInit {
 
     this.auth.login(payload).subscribe({
       next: (res) => {
+        console.log(res)
         this.dismissLoading();
         this.auth.setToken(res.token, res.authId);
+
+        const avatarUrl = res.avatar
+          ? `${environment.baseUrl}${res.avatar}`
+          : 'assets/images/app-logo.jpeg';
+
+        this.userService.setUser({
+          name: res.name,
+          email: res.email,
+          notifyNewItems: res.notifyNewItems || false,
+          notifyEmail: res.notifyEmail || false,
+          avatar: avatarUrl,
+          role: res.role
+        });
 
         // ✅ ambil walletAddress (custodial dulu, kalau tidak ada pakai external)
         let walletAddr = null;

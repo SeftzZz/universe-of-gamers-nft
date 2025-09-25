@@ -13,6 +13,7 @@ export interface UserProfile {
   notifyEmail: boolean;
   avatar: string;
   custodialWallets: CustodialWallet[];
+  role: string;
 }
 
 @Injectable({
@@ -25,7 +26,8 @@ export class User {
     notifyNewItems: false,
     notifyEmail: false,
     avatar: 'assets/images/avatar/avatar-07.png',
-    custodialWallets: []
+    custodialWallets: [],
+    role: ''
   });
 
   setUser(profile: Partial<UserProfile>) {

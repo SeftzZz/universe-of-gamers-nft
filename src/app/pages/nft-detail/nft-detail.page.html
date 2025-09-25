@@ -77,7 +77,7 @@
                               <div class="content">
                                 <div class="text">Current price</div>
                                 <div class="flex justify-between">
-                                  <p>{{ metadata.price || 0 }} SOL</p>
+                                  <p [innerHTML]="metadata?.price ? formatWithZeroCount(metadata.price) : '-'"> SOL</p>
                                   <a (click)="toggleSendModal()" class="tf-button style-1 h50 w216">Buy NFT<i class="icon-arrow-up-right2"></i></a>
                                 </div>
                               </div>
