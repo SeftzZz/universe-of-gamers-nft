@@ -108,6 +108,7 @@ export class NftDetailPage implements OnInit {
 
     const mintAddress = this.route.snapshot.paramMap.get('mintAddress'); // ✅ pakai mintAddress
     if (mintAddress) {
+      this.mintAddress = mintAddress;
       await this.loadMetadata(mintAddress);
       await this.loadTokens();
     }

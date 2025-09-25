@@ -81,7 +81,7 @@
                                 <div class="widget-content-inner" [class.active]="activeTab === 'character'">
                                     <div class="row">
                                         <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4" *ngFor="let nft of nftCharacter | slice:0:itemsToShowCharacter">
-                                            <div class="tf-card-box style-1 h-100 d-flex flex-column">
+                                            <div class="tf-card-box style-1 d-flex flex-column">
                                                 <div class="card-media">
                                                     <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">
                                                         <img [src]="nft.image || 'assets/images/box-item/card-item-53.jpg'" alt="">
@@ -91,7 +91,7 @@
                                                 <div class="divider mt-auto"></div>
                                                 <div class="meta-info flex items-center justify-between">
                                                     <span class="text-bid">Current Price</span>
-                                                    <h6 class="price gem"><i class="icon-gem"></i>{{ nft.price }}</h6>
+                                                    <h6 class="price gem"><img src="assets/images/box-icon/coin-04.png" alt="" class="pr-2">{{ nft.price }}</h6>
                                                 </div>
                                             </div>
                                         </div>

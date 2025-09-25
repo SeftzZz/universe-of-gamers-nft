@@ -137,7 +137,7 @@
                                       </a>
                                     </div>
                                     <h6 class="price gem">
-                                      <i class="icon-gem"></i>
+                                      <img src="assets/images/box-icon/coin-04.png" alt="">
                                     </h6>
                                     <div class="wishlist-button">10<i class="icon-heart"></i></div>
                                     <div class="featured-countdown">
@@ -186,15 +186,15 @@
                                     <!-- Meta -->
                                     <div class="meta mb-20">
                                       <div class="meta-item view"><i class="icon-show"></i>{{ shortenAddress(metadata.properties?.creators?.[0]?.address) || 'Unknown' }}</div>
-                                      <div class="meta-item rating" (click)="openSolscan()"><i class="icon-arrow-up-right2"></i>View on Solscan</div>
-                                      <div class="meta-item favorites"><i class="icon-heart"></i>10 favorites</div>
-                                      <div class="meta-item favorites"><i class="icon-heart"></i>Earnings {{ metadata.seller_fee_basis_points / 100 }}%</div>
+                                      <div class="meta-item rating" (click)="openSolscan()"><i class="icon-arrow-up-right2"></i>Solscan</div>
+                                      <!-- <div class="meta-item favorites"><i class="icon-heart"></i>10 favorites</div> -->
+                                      <div class="meta-item favorites"><i class="icon-link-3"></i>{{ metadata.seller_fee_basis_points / 100 }}%</div>
                                     </div>
                                   </div>
 
                                   <!-- Price -->
                                   <div class="product-item time-sales">
-                                    <h6><i class="icon-clock"></i>Sale ends in 24h</h6>
+                                    <h6><i class="icon-description"></i>{{ shortenAddress(mintAddress) }}</h6>
                                     <div class="content">
                                       <div class="text">Current price</div>
                                       <div class="flex justify-between">
