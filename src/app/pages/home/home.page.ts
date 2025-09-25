@@ -113,6 +113,9 @@ export class HomePage implements OnInit {
   characterMap: Record<string, any[]> = {};
   runeMap: Record<string, any[]> = {};
 
+  nfts: any[] = [];
+  nftMap: Record<string, any[]> = {};
+
   private shuffleArray<T>(array: T[]): T[] {
     return array
       .map(value => ({ value, sort: Math.random() }))
@@ -155,6 +158,7 @@ export class HomePage implements OnInit {
     await this.loadRunes();
     await this.loadGatchaPacks();
     await this.fetchRates();
+    await this.onChainAll();
   }
 
   disconnectWallet() {
@@ -625,5 +629,63 @@ export class HomePage implements OnInit {
 
   logout() {
     this.auth.logout();
+  }
+
+  async onChainAll() {
+    try {
+      const resp = await firstValueFrom(
+        this.http.get<any[]>(`${environment.apiUrl}/nft/onchain`)
+      );
+
+      this.nfts = resp || [];
+      console.log("NFTs:", this.nfts);
+
+      this.nftMap = this.nfts.reduce(
+        (acc: Record<string, any[]>, nft: any) => {
+          const rarity = nft?.rarity || nft?.metadata?.attributes?.find((a: any) => a.trait_type === "Rarity")?.value || "Unknown";
+          acc[rarity] = [...(acc[rarity] || []), nft];
+          return acc;
+        },
+        {} as Record<string, any[]>
+      );
+    } catch (err) {
+      console.error("❌ Error loading NFTs:", err);
+      this.nfts = [];
+      this.nftMap = {};
+    }
+  }
+
+  formatWithZeroCount(num: number): string {
+    const str = num.toString();
+
+    if (!str.includes(".")) return `$${str}`;
+
+    const [intPart, decPart] = str.split(".");
+
+    // cari jumlah nol berturut-turut setelah "0."
+    let zeroCount = 0;
+    for (const ch of decPart) {
+      if (ch === "0") zeroCount++;
+      else break;
+    }
+
+    // ambil sisa digit setelah nol
+    const rest = decPart.slice(zeroCount);
+
+    // map angka ke subscript unicode
+    const subscripts: Record<string, string> = {
+      "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄",
+      "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉"
+    };
+
+    const zeroCountStr = zeroCount.toString()
+      .split("")
+      .map((d) => subscripts[d] || d)
+      .join("");
+
+    const result = `$${intPart}.0${zeroCountStr}${rest}`;
+
+    console.log(`formatWithZeroCount(${num}) => ${result}`);
+    return result;
   }
 }
