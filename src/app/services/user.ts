@@ -25,7 +25,7 @@ export class User {
     email: '',
     notifyNewItems: false,
     notifyEmail: false,
-    avatar: 'assets/images/avatar/avatar-07.png',
+    avatar: 'assets/images/avatar/avatar-01.png',
     custodialWallets: [],
     role: ''
   });
