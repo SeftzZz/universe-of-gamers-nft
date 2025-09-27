@@ -696,7 +696,7 @@ export class HomePage implements OnInit {
   }
 
   setLatestNfts() {
-    // gabungkan semua NFT dari Character & Rune
+    // gabungkan semua NFT & Rune
     const allNft = [...this.nft, ...this.runes];
 
     if (allNft.length > 0) {

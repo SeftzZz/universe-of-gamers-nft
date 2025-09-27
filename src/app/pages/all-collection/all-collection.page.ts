@@ -14,11 +14,23 @@ interface Collection {
   items: number;
 }
 
+interface INftItem {
+  _id: string;
+  name: string;
+  description: string;
+  image: string;
+  owner: string;
+  character?: string;
+  rune?: string;
+  [key: string]: any;
+}
+
 @Component({
   selector: 'app-all-collection',
   templateUrl: './all-collection.page.html',
   styleUrls: ['./all-collection.page.scss'],
 })
+
 export class AllCollectionPage implements OnInit {
   collections: Collection[] = [];
 
@@ -26,6 +38,8 @@ export class AllCollectionPage implements OnInit {
   runes: any[] = [];   // daftar rune dari backend
   latestNfts: any[] = [];
   runeMap: Record<string, any[]> = {};
+  nftCharacter: any[] = [];
+  nftRune: any[] = [];
 
   constructor(
     private http: HttpClient,
@@ -43,13 +57,32 @@ export class AllCollectionPage implements OnInit {
     return addr.slice(0, 6) + '...' + addr.slice(-4);
   }
 
+  // async loadNft() {
+  //   try {
+  //     const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-nft`).toPromise();
+  //     this.nft = data;
+  //     console.log('📦 NFT List:', this.nft);
+  //   } catch (err) {
+  //     console.error('❌ Error loading NFT:', err);
+  //   }
+  // }
+
   async loadNft() {
     try {
-      const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-nft`).toPromise();
-      this.nft = data;
-      console.log('📦 NFT List:', this.nft);
+      const data: any = await this.http
+        .get(`${environment.apiUrl}/nft/fetch-nft`)
+        .toPromise();
+
+      // Pisahkan berdasarkan field
+      this.nftCharacter = data.filter((item: INftItem) => !!item.character);
+      this.nftRune = data.filter((item: INftItem) => !!item.rune);
+
+      console.log('NFT Character:', this.nftCharacter);
+      console.log('NFT Rune:', this.nftRune);
     } catch (err) {
-      console.error('❌ Error loading NFT:', err);
+      console.error('Error loading NFT:', err);
+      this.nftCharacter = [];
+      this.nftRune = [];
     }
   }
 
@@ -76,6 +109,49 @@ export class AllCollectionPage implements OnInit {
     if (!mintAddress) return;
     console.log("Navigating to NFT detail:", mintAddress);
     this.router.navigate(['/nft-detail', mintAddress]);
+  }
+
+  isOpen = false;
+  selected = '';
+  activeTab: 'character' | 'rune' = 'character';
+
+  // pagination more item
+  itemsToShowCharacter = 8;
+  itemsToShowRune = 8;
+  loadStep = 8;
+
+  toggleDropdown() {
+    this.isOpen = !this.isOpen;
+  }
+
+  switchTab(tab: 'character' | 'rune') {
+    this.activeTab = tab;
+    this.isOpen = false; // tutup dropdown saat ganti tab
+  }
+
+  sortData(type: string) {
+    let target = this.activeTab === 'character' ? this.nftCharacter : this.nftRune;
+
+    if (type === 'recent') {
+      target.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      this.selected = 'Recently added';
+    } else if (type === 'low') {
+      target.sort((a, b) => a.price - b.price);
+      this.selected = 'Price: Low to High';
+    } else if (type === 'high') {
+      target.sort((a, b) => b.price - a.price);
+      this.selected = 'Price: High to Low';
+    }
+
+    this.isOpen = false; // otomatis tutup dropdown setelah pilih
+  }
+
+  loadMoreCharacter() {
+    this.itemsToShowCharacter += this.loadStep;
+  }
+
+  loadMoreRune() {
+    this.itemsToShowRune += this.loadStep;
   }
 
   async setLatestNfts() {

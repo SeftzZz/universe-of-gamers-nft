@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Auth } from '../../services/auth';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-market-layout',
@@ -13,7 +14,8 @@ export class MarketLayoutPage implements OnInit {
 
   constructor(
     private auth: Auth,
-  ) { }
+    private router: Router
+  ) {}
 
   ngOnInit() {
     // Ambil data user dari localStorage
