@@ -365,7 +365,7 @@ export class NftDetailPage implements OnInit {
       .map((d) => subscripts[d] || d)
       .join("");
 
-    const result = `$${intPart}.0${zeroCountStr}${rest}`;
+    const result = `${intPart}.0${zeroCountStr}${rest} SOL`;
 
     console.log(`formatWithZeroCount(${num}) => ${result}`);
     return result;

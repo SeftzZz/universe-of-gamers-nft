@@ -541,7 +541,7 @@ export class GatchaPage implements OnInit {
 
     try {
       const resp: any = await this.http.post(
-        `${environment.apiUrl}/gatcha/${packId}/pull/custodian`,
+        `${environment.apiUrl}/gatcha/${packId}/pull`,
         { user: this.userAddress },
         {
           headers: {
