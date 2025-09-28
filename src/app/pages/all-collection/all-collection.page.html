@@ -1,0 +1,248 @@
+                    <ion-content>
+                        <app-market-layout>
+                            <div>
+                                <div class="wrapper-content">
+                                    <div class="inner-content">
+                                        <div class="action__body w-full mb-40">
+                                            <div class="tf-tsparticles">
+                                                <div id="tsparticles3" data-color="#161616" data-line="#000"></div>
+                                            </div>
+                                            <h2>Discover, create and sell your own NFT</h2>
+                                            <div class="flat-button flex">
+                                                <a href="#" class="tf-button style-2 h50 w190 mr-10">Gatcha Now<i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="bg-home7">
+                                                <div class="swiper-container autoslider3reverse" data-swiper='{
+                                                "loop":true,
+                                                "slidesPerView": "auto",
+                                                "spaceBetween": 14,
+                                                "direction": "vertical",
+                                                "speed": 10000,
+                                                "observer": true,
+                                                "observeParents": true,
+                                                "autoplay": {
+                                                    "delay": "0",
+                                                    "disableOnInteraction": false
+                                                }
+                                            }'>
+                                                    <div class="swiper-wrapper">
+                                                        <div class="swiper-slide">
+                                                            <img src="assets/images/item-background/bg-action-1.png" alt="">
+                                                        </div>
+                                                        <div class="swiper-slide">
+                                                            <img src="assets/images/item-background/bg-action-1.png" alt="">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="swiper-container autoslider4reverse" data-swiper='{
+                                                "loop":true,
+                                                "slidesPerView": "auto",
+                                                "spaceBetween": 14,
+                                                "direction": "vertical",
+                                                "speed": 10000,
+                                                "observer": true,
+                                                "observeParents": true,
+                                                "autoplay": {
+                                                    "delay": "0",
+                                                    "disableOnInteraction": false,
+                                                    "reverseDirection": true
+                                                }
+                                            }'>
+                                                    <div class="swiper-wrapper">
+                                                        <div class="swiper-slide">
+                                                            <img src="assets/images/item-background/bg-action-1.png" alt="">
+                                                        </div>
+                                                        <div class="swiper-slide">
+                                                            <img src="assets/images/item-background/bg-action-1.png" alt="">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="swiper-container autoslider3reverse" data-swiper='{
+                                                "loop":true,
+                                                "slidesPerView": "auto",
+                                                "spaceBetween": 14,
+                                                "direction": "vertical",
+                                                "speed": 10000,
+                                                "observer": true,
+                                                "observeParents": true,
+                                                "autoplay": {
+                                                    "delay": "0",
+                                                    "disableOnInteraction": false
+                                                }
+                                            }'>
+                                                    <div class="swiper-wrapper">
+                                                        <div class="swiper-slide">
+                                                            <img src="assets/images/item-background/bg-action-1.png" alt="">
+                                                        </div>
+                                                        <div class="swiper-slide">
+                                                            <img src="assets/images/item-background/bg-action-1.png" alt="">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="heading-section">
+                                            <h2 class="tf-title pb-30">All Collection</h2>
+                                        </div>
+                                        <div class="widget-tabs relative">
+                                            <div class="tf-soft">
+                                                <div class="soft-right">
+                                                    <div class="dropdown" [class.show]="isOpen">
+                                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton4" (click)="toggleDropdown()">
+                                                            <span>Sort by: {{ selected }}</span>
+                                                        </button>
+
+                                                        <div class="dropdown-menu" [class.show]="isOpen" aria-labelledby="dropdownMenuButton4">
+                                                            <h6 class="dropdown-header">Sort by</h6>
+                                                            <a class="dropdown-item" (click)="sortData('recent')">Recently added</a>
+                                                            <a class="dropdown-item" (click)="sortData('low')">Price: Low to High</a>
+                                                            <a class="dropdown-item" (click)="sortData('high')">Price: High to Low</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Tabs -->
+                                            <ul class="widget-menu-tab">
+                                                <li class="item-title" [class.active]="activeTab === 'character'" (click)="switchTab('character')">
+                                                    <span class="inner">Character</span>
+                                                </li>
+                                                <li class="item-title" [class.active]="activeTab === 'rune'" (click)="switchTab('rune')">
+                                                    <span class="inner">Items</span>
+                                                </li>
+                                            </ul>
+
+                                            <!-- Tab Content -->
+                                            <div class="widget-content-tab pt-10">
+                                                <!-- Character tab -->
+                                                <div class="widget-content-inner" [class.active]="activeTab === 'character'">
+                                                    <div class="row">
+                                                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4" *ngFor="let nft of nftCharacter | slice:0:itemsToShowCharacter">
+                                                            <div class="tf-card-box style-1 d-flex flex-column">
+                                                                <div class="card-media">
+                                                                    <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">
+                                                                        <img [src]="nft.image || 'assets/images/box-item/card-item-01.jpg'" alt="">
+                                                                    </a>
+                                                                    <span class="wishlist-button icon-heart"></span>
+                                                                </div>
+                                                                <h5 class="name">{{ nft.name }}</h5>
+                                                                <div class="divider mt-auto"></div>
+                                                                <div class="meta-info flex items-center justify-between">
+                                                                    <span class="text-bid">Current Price</span>
+                                                                    <h6 class="price gem"><img src="assets/images/box-icon/coin-04.png" alt="" class="pr-2">{{ nft.price }}</h6>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row" *ngIf="itemsToShowCharacter < nftCharacter.length">
+                                                        <div class="col-md-12 load-more">
+                                                            <a class="tf-button-loadmore" (click)="loadMoreCharacter()">
+                                                                <span>Load More</span><i class="icon-loading-1"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Rune tab -->
+                                                <div class="widget-content-inner" [class.active]="activeTab === 'rune'">
+                                                    <div class="row">
+                                                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4" *ngFor="let nft of nftRune | slice:0:itemsToShowRune">
+                                                            <div class="tf-card-box style-1 h-100 d-flex flex-column">
+                                                                <div class="card-media">
+                                                                    <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">
+                                                                        <img [src]="nft.image || 'assets/images/box-item/card-item-01.jpg'" alt="">
+                                                                    </a>
+                                                                    <span class="wishlist-button icon-heart" [class.active]="isFavorite(nft)" (click)="toggleFavorite(nft)"></span>
+                                                                </div>
+                                                                <h5 class="name">{{ nft.name }}</h5>
+                                                                <div class="divider mt-auto"></div>
+                                                                <div class="meta-info flex items-center justify-between">
+                                                                    <span class="text-bid">Current Price</span>
+                                                                    <h6 class="price gem"><img src="assets/images/box-icon/coin-04.png" alt="" class="pr-2">{{ nft.price }}</h6>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row" *ngIf="itemsToShowRune < nftRune.length">
+                                                        <div class="col-md-12 load-more">
+                                                            <a class="tf-button-loadmore" (click)="loadMoreRune()">
+                                                                <span>Load More</span><i class="icon-loading-1"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="side-bar">
+                                        <div class="widget widget-recently" *ngIf="latestNfts.length > 0">
+                                            <h5 class="title-widget">Recently added</h5>
+                                            <!-- NFT utama besar -->
+                                            <div class="card-small-main">
+                                                <img [src]="latestNfts[0].image || 'assets/images/blog/sidebar-05.jpg'" alt="">
+                                                  <div class="card-bottom">
+                                                      <h5>
+                                                        <a href="javascript:void(0)" (click)="goToNftDetail(latestNfts[0].mintAddress)">
+                                                          {{ latestNfts[0].name }}
+                                                        </a>
+                                                      </h5>
+                                                      <span class="date">{{ latestNfts[0].createdAt | date:'short' }}</span>
+                                                  </div>
+                                            </div>
+                                            <!-- 3 NFT kecil -->
+                                            <div class="card-small" *ngFor="let nft of latestNfts.slice(1,4)">
+                                                  <div class="author">
+                                                      <img class="nft-thumb" [src]="nft.image || 'assets/images/sidebar-01.jpg'" alt="">
+                                                      <div class="info">
+                                                          <h6><a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">{{ nft.name }}</a></h6>
+                                                          <p>{{ nft.owner ? shorten(nft.owner) : 'Unknown' }}</p>
+                                                      </div>
+                                                  </div>
+                                                  <span class="date">{{ nft.createdAt | date:'shortDate' }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="widget widget-creators">
+                                            <div class="flex items-center justify-between">
+                                                <h5 class="title-widget">Top Creators</h5>
+                                                <a class="see-all" href="#">See all</a>
+                                            </div>
+                                            <div class="widget-creators-item flex items-center mb-20">
+                                                <div class="order">1. </div>
+                                                <div class="author flex items-center flex-grow">
+                                                    <img src="assets/images/avatar/avatar-small-01.png" alt="">
+                                                    <div class="info">
+                                                        <h6><a href="#">Brooklyn Simmons</a></h6>
+                                                        <span><a href="#">@themes</a></span>
+                                                    </div>
+                                                </div>
+                                                <button class="follow">Follow</button>
+                                            </div>
+                                        </div>
+                                        <div class="widget widget-coins">
+                                            <h5 class="title-widget">Trending coins</h5>
+                                            <div class="widget-coins-item flex items-center mb-20">
+                                                <img src="assets/images/box-icon/coin-04.png" alt="">
+                                                <p><a href="#">Solana</a></p>
+                                            </div>
+                                        </div>
+                                        <div class="widget widget-history">
+                                              <div class="flex items-center justify-between">
+                                                  <h5 class="title-widget">History</h5>
+                                                  <a class="see-all" href="#">See all</a>
+                                              </div>
+                                              <div class="widget-creators-item flex items-center mb-20">
+                                                  <div class="author flex items-center flex-grow">
+                                                      <img src="assets/images/avatar/avatar-small-01.png" alt="">
+                                                      <div class="info">
+                                                          <h6><a href="#">Lorem NFT sold</a></h6>
+                                                          <span><a href="#">Sold at 1.32 ETH</a></span>
+                                                      </div>
+                                                  </div>
+                                                  <span class="time">Just now</span>
+                                              </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </app-market-layout>
+                    </ion-content>

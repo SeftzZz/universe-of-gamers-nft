@@ -458,3 +458,9 @@ a:focus {
 .product-item .column {
     font-family: 'Manrope', sans-serif;
 }
+.wishlist-button.icon-heart::before {
+  color: white;
+}
+.wishlist-button.active.icon-heart::before {
+  color: red;
+}

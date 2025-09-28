@@ -53,6 +53,13 @@ const routes: Routes = [
       import('./pages/gatcha/gatcha.module').then( m => m.GatchaPageModule),
     canActivate: [AuthGuard],
   },
+  {
+    path: 'all-collection',
+    loadChildren: () =>
+      import('./pages/all-collection/all-collection.module').then(m => m.AllCollectionPageModule),
+    canActivate: [AuthGuard]
+  }
+
 
 ];
 
