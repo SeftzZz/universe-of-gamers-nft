@@ -40,7 +40,6 @@ export class AllCollectionPage implements OnInit {
   runeMap: Record<string, any[]> = {};
   nftCharacter: any[] = [];
   nftRune: any[] = [];
-  favorites: Set<string> = new Set();
 
   constructor(
     private http: HttpClient,
@@ -52,13 +51,21 @@ export class AllCollectionPage implements OnInit {
     await this.loadNft();
     await this.loadRunes();
     await this.setLatestNfts();
-    // restore favorite dari localStorage
-    this.loadFavorites();
   }
 
   shorten(addr: string) {
     return addr.slice(0, 6) + '...' + addr.slice(-4);
   }
+
+  // async loadNft() {
+  //   try {
+  //     const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-nft`).toPromise();
+  //     this.nft = data;
+  //     console.log('📦 NFT List:', this.nft);
+  //   } catch (err) {
+  //     console.error('❌ Error loading NFT:', err);
+  //   }
+  // }
 
   async loadNft() {
     try {
@@ -158,34 +165,6 @@ export class AllCollectionPage implements OnInit {
         .slice(0, 4); // ambil 4 terbaru
     }
   }
-
-  // -------------------------------
-  // FAVORITE FEATURE
-  // -------------------------------
-  toggleFavorite(item: any) {
-    if (this.favorites.has(item._id)) {
-      this.favorites.delete(item._id);
-    } else {
-      this.favorites.add(item._id);
-    }
-    this.saveFavorites();
-  }
-
-  isFavorite(item: any): boolean {
-    return this.favorites.has(item._id);
-  }
-
-  saveFavorites() {
-    localStorage.setItem('favorites', JSON.stringify(Array.from(this.favorites)));
-  }
-
-  loadFavorites() {
-    const stored = localStorage.getItem('favorites');
-    if (stored) {
-      this.favorites = new Set(JSON.parse(stored));
-    }
-  }
-  // -------------------------------
 
   logout() {
     this.auth.logout();
