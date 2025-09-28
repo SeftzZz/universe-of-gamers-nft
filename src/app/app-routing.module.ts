@@ -54,12 +54,11 @@ const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-  path: 'all-collection',
-  loadChildren: () =>
-    import('./pages/all-collection/all-collection.module').then(
-      (m) => m.AllCollectionPageModule
-    ),
-},
+    path: 'all-collection',
+    loadChildren: () =>
+      import('./pages/all-collection/all-collection.module').then(m => m.AllCollectionPageModule),
+    canActivate: [AuthGuard]
+  }
 
 
 ];
