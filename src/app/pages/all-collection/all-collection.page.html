@@ -123,7 +123,7 @@
                                                                     <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">
                                                                         <img [src]="nft.image || 'assets/images/box-item/card-item-01.jpg'" alt="">
                                                                     </a>
-                                                                    <span class="wishlist-button icon-heart"></span>
+                                                                    <span class="wishlist-button icon-heart" [class.active]="isFavorite(nft)" (click)="toggleFavorite(nft)"></span>
                                                                 </div>
                                                                 <h5 class="name">{{ nft.name }}</h5>
                                                                 <div class="divider mt-auto"></div>

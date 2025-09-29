@@ -163,16 +163,25 @@ export class AllCollectionPage implements OnInit {
   // FAVORITE FEATURE
   // -------------------------------
   toggleFavorite(item: any) {
-    if (this.favorites.has(item._id)) {
-      this.favorites.delete(item._id);
+    // Tentukan tipe favoritnya
+    const type = item.character ? 'favNft' : (item.rune ? 'FavRune' : 'other');
+
+    // Buat key unik
+    const key = `${type}:${item._id}`;
+
+    if (this.favorites.has(key)) {
+      this.favorites.delete(key);
     } else {
-      this.favorites.add(item._id);
+      this.favorites.add(key);
     }
+
     this.saveFavorites();
   }
 
   isFavorite(item: any): boolean {
-    return this.favorites.has(item._id);
+    const type = item.character ? 'favNft' : (item.rune ? 'FavRune' : 'other');
+    const key = `${type}:${item._id}`;
+    return this.favorites.has(key);
   }
 
   saveFavorites() {
@@ -183,6 +192,8 @@ export class AllCollectionPage implements OnInit {
     const stored = localStorage.getItem('favorites');
     if (stored) {
       this.favorites = new Set(JSON.parse(stored));
+    } else {
+      this.favorites = new Set();
     }
   }
   // -------------------------------

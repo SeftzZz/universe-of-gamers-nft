@@ -464,3 +464,14 @@ a:focus {
 .wishlist-button.active.icon-heart::before {
   color: red;
 }
+h5 {
+  font-size: 18px;
+}
+.tf-card-box .meta-info, .tf-card-box .author {
+    padding-left: 2px;
+    padding-right: 2px;
+}
+.author .info h6 {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}

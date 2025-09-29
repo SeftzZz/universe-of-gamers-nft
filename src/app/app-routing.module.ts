@@ -58,6 +58,12 @@ const routes: Routes = [
     loadChildren: () =>
       import('./pages/all-collection/all-collection.module').then(m => m.AllCollectionPageModule),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'my-favorite',
+    loadChildren: () =>
+      import('./pages/my-favorite/my-favorite.module').then(m => m.MyFavoritePageModule),
+    canActivate: [AuthGuard]
   }
 
 
