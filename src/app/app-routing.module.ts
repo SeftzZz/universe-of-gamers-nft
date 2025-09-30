@@ -70,7 +70,14 @@ const routes: Routes = [
     loadChildren: () =>
       import('./pages/wallet/wallet.module').then(m => m.WalletPageModule),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'setting',
+    loadChildren: () =>
+      import('./pages/setting/setting.module').then(m => m.SettingPageModule),
+    canActivate: [AuthGuard]
   }
+
 
 
 
