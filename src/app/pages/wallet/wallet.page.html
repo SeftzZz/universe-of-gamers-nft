@@ -5,7 +5,7 @@
                                     <div class="inner-content">
                                         <div class="action__body w-full mb-40">
                                             <div class="tf-tsparticles">
-                                                <div id="tsparticles3" data-color="#161616" data-line="#000"></div>
+                                                <div id="tsparticles6" data-color="#161616" data-line="#000"></div>
                                             </div>
                                             <h2>Discover, create and sell your own NFT</h2>
                                             <div class="flat-button flex">
@@ -82,123 +82,218 @@
                                             </div>
                                         </div>
                                         <div class="heading-section">
-                                            <h2 class="tf-title pb-30">All Collection</h2>
+                                            <h2 class="tf-title">Connect your wallet</h2>
                                         </div>
-                                        <div class="widget-tabs relative">
-                                            <div class="tf-soft">
-                                                <div class="soft-right">
-                                                    <div class="dropdown" [class.show]="isOpen">
-                                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton4" (click)="toggleDropdown()">
-                                                            <span>Sort by: {{ selected }}</span>
-                                                        </button>
-
-                                                        <div class="dropdown-menu" [class.show]="isOpen" aria-labelledby="dropdownMenuButton4">
-                                                            <h6 class="dropdown-header">Sort by</h6>
-                                                            <a class="dropdown-item" (click)="sortData('recent')">Recently added</a>
-                                                            <a class="dropdown-item" (click)="sortData('low')">Price: Low to High</a>
-                                                            <a class="dropdown-item" (click)="sortData('high')">Price: High to Low</a>
-                                                        </div>
+                                        <p>If you don't have a wallet, you can select a provider and create one now. <span class="tf-color button-connect-wallet">Learn more</span></p>
+                                        <div id="connect-wallet-grid">
+                                            <div class="wrap-box-card">
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-01.png" alt="">
+                                                        <h6><a href="#">MetaMask</a></h6>
+                                                        <p>Throw myself down among the tall</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-02.png" alt="">
+                                                        <h6><a href="#">Coibase Wallet</a></h6>
+                                                        <p>Lorem ipsum dolor sit amet, consectetur</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-03.png" alt="">
+                                                        <h6><a href="#">WalletConnect</a></h6>
+                                                        <p>Sed euismod ante et leo commodo, ac faucibus</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-04.png" alt="">
+                                                        <h6><a href="#">Ledger</a></h6>
+                                                        <p>Proin suscipit sem a nunc eleifend</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-05.png" alt="">
+                                                        <h6><a href="#">Phantom</a></h6>
+                                                        <p>Vestibulum malesuada tortor vel erat</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-06.png" alt="">
+                                                        <h6><a href="#">Bitkeep</a></h6>
+                                                        <p>Morbi vel eros sit amet quam viverra</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-07.png" alt="">
+                                                        <h6><a href="#">Core</a></h6>
+                                                        <p>Mauris nec orci ac urna luctus</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-08.png" alt="">
+                                                        <h6><a href="#">Glow</a></h6>
+                                                        <p>Pellentesque pretium felis vitae augue</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-09.png" alt="">
+                                                        <h6><a href="#">Fortmatic</a></h6>
+                                                        <p>Nunc eget eros at tellus euismod</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-10.png" alt="">
+                                                        <h6><a href="#">Kaikas</a></h6>
+                                                        <p>Aenean quis odio ultricies ex faucibus</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-11.png" alt="">
+                                                        <h6><a href="#">Bitski</a></h6>
+                                                        <p>Fusce sed felis non purus pellentesque</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-12.png" alt="">
+                                                        <h6><a href="#">Solflare</a></h6>
+                                                        <p>Donec in diam vulputate molestie</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-13.png" alt="">
+                                                        <h6><a href="#">OperaTouch</a></h6>
+                                                        <p>Morbi vehicula ante eget cursus posuere</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-item">
+                                                    <div class="box-wallet">
+                                                        <img src="assets/images/box-icon/wallet-14.png" alt="">
+                                                        <h6><a href="#">OperaTouch</a></h6>
+                                                        <p>Morbi vehicula ante eget cursus posuere</p>
                                                     </div>
                                                 </div>
                                             </div>
-                                            
-                                            <!-- Tabs -->
-                                            <ul class="widget-menu-tab">
-                                                <li class="item-title" [class.active]="activeTab === 'character'" (click)="switchTab('character')">
-                                                    <span class="inner">Character</span>
-                                                </li>
-                                                <li class="item-title" [class.active]="activeTab === 'rune'" (click)="switchTab('rune')">
-                                                    <span class="inner">Items</span>
-                                                </li>
-                                            </ul>
-
-                                            <!-- Tab Content -->
-                                            <div class="widget-content-tab">
-                                                <!-- Character tab -->
-                                                <div class="widget-content-inner" [class.active]="activeTab === 'character'">
-                                                    <div>
-                                                        <div class="wrap-box-card">
-                                                            <div class="col-item" *ngFor="let nft of nftBC | slice:0:itemsToShowCharacter">
-                                                                <div class="tf-card-box style-4">
-                                                                    <div class="author flex items-center">
-                                                                        <div class="info">
-                                                                            <span>Created by:</span>
-                                                                            <h6>{{ shorten(nft.owner) }}</h6>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="card-media">
-                                                                        <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">
-                                                                            <img [src]="nft.image || 'assets/images/box-item/card-item-01.jpg'" alt="">
-                                                                        </a>
-                                                                        <span class="wishlist-button icon-heart" [class.active]="isFavorite(nft)" (click)="toggleFavorite(nft)"></span>
-                                                                    </div>
-                                                                    <h5 class="name"><a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">{{ nft.name }}</a></h5>
-                                                                    <div class="meta-info flex items-center justify-between">
-                                                                        <div>
-                                                                            <span class="text-bid">Current Price</span>
-                                                                            <h6 class="price gem" style="margin-top: 0px;margin-bottom: 0px;" [innerHTML]="nft?.price ? formatWithZeroCount(nft.price) : '-'">
-                                                                                <i class="icon-gem"></i>
-                                                                            </h6>
-                                                                        </div>
-                                                                        <div class="button-place-bid">
-                                                                            <a href="#" class="tf-button"><span>Buy Now</span></a>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div *ngIf="itemsToShowCharacter < nftBC.length">
-                                                        <div class="col-md-12 load-more">
-                                                            <a class="tf-button-loadmore" (click)="loadMoreCharacter()">
-                                                                <span>Load More</span><i class="icon-loading-1"></i>
-                                                            </a>
-                                                        </div>
-                                                    </div>
+                                        </div>
+                                        <div id="connect-wallet-list">
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-01.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">Glow</a></h6>
+                                                    <p>Popular</p>
                                                 </div>
-
-                                                <!-- Rune tab -->
-                                                <div class="widget-content-inner" [class.active]="activeTab === 'rune'">
-                                                    <div>
-                                                        <div class="wrap-box-card">
-                                                            <div class="col-item" *ngFor="let nft of nftRuneBC | slice:0:itemsToShowRune">
-                                                                <div class="tf-card-box style-4">
-                                                                    <div class="author flex items-center">
-                                                                        <div class="info">
-                                                                            <span>Created by:</span>
-                                                                            <h6>{{ shorten(nft.owner) }}</h6>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="card-media">
-                                                                        <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">
-                                                                            <img [src]="nft.image || 'assets/images/box-item/card-item-01.jpg'" alt="">
-                                                                        </a>
-                                                                        <span class="wishlist-button icon-heart" [class.active]="isFavorite(nft)" (click)="toggleFavorite(nft)"></span>
-                                                                    </div>
-                                                                    <h5 class="name">{{ nft.name }}</h5>
-                                                                    <div class="meta-info flex items-center justify-between">
-                                                                        <div>
-                                                                            <span class="text-bid">Current Price</span>
-                                                                            <h6 class="price gem" [innerHTML]="nft?.price ? formatWithZeroCount(nft.price) : '-'">
-                                                                                <i class="icon-gem"></i>
-                                                                            </h6>
-                                                                        </div>
-                                                                        <div class="button-place-bid">
-                                                                            <a href="#" class="tf-button"><span>Buy Now</span></a>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-02.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">Coibase Wallet</a></h6>
                                                 </div>
-                                                <div *ngIf="itemsToShowRune < nftRuneBC.length">
-                                                    <div class="col-md-12 load-more">
-                                                        <a class="tf-button-loadmore" (click)="loadMoreRune()">
-                                                            <span>Load More</span><i class="icon-loading-1"></i>
-                                                        </a>
-                                                    </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-03.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">WalletConnect</a></h6>
                                                 </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-04.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">Ledger</a></h6>
+                                                </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-05.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">Phantom</a></h6>
+                                                    <p>Solana</p>
+                                                </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-06.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">Bitkeep</a></h6>
+                                                    <p>BNB Chain</p>
+                                                </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-07.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">Core</a></h6>
+                                                    <p>Avalanche</p>
+                                                </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-08.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">Glow</a></h6>
+                                                    <p>Solana</p>
+                                                </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-09.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">Fortmatic</a></h6>
+                                                </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-10.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">Kaikas</a></h6>
+                                                    <p>Klaytn</p>
+                                                </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-11.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">Bitski</a></h6>
+                                                </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-12.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">Solflare</a></h6>
+                                                    <p>Solana</p>
+                                                </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-13.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">OperaTouch</a></h6>
+                                                    <p>Mobile only</p>
+                                                </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
+                                            </div>
+                                            <div class="box-wallet style-1">
+                                                <img src="assets/images/box-icon/wallet-14.png" alt="">
+                                                <div class="info">
+                                                    <h6><a href="#">OperaTouch</a></h6>
+                                                    <p>Mobile only</p>
+                                                </div>
+                                                <a href="#" class="tf-button style-3">Connect <i class="icon-arrow-up-right2"></i></a>
                                             </div>
                                         </div>
                                     </div>
@@ -371,6 +466,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </app-market-layout>
-                    </ion-content>
+                          </div>
+                      </app-market-layout>
+                  </ion-content>
+                        

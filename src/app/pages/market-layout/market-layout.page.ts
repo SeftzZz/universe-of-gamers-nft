@@ -27,6 +27,10 @@ export class MarketLayoutPage implements OnInit {
     }
   }
 
+  isAllCollectionActive(): boolean {
+      return this.router.isActive('/all-collection', false) || this.router.url.startsWith('/nft-detail');
+  }
+
   logout() {
     this.auth.logout();
   }

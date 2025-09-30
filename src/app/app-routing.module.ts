@@ -64,7 +64,14 @@ const routes: Routes = [
     loadChildren: () =>
       import('./pages/my-favorite/my-favorite.module').then(m => m.MyFavoritePageModule),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'wallet',
+    loadChildren: () =>
+      import('./pages/wallet/wallet.module').then(m => m.WalletPageModule),
+    canActivate: [AuthGuard]
   }
+
 
 
 ];

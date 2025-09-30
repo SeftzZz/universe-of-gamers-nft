@@ -130,7 +130,7 @@
                         <div class="content">
                             <h6>Marketplace</h6>
                             <ul class="menu-tab">
-                                <li class="tablinks" routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+                                <li class="tablinks" [routerLink]="['/home']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
                                     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <g opacity="0.2">
                                         <path d="M6.75731 9.35159V15.64" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -167,7 +167,7 @@
                                     </svg>
                                     Active Bid
                                 </li>
-                                <li class="tablinks" routerLink="/all-collection" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+                                <li class="tablinks" [routerLink]="['/all-collection']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
                                     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <g opacity="0.2">
                                         <path fill-rule="evenodd" clip-rule="evenodd" d="M5.73177 3.20834C3.21094 3.20834 3.21094 3.39901 3.21094 5.72918V5.75209C3.21094 6.76684 3.21094 7.50018 3.45935 7.81001C3.70227 8.11068 4.42369 8.25001 5.73177 8.25001C7.03985 8.25001 7.76127 8.10976 8.00419 7.80909C8.2526 7.50018 8.2526 6.76684 8.2526 5.75118C8.2526 3.39901 8.2526 3.20834 5.73177 3.20834ZM5.73177 9.62501C4.18627 9.62501 3.02669 9.46276 2.3896 8.67168C1.83594 7.98509 1.83594 7.04826 1.83594 5.75209L2.52344 5.72918H1.83594C1.83594 3.09834 2.00185 1.83334 5.73177 1.83334C9.46169 1.83334 9.6276 3.09834 9.6276 5.72918C9.6276 7.04734 9.6276 7.98509 9.07394 8.67168C8.43685 9.46276 7.27727 9.62501 5.73177 9.62501Z" fill="white"/>
@@ -186,7 +186,7 @@
                         <div class="content mt-30">
                             <h6>Account</h6>
                             <ul class="menu-tab">
-                                <li class="tablinks" routerLink="/my-favorite" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+                                <li class="tablinks" [routerLink]="['/my-favorite']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
                                     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <g opacity="0.2">
                                         <path fill-rule="evenodd" clip-rule="evenodd" d="M2.63385 10.6318C1.65026 7.56096 2.79976 4.05104 6.02368 3.01246C7.71951 2.46521 9.59135 2.78788 11.0012 3.84846C12.3349 2.81721 14.2755 2.46888 15.9695 3.01246C19.1934 4.05104 20.3503 7.56096 19.3676 10.6318C17.8368 15.4993 11.0012 19.2485 11.0012 19.2485C11.0012 19.2485 4.21601 15.5561 2.63385 10.6318Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -198,7 +198,7 @@
                                     </svg>
                                     My favorite
                                 </li>
-                                <li class="tablinks" data-tabs="wallet">
+                                <li class="tablinks" [routerLink]="['/wallet']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
                                     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <g opacity="0.2">
                                         <path fill-rule="evenodd" clip-rule="evenodd" d="M20.0651 14.571H16.3544C14.6155 14.571 13.2001 13.1565 13.1992 11.4185C13.1992 9.6787 14.6146 8.26337 16.3544 8.26245H20.0651C20.4446 8.26245 20.7526 8.57045 20.7526 8.94995C20.7526 9.32945 20.4446 9.63745 20.0651 9.63745H16.3544C15.3726 9.63837 14.5742 10.4368 14.5742 11.4176C14.5742 12.3975 15.3736 13.196 16.3544 13.196H20.0651C20.4446 13.196 20.7526 13.504 20.7526 13.8835C20.7526 14.263 20.4446 14.571 20.0651 14.571Z" fill="white"/>
