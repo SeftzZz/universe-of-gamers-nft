@@ -164,7 +164,7 @@ export class AllCollectionPage implements OnInit {
   // -------------------------------
   toggleFavorite(item: any) {
     // Tentukan tipe favoritnya
-    const type = item.character ? 'favNft' : (item.rune ? 'FavRune' : 'other');
+    const type = item.character ? 'favNft' : (item.rune ? 'favRune' : 'other');
 
     // Buat key unik
     const key = `${type}:${item._id}`;
@@ -179,7 +179,7 @@ export class AllCollectionPage implements OnInit {
   }
 
   isFavorite(item: any): boolean {
-    const type = item.character ? 'favNft' : (item.rune ? 'FavRune' : 'other');
+    const type = item.character ? 'favNft' : (item.rune ? 'favRune' : 'other');
     const key = `${type}:${item._id}`;
     return this.favorites.has(key);
   }

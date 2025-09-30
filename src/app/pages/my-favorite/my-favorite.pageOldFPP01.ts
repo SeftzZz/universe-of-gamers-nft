@@ -23,12 +23,14 @@ interface INftItem {
     styleUrls: ['./my-favorite.page.scss'],
 })
 export class MyFavoritePage implements OnInit {
-    nft: any[] = []; // daftar NFT dari backend
-    runes: any[] = [];   // daftar rune dari backend
+    nftFromDB: any[] = []; // daftar NFT dari DB
+    runesFromDB: any[] = [];   // daftar RUNES dari DB
     latestNfts: any[] = [];
     runeMap: Record<string, any[]> = {};
+    runes: any[] = [];
     nftCharacter: any[] = [];
     nftRune: any[] = [];
+    favorites: Set<string> = new Set();
 
     constructor(
       private http: HttpClient,
@@ -37,9 +39,17 @@ export class MyFavoritePage implements OnInit {
     ) {}
 
     async ngOnInit() {
-      await this.loadNft();
-      await this.loadRunes();
-      await this.setLatestNfts();
+        await this.loadFavorites();
+        await this.loadNft();
+        await this.loadRunes();
+        await this.setLatestNfts();
+    }
+
+    loadFavorites() {
+        const stored = localStorage.getItem('favorites');
+        if (stored) {
+          this.favorites = new Set(JSON.parse(stored));
+        }
     }
 
     shorten(addr: string) {
@@ -52,36 +62,60 @@ export class MyFavoritePage implements OnInit {
           .get(`${environment.apiUrl}/nft/fetch-nft`)
           .toPromise();
 
-        // Pisahkan berdasarkan field
-        this.nftCharacter = data.filter((item: INftItem) => !!item.character);
-        this.nftRune = data.filter((item: INftItem) => !!item.rune);
+        // Ambil NFT dari DB
+        this.nftFromDB = data;
+        // console.log('NFT List From DB:', this.nftFromDB);
 
-        console.log('NFT Character:', this.nftCharacter);
-        console.log('NFT Rune:', this.nftRune);
+        // Ambil NFT favorit saja
+        this.nftCharacter = data.filter(
+          (item: INftItem) =>
+            !!item.character &&
+            this.favorites.has(`favNft:${item._id}`)
+        );
+
+        // Ambil NFT Rune favorit saja
+        this.nftRune = data.filter(
+          (item: INftItem) =>
+            !!item.rune &&
+            this.favorites.has(`favRune:${item._id}`)
+        );
+
+        // console.log('Favorit NFT:', this.nftCharacter);
+        // console.log('Favorit NFT Rune:', this.nftRune);
       } catch (err) {
         console.error('Error loading NFT:', err);
+        this.nftFromDB = [];
         this.nftCharacter = [];
         this.nftRune = [];
       }
     }
 
     async loadRunes() {
-      try {
-        const data = await firstValueFrom(
-          this.http.get<any[]>(`${environment.apiUrl}/nft/rune`)
-        );
-        this.runes = data;
-        console.log("Runes:", this.runes);
+        try {
+            const data = await firstValueFrom(
+              this.http.get<any[]>(`${environment.apiUrl}/nft/rune`)
+            );
 
-        this.runeMap = data.reduce((acc: Record<string, any[]>, r: any) => {
-          acc[r.rarity] = [...(acc[r.rarity] || []), r];
-          return acc;
-        }, {} as Record<string, any[]>);
-      } catch (err) {
-        console.error("❌ Error loading runes:", err);
-        this.runes = [];
-        this.runeMap = {};
-      }
+            // Ambil RUNES dari DB
+            this.runesFromDB = data;
+            // console.log("RUNES List From DB:", this.runesFromDB);
+
+            // Hanya rune favorit
+            this.runes = data.filter((r: any) =>
+              this.favorites.has(`favRune:${r._id}`)
+            );
+
+            // console.log("Favorit Runes:", this.runes);
+
+            this.runeMap = this.runes.reduce((acc: Record<string, any[]>, r: any) => {
+              acc[r.rarity] = [...(acc[r.rarity] || []), r];
+              return acc;
+            }, {} as Record<string, any[]>);
+        } catch (err) {
+            console.error("Error loading runes:", err);
+            this.runes = [];
+            this.runeMap = {};
+        }
     }
 
     goToNftDetail(mintAddress: string) {
@@ -135,7 +169,7 @@ export class MyFavoritePage implements OnInit {
 
     async setLatestNfts() {
       // gabungkan semua NFT & Rune
-      const allNft = [...this.nft, ...this.runes];
+      const allNft = [...this.nftFromDB, ...this.runesFromDB];
 
       if (allNft.length > 0) {
         // urutkan dari terbaru
