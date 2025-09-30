@@ -475,3 +475,6 @@ h5 {
     margin-top: 0px;
     margin-bottom: 0px;
 }
+.uploadfile input[type=file]:before {
+    background-color: #1ac4fc;
+}
