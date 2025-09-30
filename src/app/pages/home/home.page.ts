@@ -541,7 +541,7 @@ export class HomePage implements OnInit {
 
     try {
       const resp: any = await this.http.post(
-        `${environment.apiUrl}/gatcha/${packId}/pull/custodian`,
+        `${environment.apiUrl}/gatcha/${packId}/pull`,
         { user: this.userAddress },
         {
           headers: {
@@ -683,7 +683,7 @@ export class HomePage implements OnInit {
       .map((d) => subscripts[d] || d)
       .join("");
 
-    const result = `$${intPart}.0${zeroCountStr}${rest}`;
+    const result = `${intPart}.0${zeroCountStr}${rest} SOL`;
 
     // console.log(`formatWithZeroCount(${num}) => ${result}`);
     return result;
