@@ -6,7 +6,15 @@
                   <div class="themesflat-container">
                       <div class="row">
                           <div class="col-md-12 pb-20">
-                            <a [routerLink]="['/explorer']" class="tf-button style-1 h50 w216">Explore NFT<i class="icon-arrow-left2"></i></a>
+                              <!-- Jika belum login -->
+                              <a *ngIf="!isLoggedIn()" [routerLink]="['/explorer']" class="tf-button style-1 h50 w216">
+                                  Explore NFT<i class="icon-arrow-left2"></i>
+                              </a>
+
+                              <!-- Jika sudah login -->
+                              <a *ngIf="isLoggedIn()" [routerLink]="['/all-collection']" class="tf-button style-1 h50 w216">
+                                All Collection<i class="icon-arrow-left2"></i>
+                              </a>
                           </div>
                           <div class="col-md-6 pb-20" *ngIf="metadata">
                             <div class="tf-card-box style-5 mb-0">

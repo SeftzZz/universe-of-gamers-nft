@@ -82,7 +82,7 @@ export class AllCollectionPage implements OnInit {
 
   async loadNftDB() {
     try {
-      const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-nft`).toPromise();
+      const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-nftDB`).toPromise();
       this.nftDB = data;
       console.log('NFT List From DB:', this.nftDB);
     } catch (err) {

@@ -41,6 +41,7 @@ export class MyFavoritePage implements OnInit {
     async ngOnInit() {
         await this.loadFavorites();
         await this.loadNft();
+        await this.loadNftDB();
         await this.loadRunes();
         await this.setLatestNfts();
     }
@@ -61,10 +62,6 @@ export class MyFavoritePage implements OnInit {
         const data: any = await this.http
           .get(`${environment.apiUrl}/nft/fetch-nft`)
           .toPromise();
-
-        // Ambil NFT dari DB
-        this.nftFromDB = data;
-        // console.log('NFT List From DB:', this.nftFromDB);
 
         // Ambil NFT favorit saja
         this.nftCharacter = data.filter(
@@ -88,6 +85,16 @@ export class MyFavoritePage implements OnInit {
         this.nftCharacter = [];
         this.nftRune = [];
       }
+    }
+
+    async loadNftDB() {
+        try {
+          const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-nftDB`).toPromise();
+          this.nftFromDB = data;
+          console.log('NFT List From DB:', this.nftFromDB);
+        } catch (err) {
+          console.error('Error loading NFT:', err);
+        }
     }
 
     async loadRunes() {
