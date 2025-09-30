@@ -34,12 +34,12 @@ interface INftItem {
 export class AllCollectionPage implements OnInit {
   collections: Collection[] = [];
 
-  nftDB: any[] = []; // daftar NFT dari DB
-  runesDB: any[] = [];   // list rune dari DB
+  nft: any[] = []; // daftar NFT dari backend
+  runes: any[] = [];   // daftar rune dari backend
   latestNfts: any[] = [];
   runeMap: Record<string, any[]> = {};
-  nftBC: any[] = [];     //  // list NFT dari Block Chain
-  nftRuneBC: any[] = [];
+  nftCharacter: any[] = [];
+  nftRune: any[] = [];
   favorites: Set<string> = new Set();
 
   constructor(
@@ -49,9 +49,8 @@ export class AllCollectionPage implements OnInit {
   ) {}
 
   async ngOnInit() {
-    await this.loadNftBC();
-    await this.loadNftDB();
-    await this.loadRunesDB();
+    await this.loadNft();
+    await this.loadRunes();
     await this.setLatestNfts();
     // restore favorite dari localStorage
     this.loadFavorites();
@@ -61,50 +60,40 @@ export class AllCollectionPage implements OnInit {
     return addr.slice(0, 6) + '...' + addr.slice(-4);
   }
 
-  async loadNftBC() {
+  async loadNft() {
     try {
       const data: any = await this.http
         .get(`${environment.apiUrl}/nft/fetch-nft`)
         .toPromise();
 
       // Pisahkan berdasarkan field
-      this.nftBC = data.filter((item: INftItem) => !!item.character);
-      this.nftRuneBC = data.filter((item: INftItem) => !!item.rune);
+      this.nftCharacter = data.filter((item: INftItem) => !!item.character);
+      this.nftRune = data.filter((item: INftItem) => !!item.rune);
 
-      // console.log('NFT List From Block Chain:', this.nftBC);
-      // console.log('RUNES List From Block Chain:', this.nftRuneBC);
+      console.log('NFT Character:', this.nftCharacter);
+      console.log('NFT Rune:', this.nftRune);
     } catch (err) {
       console.error('Error loading NFT:', err);
-      this.nftBC = [];
-      this.nftRuneBC = [];
+      this.nftCharacter = [];
+      this.nftRune = [];
     }
   }
 
-  async loadNftDB() {
-    try {
-      const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-nft`).toPromise();
-      this.nftDB = data;
-      console.log('NFT List From DB:', this.nftDB);
-    } catch (err) {
-      console.error('Error loading NFT:', err);
-    }
-  }
-
-  async loadRunesDB() {
+  async loadRunes() {
     try {
       const data = await firstValueFrom(
         this.http.get<any[]>(`${environment.apiUrl}/nft/rune`)
       );
-      this.runesDB = data;
-      // console.log("RUNES List From DB:", this.runesDB);
+      this.runes = data;
+      console.log("Runes:", this.runes);
 
       this.runeMap = data.reduce((acc: Record<string, any[]>, r: any) => {
         acc[r.rarity] = [...(acc[r.rarity] || []), r];
         return acc;
       }, {} as Record<string, any[]>);
     } catch (err) {
-      console.error("Error loading RUNES:", err);
-      this.runesDB = [];
+      console.error("❌ Error loading runes:", err);
+      this.runes = [];
       this.runeMap = {};
     }
   }
@@ -168,7 +157,7 @@ export class AllCollectionPage implements OnInit {
   }
 
   sortData(type: string) {
-    let target = this.activeTab === 'character' ? this.nftBC : this.nftRuneBC;
+    let target = this.activeTab === 'character' ? this.nftCharacter : this.nftRune;
 
     if (type === 'recent') {
       target.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -194,7 +183,7 @@ export class AllCollectionPage implements OnInit {
 
   async setLatestNfts() {
     // gabungkan semua NFT & Rune
-    const allNft = [...this.nftDB, ...this.runesDB];
+    const allNft = [...this.nft, ...this.runes];
 
     if (allNft.length > 0) {
       // urutkan dari terbaru

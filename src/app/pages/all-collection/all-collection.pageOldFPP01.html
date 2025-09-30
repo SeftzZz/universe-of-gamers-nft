@@ -118,7 +118,7 @@
                                                 <div class="widget-content-inner" [class.active]="activeTab === 'character'">
                                                     <div>
                                                         <div class="wrap-box-card">
-                                                            <div class="col-item" *ngFor="let nft of nftBC | slice:0:itemsToShowCharacter">
+                                                            <div class="col-item" *ngFor="let nft of nftCharacter | slice:0:itemsToShowCharacter">
                                                                 <div class="tf-card-box style-4">
                                                                     <div class="author flex items-center">
                                                                         <div class="info">
@@ -148,7 +148,7 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div *ngIf="itemsToShowCharacter < nftBC.length">
+                                                    <div *ngIf="itemsToShowCharacter < nftCharacter.length">
                                                         <div class="col-md-12 load-more">
                                                             <a class="tf-button-loadmore" (click)="loadMoreCharacter()">
                                                                 <span>Load More</span><i class="icon-loading-1"></i>
@@ -161,7 +161,7 @@
                                                 <div class="widget-content-inner" [class.active]="activeTab === 'rune'">
                                                     <div>
                                                         <div class="wrap-box-card">
-                                                            <div class="col-item" *ngFor="let nft of nftRuneBC | slice:0:itemsToShowRune">
+                                                            <div class="col-item" *ngFor="let nft of nftRune | slice:0:itemsToShowRune">
                                                                 <div class="tf-card-box style-4">
                                                                     <div class="author flex items-center">
                                                                         <div class="info">
@@ -192,7 +192,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div *ngIf="itemsToShowRune < nftRuneBC.length">
+                                                <div *ngIf="itemsToShowRune < nftRune.length">
                                                     <div class="col-md-12 load-more">
                                                         <a class="tf-button-loadmore" (click)="loadMoreRune()">
                                                             <span>Load More</span><i class="icon-loading-1"></i>
