@@ -10,6 +10,7 @@ import { MarketLayoutPage } from '../market-layout/market-layout.page';
     selector: 'app-wallet',
     templateUrl: './wallet.page.html',
     styleUrls: ['./wallet.page.scss'],
+    standalone: false,
 })
 export class WalletPage implements OnInit {
 

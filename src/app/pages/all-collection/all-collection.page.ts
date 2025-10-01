@@ -29,6 +29,7 @@ interface INftItem {
   selector: 'app-all-collection',
   templateUrl: './all-collection.page.html',
   styleUrls: ['./all-collection.page.scss'],
+  standalone: false,
 })
 
 export class AllCollectionPage implements OnInit {

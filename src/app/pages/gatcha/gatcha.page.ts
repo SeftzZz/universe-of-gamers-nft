@@ -28,6 +28,7 @@ interface IGatchaPack {
   selector: 'app-gatcha',
   templateUrl: 'gatcha.page.html',
   styleUrls: ['gatcha.page.scss'],
+  standalone: false,
 })
 export class GatchaPage implements OnInit {
   program: any;
