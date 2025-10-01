@@ -26,17 +26,6 @@ interface IGatchaPack {
   rewards: IGatchaReward[];
 }
 
-interface INftItem {
-    _id: string;
-    name: string;
-    description: string;
-    image: string;
-    owner: string;
-    character?: string;
-    rune?: string;
-    [key: string]: any;
-}
-
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -62,14 +51,11 @@ export class HomePage implements OnInit {
   };
   selectedFile: File | null = null;
 
-  nft: any[] = []; // list NFT dari Block Chain
-  nftdb: any[] = []; // list NFT dari DB
+  nft: any[] = []; // daftar NFT dari backend
   characters: any[] = [];   // daftar karakter dari backend ===add by fpp 05/09/25===
-  runedb: any[] = [];   // List RUNES dari DB
+  runes: any[] = [];   // daftar rune dari backend
   selectedCharacter: string | null = null; // ===add by fpp 05/09/25===
   latestNfts: any[] = [];
-  nftBC: any[] = [];     // list NFT dari Block Chain
-  nftRuneBC: any[] = []; // list RUNES dari Block Chain
 
   charData: any = {
     name: "",
@@ -171,13 +157,12 @@ export class HomePage implements OnInit {
     }
 
     await this.loadNft();
-    // await this.loadNftDB();
     await this.loadCharacters();   // load data karakter ===add by fpp 05/09/25===
-    // await this.loadRuneDB();
+    await this.loadRunes();
     await this.loadGatchaPacks();
     await this.fetchRates();
     await this.onChainAll();
-    await this.setLatestNfts();
+    this.setLatestNfts();
   }
 
   disconnectWallet() {
@@ -213,19 +198,9 @@ export class HomePage implements OnInit {
     try {
       const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-nft`).toPromise();
       this.nft = data;
-      console.log('NFT List From BC:', this.nft);
+      console.log('📦 NFT List:', this.nft);
     } catch (err) {
-      console.error('Error loading NFT:', err);
-    }
-  }
-
-  async loadNftDB() {
-    try {
-      const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-nftDB`).toPromise();
-      this.nftdb = data;
-      // console.log('NFT List From DB:', this.nftdb);
-    } catch (err) {
-      console.error('Error Loading NFT From DB:', err);
+      console.error('❌ Error loading NFT:', err);
     }
   }
 
@@ -250,21 +225,21 @@ export class HomePage implements OnInit {
   }
   // =========================
 
-  async loadRuneDB() {
+  async loadRunes() {
     try {
       const data = await firstValueFrom(
         this.http.get<any[]>(`${environment.apiUrl}/nft/rune`)
       );
-      this.runedb = data;
-      console.log("Rune List From DB:", this.runedb);
+      this.runes = data;
+      console.log("Runes:", this.runes);
 
       this.runeMap = data.reduce((acc: Record<string, any[]>, r: any) => {
         acc[r.rarity] = [...(acc[r.rarity] || []), r];
         return acc;
       }, {} as Record<string, any[]>);
     } catch (err) {
-      console.error("Error Loading Rune From DB:", err);
-      this.runedb = [];
+      console.error("❌ Error loading runes:", err);
+      this.runes = [];
       this.runeMap = {};
     }
   }
@@ -663,13 +638,7 @@ export class HomePage implements OnInit {
       );
 
       this.nfts = resp || [];
-      // console.log("List All NFTs Runes:", this.nfts);
-
-      // Pisahkan berdasarkan field
-      this.nftBC = resp.filter((item: INftItem) => !!item.character);
-      this.nftRuneBC = resp.filter((item: INftItem) => !!item.rune);
-      // console.log('NFT List From Block Chain:', this.nftBC);
-      // console.log('RUNES List From Block Chain:', this.nftRuneBC);
+      console.log("NFTs:", this.nfts);
 
       this.nftMap = this.nfts.reduce(
         (acc: Record<string, any[]>, nft: any) => {
@@ -680,7 +649,7 @@ export class HomePage implements OnInit {
         {} as Record<string, any[]>
       );
     } catch (err) {
-      console.error("Error loading NFTs:", err);
+      console.error("❌ Error loading NFTs:", err);
       this.nfts = [];
       this.nftMap = {};
     }
@@ -720,88 +689,15 @@ export class HomePage implements OnInit {
     return result;
   }
 
-  isOpenTrending = false;
-  selectedTrending = '';
-  activeTabTrending: 'character' | 'rune' = 'character';
-
-  toggleDropdownTrending() {
-    this.isOpenTrending = !this.isOpenTrending;
-  }
-
-  switchTabTrending(tab: 'character' | 'rune') {
-      this.activeTabTrending = tab;
-      this.isOpenTrending = false; // tutup dropdown Trending saat ganti tab
-  }
-
-  sortDataTrending(type: string) {
-      let targetTrending = this.activeTabTrending === 'character' ? this.nftBC : this.nftRuneBC;
-
-      if (type === 'recent') {
-        targetTrending.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        this.selectedTrending = 'Recently added';
-      } else if (type === 'low') {
-        targetTrending.sort((a, b) => a.price - b.price);
-        this.selectedTrending = 'Price: Low to High';
-      } else if (type === 'high') {
-        targetTrending.sort((a, b) => b.price - a.price);
-        this.selectedTrending = 'Price: High to Low';
-      }
-
-      this.isOpenTrending = false; // otomatis tutup dropdown Trending setelah pilih
-  }
-
-  isOpen = false;
-  selected = '';
-  activeTab: 'character' | 'rune' = 'character';
-
-  toggleDropdown() {
-    this.isOpen = !this.isOpen;
-  }
-
-  switchTab(tab: 'character' | 'rune') {
-      this.activeTab = tab;
-      this.isOpen = false; // tutup dropdown saat ganti tab
-  }
-
-  sortData(type: string) {
-      let target = this.activeTab === 'character' ? this.nftdb : this.runedb;
-
-      if (type === 'recent') {
-        target.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        this.selected = 'Recently added';
-      } else if (type === 'low') {
-        target.sort((a, b) => a.price - b.price);
-        this.selected = 'Price: Low to High';
-      } else if (type === 'high') {
-        target.sort((a, b) => b.price - a.price);
-        this.selected = 'Price: High to Low';
-      }
-
-      this.isOpen = false; // otomatis tutup dropdown setelah pilih
-  }
-
   goToNftDetail(mintAddress: string) {
     if (!mintAddress) return;
     console.log("Navigating to NFT detail:", mintAddress);
     this.router.navigate(['/nft-detail', mintAddress]);
   }
 
-  // pagination more item
-  itemsToShowNft = 8;
-  itemsToShowRune = 8;
-  loadStep = 8;
-
-  loadMoreNft() {
-    this.itemsToShowNft += this.loadStep;
-  }
-
-  loadMoreRune() {
-    this.itemsToShowRune += this.loadStep;
-  }
-
   setLatestNfts() {
     // gabungkan semua NFT & Rune
-    const allNft = [...this.nfts];
+    const allNft = [...this.nft, ...this.runes];
 
     if (allNft.length > 0) {
       // urutkan dari terbaru

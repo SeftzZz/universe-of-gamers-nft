@@ -171,8 +171,8 @@ export class CreatesPage implements OnInit {
     }
 
     await this.loadNft();
-    await this.loadCharacters();   // load data karakter ===add by fpp 05/09/25===
-    await this.loadRunes();
+    // await this.loadCharacters();   // load data karakter ===add by fpp 05/09/25===
+    // await this.loadRunes();
     await this.loadGatchaPacks();
     await this.fetchRates();
     await this.onChainAll();
@@ -269,7 +269,7 @@ export class CreatesPage implements OnInit {
         this.http.get<any[]>(`${environment.apiUrl}/nft/rune`)
       );
       this.runes = data;
-      console.log("Runes:", this.runes);
+      // console.log("Runes:", this.runes);
 
       this.runeMap = data.reduce((acc: Record<string, any[]>, r: any) => {
         acc[r.rarity] = [...(acc[r.rarity] || []), r];

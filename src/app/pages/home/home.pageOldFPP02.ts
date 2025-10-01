@@ -171,9 +171,9 @@ export class HomePage implements OnInit {
     }
 
     await this.loadNft();
-    // await this.loadNftDB();
+    await this.loadNftDB();
     await this.loadCharacters();   // load data karakter ===add by fpp 05/09/25===
-    // await this.loadRuneDB();
+    await this.loadRuneDB();
     await this.loadGatchaPacks();
     await this.fetchRates();
     await this.onChainAll();
@@ -801,7 +801,7 @@ export class HomePage implements OnInit {
 
   setLatestNfts() {
     // gabungkan semua NFT & Rune
-    const allNft = [...this.nfts];
+    const allNft = [...this.nftdb, ...this.runedb];
 
     if (allNft.length > 0) {
       // urutkan dari terbaru

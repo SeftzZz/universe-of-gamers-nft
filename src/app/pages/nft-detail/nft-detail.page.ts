@@ -211,6 +211,7 @@ export class NftDetailPage implements OnInit {
     return addr.slice(0, 6) + '...' + addr.slice(-4);
   }
 
+  // === Token ===
   async loadTokens() {
     if (!this.activeWallet) return;
     try {
@@ -218,36 +219,11 @@ export class NftDetailPage implements OnInit {
         .get(`${environment.apiUrl}/wallet/tokens/${this.activeWallet}`)
         .toPromise();
 
-      // 🔎 Filter hanya token SOL
-      this.tokens = (resp.tokens || []).filter(
-        (t: any) => t.mint === "So11111111111111111111111111111111111111111"
-      );
-
-      // Total balance hanya dari SOL
-      if (this.tokens.length > 0) {
-        this.totalBalanceUsd = this.tokens[0].usdValue;
-        this.totalBalanceSol = this.tokens[0].amount;
-      } else {
-        this.totalBalanceUsd = 0;
-        this.totalBalanceSol = 0;
-      }
-
+      this.tokens = resp.tokens || [];
       localStorage.setItem('walletTokens', JSON.stringify(this.tokens));
     } catch (err) {
       console.error('Error fetch tokens from API', err);
       this.router.navigateByUrl('/tabs/offline');
-
-      const cachedTokens = localStorage.getItem('walletTokens');
-      if (cachedTokens) {
-        try {
-          this.tokens = JSON.parse(cachedTokens).filter(
-            (t: any) => t.mint === "So11111111111111111111111111111111111111111"
-          );
-          console.log("⚡ Loaded SOL token from cache");
-        } catch (e) {
-          console.error("❌ Error parse cached tokens", e);
-        }
-      }
     }
   }
 
@@ -293,7 +269,7 @@ export class NftDetailPage implements OnInit {
     // this.toggleSendModal();
   }
 
-  async buyNft() {
+  async buyNft(paymentMint: any) {
     const mintAddress = this.route.snapshot.paramMap.get('mintAddress'); 
     if (!mintAddress) return;
 
@@ -303,7 +279,7 @@ export class NftDetailPage implements OnInit {
 
       // 🔥 Panggil backend (custodian yang handle buy_nft)
       const buyRes: any = await this.http
-        .post(`${environment.apiUrl}/auth/nft/${mintAddress}/buy?demo=false`, {})
+        .post(`${environment.apiUrl}/auth/nft/${mintAddress}/buy?demo=false&paymentMint=${paymentMint}`, {})
         .toPromise();
 
       if (!buyRes.signature) throw new Error("❌ No signature returned from backend");
@@ -357,41 +333,46 @@ export class NftDetailPage implements OnInit {
   }
 
   formatWithZeroCount(num: number): string {
-    const str = num.toString();
+      const str = num.toString();
 
-    if (!str.includes(".")) return `$${str}`;
+      if (!str.includes(".")) return `$${str}`;
 
-    const [intPart, decPart] = str.split(".");
+      const [intPart, decPart] = str.split(".");
 
-    // cari jumlah nol berturut-turut setelah "0."
-    let zeroCount = 0;
-    for (const ch of decPart) {
-      if (ch === "0") zeroCount++;
-      else break;
-    }
+      // cari jumlah nol berturut-turut setelah "0."
+      let zeroCount = 0;
+      for (const ch of decPart) {
+        if (ch === "0") zeroCount++;
+        else break;
+      }
 
-    // ambil sisa digit setelah nol
-    const rest = decPart.slice(zeroCount);
+      // ambil sisa digit setelah nol
+      const rest = decPart.slice(zeroCount);
 
-    // map angka ke subscript unicode
-    const subscripts: Record<string, string> = {
-      "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄",
-      "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉"
-    };
+      // map angka ke subscript unicode
+      const subscripts: Record<string, string> = {
+        "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄",
+        "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉"
+      };
 
-    const zeroCountStr = zeroCount.toString()
-      .split("")
-      .map((d) => subscripts[d] || d)
-      .join("");
+      const zeroCountStr = zeroCount.toString()
+        .split("")
+        .map((d) => subscripts[d] || d)
+        .join("");
 
-    const result = `${intPart}.0${zeroCountStr}${rest} SOL`;
+      const result = `${intPart}.0${zeroCountStr}${rest} SOL`;
 
-    console.log(`formatWithZeroCount(${num}) => ${result}`);
-    return result;
+      // console.log(`formatWithZeroCount(${num}) => ${result}`);
+      return result;
+  }
+
+  isLoggedIn(): boolean {
+      const token = localStorage.getItem('token');
+      return !!token;
   }
 
   logout() {
-    this.auth.logout();
+      this.auth.logout();
   }
 
 }

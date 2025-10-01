@@ -12,9 +12,6 @@
                             <span class="inner">Create Characters <i class="icon-keyboard_arrow_right"></i></span>
                         </li>
                         <li class="item-title">
-                            <span class="inner">Submit NFT <i class="icon-keyboard_arrow_right"></i></span>
-                        </li>
-                        <li class="item-title">
                             <span class="inner">Create Rune Items <i class="icon-keyboard_arrow_right"></i></span>
                         </li>
                         <li class="item-title">
@@ -208,57 +205,6 @@
                                 <div class="btn-submit flex gap30 justify-center">
                                   <button class="tf-button style-1 h50 w320" type="submit">
                                     Save Character <i class="icon-arrow-up-right2"></i>
-                                  </button>
-                                </div>
-                              </form>
-                            </div>
-                        </div>
-                        <div class="widget-content-inner create">
-                            <div class="wrap-content w-full">
-                              <form id="nft-form" class="comment-form" (ngSubmit)="submitNft()" novalidate>
-                                <div class="flex gap30">
-                                  <fieldset class="name">
-                                    <label>Name *</label>
-                                    <input type="text" id="name-nft" [(ngModel)]="formData.name" name="name" required>
-                                  </fieldset>
-
-                                  <fieldset class="image">
-                                    <label>Image URL *</label>
-                                    <input type="url" id="image-nft" [(ngModel)]="formData.image" name="image" placeholder="https://..." required>
-                                  </fieldset>
-
-                                  <fieldset class="character">
-                                    <label>Character (ID Reference)</label>
-                                    <select 
-                                      id="character" 
-                                      [(ngModel)]="formData.character"
-                                      name="character" 
-                                      required>
-                                      <option *ngFor="let c of characters" [value]="c._id">{{ c.name }}</option>
-                                    </select>
-                                  </fieldset>
-                                </div>
-
-                                <fieldset class="description">
-                                  <label>Description *</label>
-                                  <textarea id="description-nft" [(ngModel)]="formData.description" name="description" rows="4" required></textarea>
-                                </fieldset>
-
-                                <div class="flex gap30">
-                                  <fieldset class="price">
-                                    <label>Price</label>
-                                    <input type="number" id="price-nft" [(ngModel)]="formData.price" name="price" required>
-                                  </fieldset>
-
-                                  <fieldset class="royalty">
-                                    <label>Royalty</label>
-                                    <input type="number" id="royalty-nft" [(ngModel)]="formData.royalty" name="royalty" placeholder="8%" required>
-                                  </fieldset>
-                                </div>
-                                
-                                <div class="btn-submit flex gap30 justify-center">
-                                  <button class="tf-button style-1 h50" type="submit">
-                                    Submit NFT <i class="icon-arrow-up-right2"></i>
                                   </button>
                                 </div>
                               </form>

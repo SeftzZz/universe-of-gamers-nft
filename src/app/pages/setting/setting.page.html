@@ -5,11 +5,11 @@
                                     <div class="inner-content">
                                         <div class="action__body w-full mb-40">
                                             <div class="tf-tsparticles">
-                                                <div id="tsparticles3" data-color="#161616" data-line="#000"></div>
+                                                <div id="tsparticles8" data-color="#161616" data-line="#000"></div>
                                             </div>
                                             <h2>Discover, create and sell your own NFT</h2>
                                             <div class="flat-button flex">
-                                                <a href="#" class="tf-button style-2 h50 w190 mr-10">Explore now<i class="icon-arrow-up-right2"></i></a>
+                                                <a [routerLink]="['/all-collection']" class="tf-button style-2 h50 w190 mr-10">Explore now<i class="icon-arrow-up-right2"></i></a>
                                             </div>
                                             <div class="bg-home7">
                                                 <div class="swiper-container autoslider3reverse" data-swiper='{
@@ -82,124 +82,60 @@
                                             </div>
                                         </div>
                                         <div class="heading-section">
-                                            <h2 class="tf-title pb-30">All Collection</h2>
+                                            <h2 class="tf-title pb-30">Setting</h2>
                                         </div>
-                                        <div class="widget-tabs relative">
-                                            <div class="tf-soft">
-                                                <div class="soft-right">
-                                                    <div class="dropdown" [class.show]="isOpen">
-                                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton4" (click)="toggleDropdown()">
-                                                            <span>Sort by: {{ selected }}</span>
-                                                        </button>
-
-                                                        <div class="dropdown-menu" [class.show]="isOpen" aria-labelledby="dropdownMenuButton4">
-                                                            <h6 class="dropdown-header">Sort by</h6>
-                                                            <a class="dropdown-item" (click)="sortData('recent')">Recently added</a>
-                                                            <a class="dropdown-item" (click)="sortData('low')">Price: Low to High</a>
-                                                            <a class="dropdown-item" (click)="sortData('high')">Price: High to Low</a>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                        <div class="widget-edit mb-30 avatar">
+                                            <div class="title" (click)="toggleAvatar()">
+                                                <h4>Edit your avatar</h4>
+                                                <i class="icon-keyboard_arrow_{{ isAvatarOpen ? 'up' : 'down' }}"></i>
                                             </div>
-                                            
-                                            <!-- Tabs -->
-                                            <ul class="widget-menu-tab">
-                                                <li class="item-title" [class.active]="activeTab === 'character'" (click)="switchTab('character')">
-                                                    <span class="inner">Character</span>
-                                                </li>
-                                                <li class="item-title" [class.active]="activeTab === 'rune'" (click)="switchTab('rune')">
-                                                    <span class="inner">Items</span>
-                                                </li>
-                                            </ul>
-
-                                            <!-- Tab Content -->
-                                            <div class="widget-content-tab">
-                                                <!-- Character tab -->
-                                                <div class="widget-content-inner" [class.active]="activeTab === 'character'">
+                                            <form *ngIf="isAvatarOpen" action="#">
+                                                <div class="uploadfile flex">
+                                                    <img src="assets/images/avatar/avatar-07.png" alt="">
                                                     <div>
-                                                        <div class="wrap-box-card">
-                                                            <div class="col-item" *ngFor="let nft of nftCharacter | slice:0:itemsToShowCharacter">
-                                                                <div class="tf-card-box style-4">
-                                                                    <div class="author flex items-center">
-                                                                        <div class="info">
-                                                                            <span>Created by:</span>
-                                                                            <h6>{{ shorten(nft.owner) }}</h6>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="card-media">
-                                                                        <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">
-                                                                            <img [src]="nft.image || 'assets/images/box-item/card-item-01.jpg'" alt="">
-                                                                        </a>
-                                                                        <span class="wishlist-button icon-heart" [class.active]="isFavorite(nft)" (click)="toggleFavorite(nft)"></span>
-                                                                    </div>
-                                                                    <h5 class="name"><a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">{{ nft.name }}</a></h5>
-                                                                    <div class="meta-info flex items-center justify-between">
-                                                                        <div>
-                                                                            <span class="text-bid">Current Price</span>
-                                                                            <h6 class="price gem" style="margin-top: 0px;margin-bottom: 0px;" [innerHTML]="nft?.price ? formatWithZeroCount(nft.price) : '-'">
-                                                                                <i class="icon-gem"></i>
-                                                                            </h6>
-                                                                        </div>
-                                                                        <div class="button-place-bid">
-                                                                            <a href="#" class="tf-button"><span>Buy Now</span></a>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div *ngIf="itemsToShowCharacter < nftCharacter.length">
-                                                        <div class="col-md-12 load-more">
-                                                            <a class="tf-button-loadmore" (click)="loadMoreCharacter()">
-                                                                <span>Load More</span><i class="icon-loading-1"></i>
-                                                            </a>
-                                                        </div>
+                                                        <h6>Upload a new avatar”</h6>
+                                                        <label>
+                                                            <input type="file" class="" name="file">
+                                                            <span class="text filename">No files selected</span>
+                                                        </label>
+                                                        <p class="text">JPEG 100x100</p>
                                                     </div>
                                                 </div>
-
-                                                <!-- Rune tab -->
-                                                <div class="widget-content-inner" [class.active]="activeTab === 'rune'">
-                                                    <div>
-                                                        <div class="wrap-box-card">
-                                                            <div class="col-item" *ngFor="let nft of nftRune | slice:0:itemsToShowRune">
-                                                                <div class="tf-card-box style-4">
-                                                                    <div class="author flex items-center">
-                                                                        <div class="info">
-                                                                            <span>Created by:</span>
-                                                                            <h6>{{ shorten(nft.owner) }}</h6>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="card-media">
-                                                                        <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">
-                                                                            <img [src]="nft.image || 'assets/images/box-item/card-item-01.jpg'" alt="">
-                                                                        </a>
-                                                                        <span class="wishlist-button icon-heart" [class.active]="isFavorite(nft)" (click)="toggleFavorite(nft)"></span>
-                                                                    </div>
-                                                                    <h5 class="name">{{ nft.name }}</h5>
-                                                                    <div class="meta-info flex items-center justify-between">
-                                                                        <div>
-                                                                            <span class="text-bid">Current Price</span>
-                                                                            <h6 class="price gem" [innerHTML]="nft?.price ? formatWithZeroCount(nft.price) : '-'">
-                                                                                <i class="icon-gem"></i>
-                                                                            </h6>
-                                                                        </div>
-                                                                        <div class="button-place-bid">
-                                                                            <a href="#" class="tf-button"><span>Buy Now</span></a>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div *ngIf="itemsToShowRune < nftRune.length">
-                                                    <div class="col-md-12 load-more">
-                                                        <a class="tf-button-loadmore" (click)="loadMoreRune()">
-                                                            <span>Load More</span><i class="icon-loading-1"></i>
-                                                        </a>
-                                                    </div>
-                                                </div>
+                                            </form>
+                                        </div>
+                                        <div class="widget-edit mb-30 password">
+                                            <div class="title">
+                                                <h4>Change password</h4>
+                                                <i class="icon-keyboard_arrow_up"></i>
                                             </div>
+                                            <form   id="commentform" class="comment-form" novalidate="novalidate">
+                                                <div class="flex gap30">
+                                                    <fieldset class="tel">
+                                                        <label>Phone number</label>
+                                                        <input type="tel" id="tel" placeholder="Your phone" name="tel" tabindex="2" value="" aria-required="true" required="">
+                                                    </fieldset>
+                                                    <fieldset class="email">
+                                                        <label>Email address</label>
+                                                        <input type="email" id="email" placeholder="Your email" name="email" tabindex="2" value="" aria-required="true" required="">
+                                                    </fieldset>
+                                                </div>
+                                                <fieldset class="password">
+                                                    <label>Old password</label>
+                                                    <input type="text" id="password" placeholder="Enter your Old password" name="password" tabindex="2" value="" aria-required="true" required="">
+                                                </fieldset>
+                                                <fieldset class="password">
+                                                    <label>New password</label>
+                                                    <input type="text" id="password" placeholder="Enter your New password" name="password" tabindex="2" value="" aria-required="true" required="">
+                                                </fieldset>
+                                                <fieldset class="password">
+                                                    <label>Confirm password</label>
+                                                    <input type="text" id="password" placeholder="Confirm password" name="password" tabindex="2" value="" aria-required="true" required="">
+                                                </fieldset>
+                                                <div class="btn-submit">
+                                                    <button class="w242 active mr-30">Cancel</button>
+                                                    <button class="w242" type="submit">Save</button>
+                                                </div>
+                                            </form>
                                         </div>
                                     </div>
                                     <div class="side-bar">
@@ -374,3 +310,4 @@
                             </div>
                         </app-market-layout>
                     </ion-content>
+                        

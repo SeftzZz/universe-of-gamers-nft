@@ -40,6 +40,7 @@ export class AllCollectionPage implements OnInit {
   runeMap: Record<string, any[]> = {};
   nftCharacter: any[] = [];
   nftRune: any[] = [];
+  favorites: Set<string> = new Set();
 
   constructor(
     private http: HttpClient,
@@ -51,21 +52,13 @@ export class AllCollectionPage implements OnInit {
     await this.loadNft();
     await this.loadRunes();
     await this.setLatestNfts();
+    // restore favorite dari localStorage
+    this.loadFavorites();
   }
 
   shorten(addr: string) {
     return addr.slice(0, 6) + '...' + addr.slice(-4);
   }
-
-  // async loadNft() {
-  //   try {
-  //     const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-nft`).toPromise();
-  //     this.nft = data;
-  //     console.log('📦 NFT List:', this.nft);
-  //   } catch (err) {
-  //     console.error('❌ Error loading NFT:', err);
-  //   }
-  // }
 
   async loadNft() {
     try {
@@ -103,6 +96,40 @@ export class AllCollectionPage implements OnInit {
       this.runes = [];
       this.runeMap = {};
     }
+  }
+
+  formatWithZeroCount(num: number): string {
+      const str = num.toString();
+
+      if (!str.includes(".")) return `$${str}`;
+
+      const [intPart, decPart] = str.split(".");
+
+      // cari jumlah nol berturut-turut setelah "0."
+      let zeroCount = 0;
+      for (const ch of decPart) {
+        if (ch === "0") zeroCount++;
+        else break;
+      }
+
+      // ambil sisa digit setelah nol
+      const rest = decPart.slice(zeroCount);
+
+      // map angka ke subscript unicode
+      const subscripts: Record<string, string> = {
+        "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄",
+        "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉"
+      };
+
+      const zeroCountStr = zeroCount.toString()
+        .split("")
+        .map((d) => subscripts[d] || d)
+        .join("");
+
+      const result = `${intPart}.0${zeroCountStr}${rest} SOL`;
+
+      // console.log(`formatWithZeroCount(${num}) => ${result}`);
+      return result;
   }
 
   goToNftDetail(mintAddress: string) {
@@ -165,6 +192,45 @@ export class AllCollectionPage implements OnInit {
         .slice(0, 4); // ambil 4 terbaru
     }
   }
+
+  // -------------------------------
+  // FAVORITE FEATURE
+  // -------------------------------
+  toggleFavorite(item: any) {
+    // Tentukan tipe favoritnya
+    const type = item.character ? 'favNft' : (item.rune ? 'favRune' : 'other');
+
+    // Buat key unik
+    const key = `${type}:${item._id}`;
+
+    if (this.favorites.has(key)) {
+      this.favorites.delete(key);
+    } else {
+      this.favorites.add(key);
+    }
+
+    this.saveFavorites();
+  }
+
+  isFavorite(item: any): boolean {
+    const type = item.character ? 'favNft' : (item.rune ? 'favRune' : 'other');
+    const key = `${type}:${item._id}`;
+    return this.favorites.has(key);
+  }
+
+  saveFavorites() {
+    localStorage.setItem('favorites', JSON.stringify(Array.from(this.favorites)));
+  }
+
+  loadFavorites() {
+    const stored = localStorage.getItem('favorites');
+    if (stored) {
+      this.favorites = new Set(JSON.parse(stored));
+    } else {
+      this.favorites = new Set();
+    }
+  }
+  // -------------------------------
 
   logout() {
     this.auth.logout();
