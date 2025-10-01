@@ -27,15 +27,17 @@ interface IGatchaPack {
 }
 
 @Component({
-  selector: 'app-home',
-  templateUrl: 'home.page.html',
-  styleUrls: ['home.page.scss'],
+  selector: 'app-creates',
+  templateUrl: 'creates.page.html',
+  styleUrls: ['creates.page.scss'],
   standalone: false,
 })
-export class HomePage implements OnInit {
+export class CreatesPage implements OnInit {
   program: any;
+  authToken: string | null = null;
 
   userAddress: string | null = null;
+  activeWallet: string = '';
   balance: number | null = null;
   uploadForm!: FormGroup;
   blockchainSelected: string | null = null;
@@ -105,9 +107,6 @@ export class HomePage implements OnInit {
   uogToSolRate: number = 0; // rate 1 UOG → SOL
   solToUogRate: number = 0; // rate 1 SOL → UOG
 
-  gatchaPacks: any[] = [];
-  mintResult: any = null;
-
   gatchaForm: any = {
     packId: '',
   };
@@ -124,6 +123,20 @@ export class HomePage implements OnInit {
       .sort((a, b) => a.sort - b.sort)
       .map(({ value }) => value);
   }
+
+  // === Gatcha Pack ===
+  gatchaPacks: any[] = [];
+  mintResult: any = null;
+  selectedPack: any = null;
+
+  // === Token Modal ===
+  tokens: any[] = [];
+  showSendModal = false;
+  isClosingSend = false;
+  selectedToken: any = null;
+  tokenSearch: string = '';
+  txSig: string | null = null;
+  isSending: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -153,15 +166,41 @@ export class HomePage implements OnInit {
 
     const saved = localStorage.getItem('walletAddress');
     if (saved) {
-      this.userAddress = saved;
+      this.activeWallet = saved;
+      await this.loadTokens();
     }
 
+    await this.loadNft();
     await this.loadCharacters();   // load data karakter ===add by fpp 05/09/25===
     await this.loadRunes();
     await this.loadGatchaPacks();
     await this.fetchRates();
     await this.onChainAll();
     this.setLatestNfts();
+  }
+
+  // === Token ===
+  async loadTokens() {
+    if (!this.activeWallet) return;
+    try {
+      const resp: any = await this.http
+        .get(`${environment.apiUrl}/wallet/tokens/${this.activeWallet}`)
+        .toPromise();
+
+      this.tokens = resp.tokens || [];
+      localStorage.setItem('walletTokens', JSON.stringify(this.tokens));
+    } catch (err) {
+      console.error('Error fetch tokens from API', err);
+      this.router.navigateByUrl('/tabs/offline');
+    }
+  }
+
+  get filteredTokens() {
+    if (!this.tokenSearch) return this.tokens;
+    return this.tokens.filter(t =>
+      (t.symbol?.toLowerCase().includes(this.tokenSearch.toLowerCase()) ||
+       t.name?.toLowerCase().includes(this.tokenSearch.toLowerCase()))
+    );
   }
 
   disconnectWallet() {
@@ -191,6 +230,16 @@ export class HomePage implements OnInit {
     };
     console.log('🔎 Preview Data:', data);
     alert('Preview:\n' + JSON.stringify(data, null, 2));
+  }
+
+  async loadNft() {
+    try {
+      const data: any = await this.http.get(`${environment.apiUrl}/nft/fetch-nft`).toPromise();
+      this.nft = data;
+      console.log('📦 NFT List:', this.nft);
+    } catch (err) {
+      console.error('❌ Error loading NFT:', err);
+    }
   }
 
   // ===add by fpp 05/09/25===
@@ -505,68 +554,37 @@ export class HomePage implements OnInit {
     });
   }
 
-  async buyAndMintPack(packId: string) {
-    if (!this.userAddress) {
-      alert("⚠️ Please login with wallet first");
-      return;
-    }
+  // === Modal Control ===
+  toggleSendModal(pack: any) {
+    this.selectedPack = pack;
+    this.showSendModal = true;
+    this.isClosingSend = false;
+  }
 
-    const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
-    if (packIndex === -1) return;
+  resetSendModal() {
+    this.selectedToken = null;
+    this.selectedPack = null;
+    this.txSig = null;
+    this.isSending = false;
+    this.showSendModal = false;
+  }
 
-    // 🔥 Reset finalImage dulu sebelum mulai shuffle
-    this.gatchaPacks[packIndex].finalImage = null;
-
-    // Aktifkan animasi shuffle
-    this.gatchaPacks[packIndex].isShuffling = true;
-
-    // Shuffle 30 kali (100ms interval)
-    await this.shufflePackRewards(packId, 30, 100);
-
-    // Matikan animasi setelah shuffle selesai
-    this.gatchaPacks[packIndex].isShuffling = false;
-
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4Yzc0MzllNWNkNGFmMTNiZjk0M2E3MCIsImVtYWlsIjoiYXJ5YXNlZnR6enpAZ21haWwuY29tIiwicHJvdmlkZXIiOiJjdXN0b2RpYWwiLCJpYXQiOjE3NTgzMzI5ODAsImV4cCI6MTc1ODQxOTM4MH0.asLYoQuoYWt7FnpfkF4rvxHj_ZtPhLc4KiNuNAcf1cI";
+  async confirmBuyAndMint(token: any) {
+    this.selectedToken = token;
+    this.isSending = true;
 
     try {
-      const resp: any = await this.http.post(
-        `${environment.apiUrl}/gatcha/${packId}/pull`,
-        { user: this.userAddress },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      ).toPromise();
-
-      this.mintResult = resp;
-
-      // Simpan hasil akhir → trigger overlay baru
-      this.gatchaPacks[packIndex] = {
-        ...this.gatchaPacks[packIndex],
-        finalImage: resp.nft.image
-      };
-
-      const toast = await this.toastCtrl.create({
-        message: `Mint success! NFT: ${resp.nft.name}`,
-        duration: 4000,
-        color: "success",
-        position: "top"
-      });
-      toast.present();
-
+      if (this.selectedPack?._id) {
+        await this.buyAndMintPack(this.selectedPack._id, token);
+      }
     } catch (err) {
-      console.error("❌ Error minting gatcha:", err);
-      const toast = await this.toastCtrl.create({
-        message: "Failed to mint gatcha!",
-        duration: 4000,
-        color: "danger",
-        position: "top"
-      });
-      toast.present();
+      console.error("❌ Error confirmBuyAndMint", err);
+    } finally {
+      this.isSending = false;
     }
   }
 
+  // === Buy & Mint ===
   private async shufflePackRewards(packId: string, times: number, delay: number) {
     const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
     if (packIndex === -1) return;
@@ -589,6 +607,60 @@ export class HomePage implements OnInit {
 
       // jeda sebentar (contoh 100ms)
       await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  async buyAndMintPack(packId: string, token: any) {
+    if (!this.activeWallet) {
+      alert("⚠️ Please login with wallet first");
+      return;
+    }
+
+    const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
+    if (packIndex === -1) return;
+
+    this.gatchaPacks[packIndex].finalImage = null;
+    this.gatchaPacks[packIndex].isShuffling = true;
+    await this.shufflePackRewards(packId, 30, 100);
+    this.gatchaPacks[packIndex].isShuffling = false;
+
+    try {
+      const resp: any = await this.http.post(
+        `${environment.apiUrl}/gatcha/${packId}/pull`,
+        {
+          user: this.activeWallet,
+          paymentMint: token.mint,   // 👈 kirim mint token yang dipilih (SOL/UOG)
+        },
+        { headers: { Authorization: `Bearer ${this.authToken}` } }
+      ).toPromise();
+
+      this.mintResult = resp;
+      this.txSig = resp.signature;
+
+      this.gatchaPacks[packIndex] = {
+        ...this.gatchaPacks[packIndex],
+        finalImage: resp.nft.image,
+      };
+
+      const toast = await this.toastCtrl.create({
+        message: `Mint success! NFT: ${resp.nft.name}`,
+        duration: 4000,
+        color: "success",
+        position: "top",
+      });
+      toast.present();
+
+    } catch (err: any) {
+      console.error("❌ Error minting gatcha:", err);
+      const toast = await this.toastCtrl.create({
+        message: err.error?.error || "Mint failed",
+        duration: 4000,
+        color: "danger",
+        position: "top",
+      });
+      toast.present();
+    } finally {
+      this.resetSendModal();
     }
   }
 
@@ -672,9 +744,9 @@ export class HomePage implements OnInit {
       .map((d) => subscripts[d] || d)
       .join("");
 
-    const result = `${intPart}.0${zeroCountStr}${rest} SOL`;
+    const result = `$${intPart}.0${zeroCountStr}${rest}`;
 
-    // console.log(`formatWithZeroCount(${num}) => ${result}`);
+    console.log(`formatWithZeroCount(${num}) => ${result}`);
     return result;
   }
 
@@ -685,8 +757,8 @@ export class HomePage implements OnInit {
   }
 
   setLatestNfts() {
-    // gabungkan semua NFT & Rune
-    const allNft = [...this.nfts];
+    // gabungkan semua NFT dari Character & Rune
+    const allNft = [...this.nft, ...this.runes];
 
     if (allNft.length > 0) {
       // urutkan dari terbaru

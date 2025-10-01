@@ -7,10 +7,22 @@
                         <div id="site-header-inner"> 
                             <div class="wrap-box flex">
                                 <div id="site-logo">
-                                    <a [routerLink]="['/login']" style="color: #161616;" class="tf-button style-1">
-                                        <span>Login / Sign Up</span>
-                                    </a>
-                                </div><!-- logo -->
+                                  <!-- Jika belum login -->
+                                  <a *ngIf="!userAddress" 
+                                     [routerLink]="['/login']" 
+                                     style="color: #161616;" 
+                                     class="tf-button style-1">
+                                    <span>Login / Sign Up</span>
+                                  </a>
+
+                                  <!-- Jika sudah login -->
+                                  <a *ngIf="userAddress" 
+                                     [routerLink]="['/home']" 
+                                     style="color: #161616;" 
+                                     class="tf-button style-1">
+                                    <span>Marketplace</span>
+                                  </a>
+                                </div>
                             </div> 
                         </div>
                     </div>

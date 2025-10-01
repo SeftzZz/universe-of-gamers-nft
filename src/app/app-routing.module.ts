@@ -58,9 +58,13 @@ const routes: Routes = [
     loadChildren: () =>
       import('./pages/all-collection/all-collection.module').then(m => m.AllCollectionPageModule),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'creates',
+    loadChildren: () =>
+      import('./pages/creates/creates.module').then(m => m.CreatesPageModule),
+    canActivate: [AuthGuard]
   }
-
-
 ];
 
 

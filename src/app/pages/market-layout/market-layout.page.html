@@ -120,9 +120,15 @@
                     <div class="box-logo">
                         <a href="index.html"><img src="assets/images/logo/logo.png" alt=""></a>
                     </div>
-                    <div class="create menu-tab">
+                    <div class="create menu-tab" *ngIf="userRole === 'admin'">
+                      <a class="tf-button style-1 type-1 tablinks" [routerLink]="['/creates']">
+                        <span>Create NFT</span>
+                        <i class="icon-create"></i>
+                      </a>
+                    </div>
+                    <div class="create menu-tab" *ngIf="userRole != 'admin'">
                         <a class="tf-button style-1 type-1 tablinks" [routerLink]="['/gatcha']">
-                            <span>Create</span>
+                            <span>Gatcha</span>
                             <i class="icon-create"></i>
                         </a>
                     </div>

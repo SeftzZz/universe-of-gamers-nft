@@ -119,19 +119,38 @@ export class NftDetailPage implements OnInit {
   async loadMetadata(mintAddress: string) {
     this.loading = true;
     try {
-      this.metadata = await this.http
-        .get(`${environment.apiUrl}/nft/${mintAddress}/onchain`)
+      const raw = await this.http
+        .get<any>(`${environment.apiUrl}/nft/${mintAddress}/onchain`)
         .toPromise();
 
-      console.log('✅ NFT Metadata:', this.metadata);
-    } catch (err) {
-      console.error('❌ Error loading metadata:', err);
+      // Normalisasi supaya template tidak error
+      this.metadata = {
+        ...raw,
+        symbol: raw.symbol || "UOG", // default symbol
+        seller_fee_basis_points: raw.royalty || 0,
+        attributes: [
+          { trait_type: "Level", value: raw.level },
+          { trait_type: "HP", value: raw.hp },
+          { trait_type: "ATK", value: raw.atk },
+          { trait_type: "DEF", value: raw.def },
+          { trait_type: "SPD", value: raw.spd },
+          { trait_type: "Crit Rate", value: raw.critRate + "%" },
+          { trait_type: "Crit Dmg", value: raw.critDmg + "%" },
+        ],
+        properties: {
+          creators: [{ address: raw.owner }],
+        },
+        history: raw.history || [],
+      };
 
+      console.log("✅ NFT Metadata normalized:", this.metadata);
+    } catch (err) {
+      console.error("❌ Error loading metadata:", err);
       const toast = await this.toastCtrl.create({
-        message: 'Failed to load NFT metadata',
+        message: "Failed to load NFT metadata",
         duration: 4000,
-        color: 'danger',
-        position: 'top'
+        color: "danger",
+        position: "top",
       });
       toast.present();
     } finally {

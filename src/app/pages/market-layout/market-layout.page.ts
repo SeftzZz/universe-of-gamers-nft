@@ -12,6 +12,8 @@ export class MarketLayoutPage implements OnInit {
   userName: string = '';
   userAvatar: string = 'assets/images/avatar/avatar-small-01.png';
 
+  userAddress: string | null = null;
+  userRole: string | null = null; // ✅ tambahkan role
   constructor(
     private auth: Auth,
     private router: Router
@@ -24,6 +26,12 @@ export class MarketLayoutPage implements OnInit {
       const user = JSON.parse(storedUser);
       this.userName = user.name;
       this.userAvatar = user.avatar || 'assets/images/avatar/avatar-small-01.png';
+      this.userRole = user.role || null; // ✅ simpan role
+    }
+
+    const saved = localStorage.getItem('walletAddress');
+    if (saved) {
+      this.userAddress = saved;
     }
   }
 
