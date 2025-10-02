@@ -21,6 +21,7 @@ interface INftItem {
     selector: 'app-my-favorite',
     templateUrl: './my-favorite.page.html',
     styleUrls: ['./my-favorite.page.scss'],
+    standalone: false,
 })
 export class MyFavoritePage implements OnInit {
     nftFromDB: any[] = []; // daftar NFT dari DB

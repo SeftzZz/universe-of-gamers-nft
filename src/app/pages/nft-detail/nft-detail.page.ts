@@ -72,6 +72,8 @@ export class NftDetailPage implements OnInit {
   isSending: boolean = false;    // flag loading
   isClosingStep = false;
 
+  authToken: string | null = null;
+
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
@@ -114,6 +116,9 @@ export class NftDetailPage implements OnInit {
       await this.loadMetadata(mintAddress);
       await this.loadTokens();
     }
+
+    const saved = localStorage.getItem('token');
+    if (saved) this.authToken = saved;
   }
 
   async loadMetadata(mintAddress: string) {
@@ -127,6 +132,7 @@ export class NftDetailPage implements OnInit {
       this.metadata = {
         ...raw,
         symbol: raw.symbol || "UOG", // default symbol
+        price: raw.price ?? 0.01,
         seller_fee_basis_points: raw.royalty || 0,
         attributes: [
           { trait_type: "Level", value: raw.level },
@@ -269,7 +275,7 @@ export class NftDetailPage implements OnInit {
     // this.toggleSendModal();
   }
 
-  async buyNft(paymentMint: any) {
+  async buyNft(paymentMint: string) {
     const mintAddress = this.route.snapshot.paramMap.get('mintAddress'); 
     if (!mintAddress) return;
 
@@ -279,7 +285,16 @@ export class NftDetailPage implements OnInit {
 
       // 🔥 Panggil backend (custodian yang handle buy_nft)
       const buyRes: any = await this.http
-        .post(`${environment.apiUrl}/auth/nft/${mintAddress}/buy?demo=false&paymentMint=${paymentMint}`, {})
+        .post(`${environment.apiUrl}/auth/nft/${mintAddress}/buy?demo=false`,
+          {
+            user: this.activeWallet,
+            paymentMint: paymentMint,   // 👈 kirim mint token yang dipilih (SOL/UOG)
+            price: this.metadata?.price,
+            name: this.metadata?.name,
+            symbol: this.metadata?.symbol,
+            uri: this.metadata?.uri,
+          },
+          { headers: { Authorization: `Bearer ${this.authToken}` } })
         .toPromise();
 
       if (!buyRes.signature) throw new Error("❌ No signature returned from backend");
