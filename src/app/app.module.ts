@@ -12,11 +12,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-
 import { SharedModule } from './shared/shared.module';
-
-import { QRCodeComponent } from 'angularx-qrcode';
 
 @NgModule({
   declarations: [AppComponent],
@@ -27,7 +23,6 @@ import { QRCodeComponent } from 'angularx-qrcode';
     HttpClientModule,
     BrowserAnimationsModule,
     SharedModule,
-    QRCodeComponent
   ],
   providers: [
     // provider routing
@@ -35,8 +30,6 @@ import { QRCodeComponent } from 'angularx-qrcode';
 
     // provider interceptor http
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    
-    provideCharts(withDefaultRegisterables())
   ],
   bootstrap: [AppComponent],
 })
