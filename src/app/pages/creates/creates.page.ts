@@ -171,8 +171,8 @@ export class CreatesPage implements OnInit {
     }
 
     await this.loadNft();
-    // await this.loadCharacters();   // load data karakter ===add by fpp 05/09/25===
-    // await this.loadRunes();
+    await this.loadCharacters();   // load data karakter ===add by fpp 05/09/25===
+    await this.loadRunes();
     await this.loadGatchaPacks();
     await this.fetchRates();
     await this.onChainAll();
@@ -249,16 +249,12 @@ export class CreatesPage implements OnInit {
         this.http.get<any[]>(`${environment.apiUrl}/nft/fetch-character`)
       );
       this.characters = data;
-      console.log("Characters:", this.characters);
-
       this.characterMap = data.reduce((acc: Record<string, any[]>, c: any) => {
         acc[c.rarity] = [...(acc[c.rarity] || []), c];
         return acc;
-      }, {} as Record<string, any[]>);
+      }, {});
     } catch (err) {
       console.error("❌ Error loading characters:", err);
-      this.characters = [];
-      this.characterMap = {};
     }
   }
   // =========================
@@ -269,16 +265,12 @@ export class CreatesPage implements OnInit {
         this.http.get<any[]>(`${environment.apiUrl}/nft/rune`)
       );
       this.runes = data;
-      // console.log("Runes:", this.runes);
-
       this.runeMap = data.reduce((acc: Record<string, any[]>, r: any) => {
         acc[r.rarity] = [...(acc[r.rarity] || []), r];
         return acc;
-      }, {} as Record<string, any[]>);
+      }, {});
     } catch (err) {
       console.error("❌ Error loading runes:", err);
-      this.runes = [];
-      this.runeMap = {};
     }
   }
 

@@ -82,7 +82,11 @@ const routes: Routes = [
     loadChildren: () =>
       import('./pages/setting/setting.module').then(m => m.SettingPageModule),
     canActivate: [AuthGuard]
+  },  {
+    path: 'my-nfts',
+    loadChildren: () => import('./pages/my-nfts/my-nfts.module').then( m => m.MyNftsPageModule)
   }
+
 ];
 
 
