@@ -1,0 +1,7 @@
+#Thu Oct 02 15:40:49 WIB 2025
+base.0=D\:\\ionic\\universe-of-gamers-nft\\android\\app\\build\\intermediates\\dex\\release\\mergeDexRelease\\classes.dex
+base.1=D\:\\ionic\\universe-of-gamers-nft\\android\\app\\build\\intermediates\\global_synthetics_dex\\release\\classes.dex
+path.0=classes.dex
+path.1=classes.dex
+renamed.0=classes.dex
+renamed.1=classes2.dex

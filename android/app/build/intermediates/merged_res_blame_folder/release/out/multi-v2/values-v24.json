@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.universeofgamers.nft.app-mergeReleaseResources-29:/values-v24/values-v24.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\FPP\\.gradle\\caches\\8.11.1\\transforms\\f66d090767a06588e7d22fe250925b61\\transformed\\appcompat-1.7.0\\res\\values-v24\\values-v24.xml",
+                    "from": {
+                        "startLines": "2,3",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,212",
+                        "endColumns": "156,134",
+                        "endOffsets": "207,342"
+                    }
+                }
+            ]
+        }
+    ]
+}
