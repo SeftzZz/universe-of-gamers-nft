@@ -18,7 +18,7 @@ export class Market {
   async loadNfts(): Promise<any[]> {
     try {
       const data: any[] = await firstValueFrom(
-        this.http.get<any[]>(`${environment.apiUrl}/nft/fetch-nft`)
+        this.http.get<any[]>(`${environment.apiUrl}/nft/my-nfts`)
       );
       this.nfts$.next(data || []);
       return data || [];

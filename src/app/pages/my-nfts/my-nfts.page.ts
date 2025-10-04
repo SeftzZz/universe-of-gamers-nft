@@ -5,6 +5,8 @@ import { HttpClient } from '@angular/common/http';
 import { LoadingController } from '@ionic/angular';
 import { Auth } from '../../services/auth';
 import { Market } from '../../services/market';
+import { environment } from '../../../environments/environment';
+import { HttpClient } from '@angular/common/http';
 
 interface Collection {
   id: string;
@@ -83,6 +85,7 @@ export class MyNftsPage implements OnInit {
     private auth: Auth,
     private router: Router,
     private loadingCtrl: LoadingController,
+    private http: HttpClient,
   ) {}
 
   async ngOnInit() {
@@ -260,11 +263,9 @@ export class MyNftsPage implements OnInit {
     try {
       console.log('🔄 Delisting NFT:', mintAddress);
 
-      // panggil API delist manual (karena ini bukan di Market service)
-      const resp: any = await fetch(
-        `${location.origin}/api/auth/nft/${mintAddress}/delist`,
-        { method: 'POST', credentials: 'include' },
-      ).then((r) => r.json());
+      const resp: any = await this.http
+        .post(`${environment.apiUrl}/auth/nft/${mintAddress}/delist`, {})
+        .toPromise();
 
       if (resp.success) {
         await this.refreshAll();
