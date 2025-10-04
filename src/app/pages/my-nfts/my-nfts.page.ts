@@ -1,7 +1,6 @@
 // src/app/pages/my-nfts/my-nfts.page.ts
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { LoadingController } from '@ionic/angular';
 import { Auth } from '../../services/auth';
 import { Market } from '../../services/market';
@@ -98,14 +97,15 @@ export class MyNftsPage implements OnInit {
 
   private async refreshAll() {
     await this.market.loadNfts();
+    await this.market.loadMyNfts();
     await this.market.loadLatestNfts();
     await this.market.loadTopCreators();
     await this.market.loadHistory();
     await this.market.loadUsers();
 
     // ambil cache dari service
-    this.market.getNfts().subscribe((nfts) => {
-      this.fetchnft = nfts || [];
+    this.market.getMyNfts().subscribe((myNfts) => {
+      this.fetchnft = myNfts || [];
       this.nftBC = this.fetchnft.filter((n) => !!n.character);
       this.nftRuneBC = this.fetchnft.filter((n) => !!n.rune);
     });

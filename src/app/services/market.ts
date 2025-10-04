@@ -7,6 +7,7 @@ import { environment } from '../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class Market {
   private nfts$ = new BehaviorSubject<any[]>([]);
+  private myNfts$ = new BehaviorSubject<any[]>([]);
   private latestNfts$ = new BehaviorSubject<any[]>([]);
   private topCreators$ = new BehaviorSubject<any[]>([]);
   private history$ = new BehaviorSubject<any[]>([]);
@@ -18,13 +19,27 @@ export class Market {
   async loadNfts(): Promise<any[]> {
     try {
       const data: any[] = await firstValueFrom(
-        this.http.get<any[]>(`${environment.apiUrl}/nft/my-nfts`)
+        this.http.get<any[]>(`${environment.apiUrl}/nft/fetch-nft`)
       );
       this.nfts$.next(data || []);
       return data || [];
     } catch (err) {
       console.error('Error loadNfts:', err);
       this.nfts$.next([]);
+      return []; // ✅ selalu return array
+    }
+  }
+
+  async loadMyNfts(): Promise<any[]> {
+    try {
+      const data: any[] = await firstValueFrom(
+        this.http.get<any[]>(`${environment.apiUrl}/nft/my-nfts`)
+      );
+      this.myNfts$.next(data || []);
+      return data || [];
+    } catch (err) {
+      console.error('Error loadMyNfts:', err);
+      this.myNfts$.next([]);
       return []; // ✅ selalu return array
     }
   }
@@ -87,6 +102,10 @@ export class Market {
   // === OBSERVABLES ===
   getNfts() {
     return this.nfts$.asObservable();
+  }
+
+  getMyNfts() {
+    return this.myNfts$.asObservable();
   }
 
   getLatestNfts() {
