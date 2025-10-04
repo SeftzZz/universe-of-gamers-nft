@@ -123,7 +123,7 @@ export class RegistrationPage implements OnInit {
         this.clearForm();
 
         // redirect ke home
-        this.router.navigate(['/tabs/home']);
+        this.router.navigate(['/all-collection']);
       },
       error: (err) => {
         this.dismissLoading();
@@ -145,7 +145,7 @@ export class RegistrationPage implements OnInit {
         this.clearForm();
 
         // ✅ Redirect ke tabs/home setelah login
-        this.router.navigate(['/tabs/home']);
+        this.router.navigate(['/all-collection']);
       },
       error: (err) => {
         this.dismissLoading();

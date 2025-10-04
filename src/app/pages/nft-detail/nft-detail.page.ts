@@ -25,6 +25,38 @@ import { Browser } from '@capacitor/browser';
 
 import { MarketLayoutPage } from '../market-layout/market-layout.page';
 
+interface Collection {
+  id: string;
+  name: string;
+  image: string;
+  creator: string;
+  items: number;
+}
+
+interface INftItem {
+  _id: string;
+  name: string;
+  description: string;
+  image: string;
+  owner: string;
+  character?: string;
+  rune?: string;
+  isSell?: boolean;
+  price?: number;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+  mintAddress?: string;   // ✅ tambahin ini
+  [key: string]: any;
+}
+
+// Tambahkan interface Creator
+interface Creator {
+  owner: string;
+  count: number;
+  avatar: string;   // bisa pakai default
+  name?: string;    // optional, bisa diisi dari DB kalau ada relasi
+}
+
 @Component({
   selector: 'app-nft-detail',
   templateUrl: './nft-detail.page.html',
@@ -74,6 +106,48 @@ export class NftDetailPage implements OnInit {
 
   authToken: string | null = null;
 
+  isSellMode: boolean = false;
+
+  showSellModal = false;
+  isClosingSell = false;
+  isListing = false;
+
+  sellPrice: number = 0;
+  sellRoyalty: number = 0;
+
+  collections: Collection[] = [];
+
+  nftDB: any[] = []; // daftar NFT dari DB
+  runesDB: any[] = [];   // list rune dari DB
+  latestNfts: any[] = [];
+  runeMap: Record<string, any[]> = {};
+  nftBC: any[] = [];     //  // list NFT dari Block Chain
+  nftRuneBC: any[] = [];
+  favorites: Set<string> = new Set();
+
+  // === User Info ===
+  userName: string = '';
+  userAvatar: string = 'assets/images/avatar/avatar-small-01.png';
+  userRole: string | null = null;
+
+  // === NFT Related ===
+  fetchnft: INftItem[] = []; 
+  isSell: boolean = false;
+
+  // === Top Creators ===
+  topCreators: Creator[] = [];
+  allUsers: any[] = [];
+
+  // === UI State ===
+  isOpen = false;
+  selected = '';
+  activeTab: 'character' | 'rune' = 'character';
+  itemsToShowCharacter = 8;
+  itemsToShowRune = 8;
+  loadStep = 8;
+
+  history: any[] = [];
+
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
@@ -98,6 +172,8 @@ export class NftDetailPage implements OnInit {
         // refresh data setiap kali wallet diganti
         await this.updateBalance();
         await this.loadTokens();
+        await this.loadTopCreators();
+        await this.loadNftHistory();
       }
     });
 
@@ -116,6 +192,54 @@ export class NftDetailPage implements OnInit {
       await this.loadMetadata(mintAddress);
       await this.loadTokens();
     }
+
+    // ✅ cek apakah masuk dengan query param sell
+    this.route.queryParams.subscribe(params => {
+      this.isSellMode = params['sell'] === '1';
+      console.log("🛒 Sell mode:", this.isSellMode);
+    });
+
+    const saved = localStorage.getItem('token');
+    if (saved) this.authToken = saved;
+  }
+
+  async ionViewWillEnter() {
+    // this.program = await this.idlService.loadProgram();
+
+    this.walletService.getActiveWallet().subscribe(async (addr) => {
+      if (addr) {
+        this.activeWallet = addr;
+        console.log('🔄 Active wallet updated in Home:', addr);
+
+        // refresh data setiap kali wallet diganti
+        await this.updateBalance();
+        await this.loadTokens();
+        await this.loadTopCreators();
+        await this.loadNftHistory();
+      }
+    });
+
+    // subscribe ke UserService agar avatar langsung update
+    this.userService.getUser().subscribe(profile => {
+      this.name = profile.name;
+      this.email = profile.email;
+      this.notifyNewItems = profile.notifyNewItems;
+      this.notifyEmail = profile.notifyEmail;
+      this.avatar = profile.avatar;
+    });
+
+    const mintAddress = this.route.snapshot.paramMap.get('mintAddress'); // ✅ pakai mintAddress
+    if (mintAddress) {
+      this.mintAddress = mintAddress;
+      await this.loadMetadata(mintAddress);
+      await this.loadTokens();
+    }
+
+    // ✅ cek apakah masuk dengan query param sell
+    this.route.queryParams.subscribe(params => {
+      this.isSellMode = params['sell'] === '1';
+      console.log("🛒 Sell mode:", this.isSellMode);
+    });
 
     const saved = localStorage.getItem('token');
     if (saved) this.authToken = saved;
@@ -386,8 +510,107 @@ export class NftDetailPage implements OnInit {
       return !!token;
   }
 
-  logout() {
-      this.auth.logout();
+  async loadUsers() {
+    try {
+      const data: any = await this.http
+        .get(`${environment.apiUrl}/auth/users/basic`) // endpoint baru yg balikin semua user (name, avatar, addresses)
+        .toPromise();
+      this.allUsers = data;
+      // console.log("👥 All users basic:", this.allUsers);
+    } catch (err) {
+      console.error("Error loading users:", err);
+    }
   }
 
+  async loadTopCreators() {
+    try {
+      const data: any = await this.http
+        .get(`${environment.apiUrl}/nft/top-creators`)
+        .toPromise();
+      this.topCreators = data;
+      console.log("🔥 Top Creators (from backend):", this.topCreators);
+    } catch (err) {
+      console.error("Error loading top creators:", err);
+    }
+  }
+
+  async loadNftHistory() {
+    try {
+      const data: any = await this.http
+        .get(`${environment.apiUrl}/nft/history`)
+        .toPromise();
+
+      this.history = data.history || [];
+      console.log("📜 NFT History:", this.history);
+    } catch (err) {
+      console.error("Error loading NFT history:", err);
+      this.history = [];
+    }
+  }
+
+  async showLoading(message: string = 'Loading...') {
+    const loading = await this.loadingCtrl.create({
+      message,
+      spinner: 'crescent',
+    });
+    await loading.present();
+    return loading;
+  }
+
+  async logout() {
+    const loading = await this.showLoading('Logging out...');
+    try {
+      await this.auth.logout();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      loading.dismiss();
+    }
+  }
+
+  openSellModal() {
+    this.showSellModal = true;
+    this.isClosingSell = false;
+  }
+
+  resetSellModal() {
+    this.isClosingSell = true;
+    setTimeout(() => {
+      this.showSellModal = false;
+      this.sellPrice = 0;      
+    }, 300);
+  }
+
+  submitListing() {
+    if (!this.sellPrice || this.sellPrice <= 0) {
+      alert("Please enter a valid price");
+      return;
+    }
+    if (this.sellRoyalty < 0 || this.sellRoyalty > 100) {
+      alert("Royalty must be between 0 and 100%");
+      return;
+    }
+
+    this.isListing = true;
+
+    // 🚀 Kirim ke API backend (offchain save to DB)
+    this.http.post(`${environment.apiUrl}/auth/nft/${this.mintAddress}/sell`, {
+      price: this.sellPrice,
+      royalty: this.sellRoyalty,
+    }).subscribe({
+      next: async (res: any) => {
+        console.log("✅ NFT listed:", res);
+        this.txSig = res?.signature || "offchain-listing"; // dummy jika offchain
+        this.isListing = false;
+        await this.loadMetadata(this.mintAddress);
+        await this.loadTokens();
+        await this.loadTopCreators();
+        await this.loadNftHistory();
+      },
+      error: (err) => {
+        console.error("❌ Error listing NFT:", err);
+        this.isListing = false;
+      }
+    });
+  }
 }

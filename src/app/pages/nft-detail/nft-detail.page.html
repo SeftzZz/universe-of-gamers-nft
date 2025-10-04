@@ -86,7 +86,17 @@
                                 <div class="text">Current price</div>
                                 <div class="flex justify-between">
                                   <p [innerHTML]="metadata?.price ? formatWithZeroCount(metadata.price) : '-'"> SOL</p>
-                                  <a (click)="toggleSendModal()" class="tf-button style-1 h50 w216">Buy NFT<i class="icon-arrow-up-right2"></i></a>
+
+                                  <!-- Normal (Buy) -->
+                                  <a *ngIf="metadata.isSell"
+                                     (click)="toggleSendModal()" 
+                                     class="tf-button style-1 h50 w216">Buy NFT<i class="icon-arrow-up-right2"></i></a>
+
+                                  <!-- Sell Mode -->
+                                  <a *ngIf="!metadata.isSell"
+                                     (click)="openSellModal()" 
+                                     class="tf-button style-1 h50 w216">Sell NFT<i class="icon-arrow-up-right2"></i></a>
+
                                 </div>
                               </div>
                             </div>
@@ -254,4 +264,75 @@
 
     </div>
   </div>
+
+  <div class="custom-modal" *ngIf="showSellModal">
+    <div class="modal-backdrop" (click)="resetSellModal()"></div>
+
+    <div class="modal-sheet" [ngClass]="{ 'slide-up': !isClosingSell, 'slide-down': isClosingSell }">
+
+      <!-- Step 1: Input Harga & Royalty -->
+      <div *ngIf="!isListing && !txSig">
+        <h2 class="modal-title">List NFT for Sale</h2>
+
+        <!-- Input harga -->
+        <div class="form-group">
+          <label for="price">Set Price (SOL)</label>
+          <input
+            id="price"
+            type="number"
+            min="0"
+            step="0.0001"
+            [(ngModel)]="sellPrice"
+            placeholder="Enter price"
+            class="form-control"
+          />
+        </div>
+
+        <!-- Input royalty -->
+        <div class="form-group">
+          <label for="royalty">Royalty (%)</label>
+          <input
+            id="royalty"
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            [(ngModel)]="sellRoyalty"
+            placeholder="Enter royalty"
+            class="form-control"
+          />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="resetSellModal()">Cancel</button>
+          <button type="button" class="btn-send" (click)="submitListing()">List NFT</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Loading / Success -->
+      <div *ngIf="isListing || txSig" @fadeSlide>
+        <h2 class="modal-title" *ngIf="isListing">Listing NFT...</h2>
+        <div *ngIf="isListing" class="loading-spinner">
+          <ion-spinner name="crescent"></ion-spinner>
+        </div>
+
+        <div *ngIf="txSig" class="success-tx" @fadeSlide>
+          <h2 class="modal-title">NFT Listed Successfully</h2>
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <p>
+            Your NFT is now on sale for {{ sellPrice }} SOL  
+            <br />
+            with {{ sellRoyalty }}% royalty
+          </p>
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="resetSellModal()">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </ion-content>

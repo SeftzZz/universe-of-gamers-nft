@@ -9,10 +9,10 @@
                 <div class="widget-tabs relative">
                     <ul class="widget-menu-tab">
                         <li class="item-title active">
-                            <span class="inner">Create Characters <i class="icon-keyboard_arrow_right"></i></span>
+                            <span class="inner">Create Character</span>
                         </li>
                         <li class="item-title">
-                            <span class="inner">Create Rune Items <i class="icon-keyboard_arrow_right"></i></span>
+                            <span class="inner">Create Rune</span>
                         </li>
                         <li class="item-title">
                             <span class="inner">Create Gatcha</span>
@@ -357,7 +357,7 @@
                                     </fieldset>
                                   </fieldset>
 
-                                  <button type="button" class="tf-button style-1" (click)="addRune()" style="color: #161616;">+ Add Rune</button>
+                                  <button type="button" class="tf-button style-1 mb-20" (click)="addRune()" style="color: #161616;">+ Add Rune</button>
 
                                   <div class="btn-submit flex gap30 justify-center">
                                     <button class="tf-button style-1 h50 w320" type="submit">
@@ -430,11 +430,11 @@
                                     </fieldset>
                                   </div>
 
-                                  <button type="button" class="tf-button style-1" (click)="addReward()">+ Add Reward</button>
+                                  <button type="button" class="tf-button style-1 mb-20" (click)="addReward()" style="color: #161616;">+ Add Reward</button>
 
                                   <div class="btn-submit flex gap30 justify-center">
                                     <button class="tf-button style-1 h50 w320" type="submit">
-                                      Submit Gatcha Pack <i class="icon-arrow-up-right2"></i>
+                                      Submit Gatcha <i class="icon-arrow-up-right2"></i>
                                     </button>
                                   </div>
                                 </form>
@@ -492,7 +492,7 @@
                                                   <div class="card-bottom">
                                                     <div class="author">
                                                       <h5 style="font-size: 24px;">{{ pack.name }}</h5>
-                                                      <!-- <p>{{ pack.description }}</p> -->
+                                                      <p>{{ pack.description }}</p>
                                                     </div>
                                                     <div class="bottom-right">
                                                       <!-- <div class="shop"> 
@@ -511,7 +511,7 @@
                                                   </div>
                                                   <!-- Tombol Buy & Mint -->
                                                   <div class="btn-submit flex gap30 justify-center mt-3">
-                                                    <button class="tf-button style-1 h40" (click)="toggleSendModal(pack)">
+                                                    <button class="tf-button style-1 h40" (click)="toggleSendModal(pack)" style="color: #161616;">
                                                       Buy & Mint <i class="icon-arrow-up-right2"></i>
                                                     </button>
                                                   </div>
@@ -531,7 +531,6 @@
                 </div>
             </div>
           </div>
-          
       </div>
   </app-market-layout>
   <!-- /#page -->
