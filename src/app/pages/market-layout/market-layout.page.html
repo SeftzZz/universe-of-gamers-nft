@@ -11,7 +11,7 @@
         </ion-tab-button>
 
         <ion-tab-button tab="creates" *ngIf="role === 'admin'" [routerLink]="['/market-layout/creates']" routerLinkActive="active">
-            <ion-icon name="add-circle-outline"></ion-icon>
+            <ion-icon name="duplicate-outline"></ion-icon>
             <!-- <ion-label>Creates</ion-label> -->
         </ion-tab-button>
         <ion-tab-button tab="gatcha" *ngIf="role != 'admin'" [routerLink]="['/market-layout/gatcha']" routerLinkActive="active">
@@ -25,8 +25,71 @@
         </ion-tab-button>
 
         <ion-tab-button tab="transactions" [routerLink]="['/market-layout/transactions']" routerLinkActive="active">
-            <ion-icon name="filter-outline"></ion-icon>
+            <ion-icon name="time-outline"></ion-icon>
             <!-- <ion-label>History</ion-label> -->
         </ion-tab-button>
     </ion-tab-bar>
+    <!-- <div class="side-bar">
+        <div class="widget widget-recently" *ngIf="latestNfts.length > 0">
+            <h5 class="title-widget">Recently added</h5>
+            <div class="card-small-main">
+                <img [src]="latestNfts[0].image || 'assets/images/blog/sidebar-01.jpg'" alt="">
+                <div class="card-bottom">
+                    <h5>
+                        <a href="javascript:void(0)" (click)="goToNftDetail(latestNfts[0].mintAddress, true)">
+                          {{ latestNfts[0].name }}
+                        </a>
+                    </h5>
+                    <span class="date">{{ latestNfts[0].createdAt | date:'short' }}</span>
+                </div>
+            </div>
+            <div class="card-small" *ngFor="let nft of latestNfts.slice(1,4)">
+                <div class="author">
+                    <img class="nft-thumb" [src]="nft.image || 'assets/images/blog/sidebar-01.jpg'" alt="">
+                    <div class="info">
+                        <h6><a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress, true)">{{ nft.name }}</a></h6>
+                        <p>{{ nft.owner ? shorten(nft.owner) : 'Unknown' }}</p>
+                    </div>
+                </div>
+                <span class="date">{{ nft.createdAt | date:'shortDate' }}</span>
+            </div>
+        </div>
+        <div class="widget widget-creators">
+            <div class="flex items-center justify-between">
+                <h5 class="title-widget">Top Creators</h5>
+                <a class="see-all" href="#">See all</a>
+            </div>
+
+            <div class="widget-creators-item flex items-center mb-20" *ngFor="let c of topCreators; let i = index">
+                <div class="order">{{ i + 1 }}.</div>
+                <div class="author flex items-center flex-grow">
+                    <img [src]="c.avatar" alt="">
+                    <div class="info">
+                        <h6>{{ c.name || shorten(c.owner) }}</h6>
+                        <span>{{ c.count }} NFTs</span>
+                    </div>
+                </div>
+                <button class="follow">Follow</button>
+            </div>
+        </div>
+        <div class="widget widget-history">
+            <div class="flex items-center justify-between">
+                <h5 class="title-widget">History</h5>
+                <a class="see-all" href="#">See all</a>
+            </div>
+
+            <div class="widget-creators-item flex items-center mb-20" *ngFor="let h of history | slice:0:3">
+                <div class="author flex items-center flex-grow">
+                    <a href="javascript:void(0)" (click)="goToNftDetail(h.mintAddress, true)">
+                        <img [src]="h.image || 'assets/images/avatar/avatar-small-01.png'" alt="">
+                    </a>
+                    <div class="info">
+                        <h6><a href="javascript:void(0)" (click)="goToNftDetail(h.mintAddress, true)">{{ h.name }}</a></h6>
+                        <span>Listed at {{ h.price }} SOL</span>
+                    </div>
+                </div>
+                <span class="time">{{ h.updatedAt | date:'shortDate' }}</span>
+            </div>
+        </div>
+    </div> -->
 </ion-tabs>

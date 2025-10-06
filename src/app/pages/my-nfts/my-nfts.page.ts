@@ -160,7 +160,7 @@ export class MyNftsPage implements OnInit {
 
   goToNftDetail(mintAddress: string, sell: boolean = false) {
     if (!mintAddress) return;
-    this.router.navigate(['/nft-detail', mintAddress], {
+    this.router.navigate(['/market-layout/nft-detail', mintAddress], {
       queryParams: { sell: sell ? '1' : '0' },
     });
   }

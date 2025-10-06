@@ -117,12 +117,6 @@
                         <div class="wrap-box-card">
                             <div class="col-item" *ngFor="let nft of nftBC | slice:0:itemsToShowCharacter">
                                 <div class="tf-card-box style-4">
-                                    <div class="author flex items-center">
-                                        <div class="info">
-                                            <span>Created by:</span>
-                                            <h6>{{ shorten(nft.owner) }}</h6>
-                                        </div>
-                                    </div>
                                     <div class="card-media">
                                         <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">
                                             <img [src]="nft.image || 'assets/images/box-item/card-item-01.jpg'" alt="">
@@ -130,7 +124,13 @@
                                         <span class="wishlist-button icon-heart" [class.active]="isFavorite(nft)" (click)="toggleFavorite(nft)"></span>
                                     </div>
                                     <h5 class="name"><a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">{{ nft.name }}</a></h5>
-                                    <div class="meta-info flex items-center justify-between">
+                                    <div class="author flex items-center">
+                                        <div class="info">
+                                            <span>Created by:</span>
+                                            <h6>{{ shorten(nft.owner) }}</h6>
+                                        </div>
+                                    </div>
+                                    <div class="meta-info flex items-center justify-between" style="display: flex;">
                                         <div>
                                             <span class="text-bid">Current Price</span>
                                             <h6 class="price gem" style="margin-top: 0px;margin-bottom: 0px;" [innerHTML]="nft?.price ? formatWithZeroCount(nft.price) : '-'">
@@ -160,12 +160,6 @@
                         <div class="wrap-box-card">
                             <div class="col-item" *ngFor="let nft of nftRuneBC | slice:0:itemsToShowRune">
                                 <div class="tf-card-box style-4">
-                                    <div class="author flex items-center">
-                                        <div class="info">
-                                            <span>Created by:</span>
-                                            <h6>{{ shorten(nft.owner) }}</h6>
-                                        </div>
-                                    </div>
                                     <div class="card-media">
                                         <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">
                                             <img [src]="nft.image || 'assets/images/box-item/card-item-01.jpg'" alt="">
@@ -173,7 +167,13 @@
                                         <span class="wishlist-button icon-heart" [class.active]="isFavorite(nft)" (click)="toggleFavorite(nft)"></span>
                                     </div>
                                     <h5 class="name">{{ nft.name }}</h5>
-                                    <div class="meta-info flex items-center justify-between">
+                                    <div class="author flex items-center">
+                                        <div class="info">
+                                            <span>Created by:</span>
+                                            <h6>{{ shorten(nft.owner) }}</h6>
+                                        </div>
+                                    </div>
+                                    <div class="meta-info flex items-center justify-between" style="display: flex;">
                                         <div>
                                             <span class="text-bid">Current Price</span>
                                             <h6 class="price gem" [innerHTML]="nft?.price ? formatWithZeroCount(nft.price) : '-'">
