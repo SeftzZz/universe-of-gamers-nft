@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { WalletPageRoutingModule } from './wallet-routing.module';
 import { WalletPage } from './wallet.page';
-import { MarketLayoutPageModule } from '../market-layout/market-layout.module';
 
 @NgModule({
     imports: [
@@ -12,7 +11,6 @@ import { MarketLayoutPageModule } from '../market-layout/market-layout.module';
         FormsModule,
         IonicModule,
         WalletPageRoutingModule,
-        MarketLayoutPageModule // <== wajib ada supaya app-market-layout dikenali
     ],
     declarations: [WalletPage]
 })

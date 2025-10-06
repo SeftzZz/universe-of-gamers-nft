@@ -23,8 +23,6 @@ import {
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 
-import { MarketLayoutPage } from '../market-layout/market-layout.page';
-
 interface Collection {
   id: string;
   name: string;

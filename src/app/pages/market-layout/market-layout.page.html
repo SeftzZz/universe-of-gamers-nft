@@ -1,257 +1,32 @@
-    <div id="wrapper">
-        <div id="page" class="market-page">
+<ion-tabs>
+    <ion-tab-bar slot="bottom" class="bottom-tab-bar">
+        <ion-tab-button tab="all-collection" [routerLink]="['/market-layout/all-collection']" routerLinkActive="active">
+            <ion-icon name="storefront-outline"></ion-icon>
+            <!-- <ion-label>All</ion-label> -->
+        </ion-tab-button>
 
-            <!-- ===== HEADER ===== -->
-            <div id="market-header">
-                <div class="market-header flex items-center justify-between">
-                    <!-- Search bar -->
-                    <div class="widget-search">
-                        <form action="#" method="get" role="search" class="search-form relative">
-                            <input type="search" id="search" class="search-field style-1" placeholder="Search artwork, collection..." name="s" required>
-                            <button class="search search-submit" type="submit" title="Search">
-                                <i class="icon-search"></i>
-                            </button>
-                        </form>
-                    </div>
+        <ion-tab-button tab="my-nfts" [routerLink]="['/market-layout/my-nfts']" routerLinkActive="active">
+            <ion-icon name="grid-outline"></ion-icon>
+            <!-- <ion-label>My NFT</ion-label> -->
+        </ion-tab-button>
 
-                    <!-- Notification + User -->
-                    <div class="admin_active" id="header_admin">
-                        <!-- notifikasi -->
-                        <div class="popup-notification relative">
-                            <div class="notification">
-                                <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 18.8476C17.6392 18.8476 20.2481 18.1242 20.5 15.2205C20.5 12.3188 18.6812 12.5054 18.6812 8.94511C18.6812 6.16414 16.0452 3 12 3C7.95477 3 5.31885 6.16414 5.31885 8.94511C5.31885 12.5054 3.5 12.3188 3.5 15.2205C3.75295 18.1352 6.36177 18.8476 12 18.8476Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M14.3888 21.8574C13.0247 23.3721 10.8967 23.3901 9.51947 21.8574" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <circle cx="17" cy="5" r="4" fill="#1ac4fc" stroke="#1D1D1D" stroke-width="1.5"/>
-                                </svg>
-                            </div>
-                        </div>
+        <ion-tab-button tab="creates" *ngIf="role === 'admin'" [routerLink]="['/market-layout/creates']" routerLinkActive="active">
+            <ion-icon name="add-circle-outline"></ion-icon>
+            <!-- <ion-label>Creates</ion-label> -->
+        </ion-tab-button>
+        <ion-tab-button tab="gatcha" *ngIf="role != 'admin'" [routerLink]="['/market-layout/gatcha']" routerLinkActive="active">
+            <ion-icon name="duplicate-outline"></ion-icon>
+            <!-- <ion-label>Gatcha</ion-label> -->
+        </ion-tab-button>
 
-                        <!-- user -->
-                        <div class="popup-user relative">
-                            <div class="user">
-                                <img [src]="userAvatar" alt="User Avatar">
-                                <span>{{ userName }}<i class="icon-keyboard_arrow_down"></i></span>
-                            </div>
-                            <div class="avatar_popup2">
-                                <div class="">
-                                    <div class="links">
-                                        <a class="block mb-30" href="#">
-                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M0.774902 18.333C0.774902 18.7932 1.14762 19.1664 1.60824 19.1664C2.06885 19.1664 2.44157 18.7932 2.44157 18.333C2.44157 15.3923 4.13448 12.7889 6.77329 11.5578C7.68653 12.1513 8.77296 12.4997 9.94076 12.4997C11.113 12.4997 12.2036 12.1489 13.119 11.5513C13.9067 11.9232 14.6368 12.4235 15.2443 13.0307C16.6611 14.4479 17.4416 16.3311 17.4416 18.333C17.4416 18.7932 17.8143 19.1664 18.2749 19.1664C18.7355 19.1664 19.1083 18.7932 19.1083 18.333C19.1083 15.8859 18.1545 13.5845 16.4227 11.8523C15.8432 11.2725 15.1698 10.7754 14.4472 10.3655C15.2757 9.3581 15.7741 8.06944 15.7741 6.66635C15.7741 3.44979 13.1569 0.833008 9.94076 0.833008C6.72461 0.833008 4.10742 3.44979 4.10742 6.66635C4.10742 8.06604 4.60379 9.35154 5.42863 10.3579C2.56796 11.9685 0.774902 14.9779 0.774902 18.333V18.333ZM9.94076 2.49968C12.2381 2.49968 14.1074 4.36898 14.1074 6.66635C14.1074 8.96371 12.2381 10.833 9.94076 10.833C7.6434 10.833 5.77409 8.96371 5.77409 6.66635C5.77409 4.36898 7.6434 2.49968 9.94076 2.49968V2.49968Z" fill="white"></path>
-                                            </svg>
-                                            <span>  My Profile</span>
-                                        </a>
-                                        <a class="block mb-30 mt-10" href="#">
-                                            <svg width="20" height="18" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M17.1154 0.730469H2.88461C1.29402 0.730469 0 2.02449 0 3.61508V14.3843C0 15.9749 1.29402 17.2689 2.88461 17.2689H17.1154C18.706 17.2689 20 15.9749 20 14.3843V3.61508C20 2.02449 18.706 0.730469 17.1154 0.730469ZM18.7529 10.6035H14.6154C13.6611 10.6035 13 9.95407 13 8.99969C13 8.04532 13.661 7.34544 14.6154 7.34544H18.7529V10.6035ZM18.7529 6.11508H14.6154C13.0248 6.11508 11.7308 7.40911 11.7308 8.99969C11.7308 10.5903 13.0248 11.8843 14.6154 11.8843H18.7529V14.3843C18.7529 15.3386 18.0698 15.9996 17.1154 15.9996H2.88461C1.93027 15.9996 1.29231 15.3387 1.29231 14.3843V3.61508C1.29231 2.66074 1.93023 1.99963 2.88461 1.99963H17.1266C18.0809 1.99963 18.7529 2.6607 18.7529 3.61508V6.11508Z" fill="white"></path>
-                                            </svg>
-                                            <span>  Wallet</span>
-                                        </a>
-                                        <a class="block" (click)="logout()" id="logout" style="cursor: pointer;">
-                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M9.9668 18.3057H2.49168C2.0332 18.3057 1.66113 17.9335 1.66113 17.4751V2.52492C1.66113 2.06644 2.03324 1.69437 2.49168 1.69437H9.9668C10.4261 1.69437 10.7973 1.32312 10.7973 0.863828C10.7973 0.404531 10.4261 0.0332031 9.9668 0.0332031H2.49168C1.11793 0.0332031 0 1.15117 0 2.52492V17.4751C0 18.8488 1.11793 19.9668 2.49168 19.9668H9.9668C10.4261 19.9668 10.7973 19.5955 10.7973 19.1362C10.7973 18.6769 10.4261 18.3057 9.9668 18.3057Z" fill="white"></path>
-                                                <path d="M19.7525 9.40904L14.7027 4.42564C14.3771 4.10337 13.8505 4.10755 13.5282 4.43396C13.206 4.76036 13.2093 5.28611 13.5366 5.60837L17.1454 9.16982H7.47508C7.01578 9.16982 6.64453 9.54107 6.64453 10.0004C6.64453 10.4597 7.01578 10.8309 7.47508 10.8309H17.1454L13.5366 14.3924C13.2093 14.7147 13.2068 15.2404 13.5282 15.5668C13.691 15.7313 13.9053 15.8143 14.1196 15.8143C14.3306 15.8143 14.5415 15.7346 14.7027 15.5751L19.7525 10.5917C19.9103 10.4356 20 10.2229 20 10.0003C20 9.77783 19.9111 9.56603 19.7525 9.40904Z" fill="white"></path>
-                                            </svg>
-                                            <span>  Log out</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <ion-tab-button tab="my-favorite" [routerLink]="['/market-layout/my-favorite']" routerLinkActive="active">
+            <ion-icon name="heart-outline"></ion-icon>
+            <!-- <ion-label>Favorite</ion-label> -->
+        </ion-tab-button>
 
-            <div class="btn-canvas active">
-                <div class="canvas">
-                    <span></span>
-                </div>
-            </div>
-
-            <!-- ===== SIDEBAR ===== -->
-            <div class="flat-tabs">
-                <div class="section-menu-left">
-                    <div class="box-logo">
-                        <a href="index.html"><img src="assets/images/logo/logo.png" alt=""></a>
-                    </div>
-                    <div class="create menu-tab" *ngIf="role === 'admin'">
-                      <a class="tf-button style-1 type-1 tablinks" [routerLink]="['/creates']">
-                        <span>Create NFT</span>
-                        <i class="icon-create"></i>
-                      </a>
-                    </div>
-                    <div class="create menu-tab" *ngIf="role != 'admin'">
-                        <a class="tf-button style-1 type-1 tablinks" [routerLink]="['/gatcha']">
-                            <span>Gatcha</span>
-                            <i class="icon-create"></i>
-                        </a>
-                    </div>
-                    <div class="over-content">
-                        <div class="content">
-                            <h6>Marketplace</h6>
-                            <ul class="menu-tab">
-                                <li class="tablinks" [routerLink]="['/all-collection']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-                                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <g opacity="0.2">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M5.73177 3.20834C3.21094 3.20834 3.21094 3.39901 3.21094 5.72918V5.75209C3.21094 6.76684 3.21094 7.50018 3.45935 7.81001C3.70227 8.11068 4.42369 8.25001 5.73177 8.25001C7.03985 8.25001 7.76127 8.10976 8.00419 7.80909C8.2526 7.50018 8.2526 6.76684 8.2526 5.75118C8.2526 3.39901 8.2526 3.20834 5.73177 3.20834ZM5.73177 9.62501C4.18627 9.62501 3.02669 9.46276 2.3896 8.67168C1.83594 7.98509 1.83594 7.04826 1.83594 5.75209L2.52344 5.72918H1.83594C1.83594 3.09834 2.00185 1.83334 5.73177 1.83334C9.46169 1.83334 9.6276 3.09834 9.6276 5.72918C9.6276 7.04734 9.6276 7.98509 9.07394 8.67168C8.43685 9.46276 7.27727 9.62501 5.73177 9.62501Z" fill="white"/>
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M15.8177 3.20834C13.2969 3.20834 13.2969 3.39901 13.2969 5.72918V5.75209C13.2969 6.76684 13.2969 7.50018 13.5453 7.81001C13.7882 8.11068 14.5096 8.25001 15.8177 8.25001C17.1258 8.25001 17.8472 8.10976 18.0901 7.80909C18.3385 7.50018 18.3385 6.76684 18.3385 5.75118C18.3385 3.39901 18.3385 3.20834 15.8177 3.20834ZM15.8177 9.62501C14.2722 9.62501 13.1126 9.46276 12.4755 8.67168C11.9219 7.98509 11.9219 7.04826 11.9219 5.75209L12.6094 5.72918H11.9219C11.9219 3.09834 12.0878 1.83334 15.8177 1.83334C19.5476 1.83334 19.7135 3.09834 19.7135 5.72918C19.7135 7.04734 19.7135 7.98509 19.1599 8.67168C18.5228 9.46276 17.3632 9.62501 15.8177 9.62501Z" fill="white"/>
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M5.73177 13.2917C3.21094 13.2917 3.21094 13.4824 3.21094 15.8125V15.8354C3.21094 16.8502 3.21094 17.5835 3.45935 17.8934C3.70227 18.194 4.42369 18.3334 5.73177 18.3334C7.03985 18.3334 7.76127 18.1931 8.00419 17.8924C8.2526 17.5835 8.2526 16.8502 8.2526 15.8345C8.2526 13.4824 8.2526 13.2917 5.73177 13.2917ZM5.73177 19.7084C4.18627 19.7084 3.02669 19.5461 2.3896 18.755C1.83594 18.0684 1.83594 17.1316 1.83594 15.8354L2.52344 15.8125H1.83594C1.83594 13.1817 2.00185 11.9167 5.73177 11.9167C9.46169 11.9167 9.6276 13.1817 9.6276 15.8125C9.6276 17.1307 9.6276 18.0684 9.07394 18.755C8.43685 19.5461 7.27727 19.7084 5.73177 19.7084Z" fill="white"/>
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M15.8177 13.2917C13.2969 13.2917 13.2969 13.4824 13.2969 15.8125V15.8354C13.2969 16.8502 13.2969 17.5835 13.5453 17.8934C13.7882 18.194 14.5096 18.3334 15.8177 18.3334C17.1258 18.3334 17.8472 18.1931 18.0901 17.8924C18.3385 17.5835 18.3385 16.8502 18.3385 15.8345C18.3385 13.4824 18.3385 13.2917 15.8177 13.2917ZM15.8177 19.7084C14.2722 19.7084 13.1126 19.5461 12.4755 18.755C11.9219 18.0684 11.9219 17.1316 11.9219 15.8354L12.6094 15.8125H11.9219C11.9219 13.1817 12.0878 11.9167 15.8177 11.9167C19.5476 11.9167 19.7135 13.1817 19.7135 15.8125C19.7135 17.1307 19.7135 18.0684 19.1599 18.755C18.5228 19.5461 17.3632 19.7084 15.8177 19.7084Z" fill="white"/>
-                                        </g>
-                                    </svg>
-                                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M4.16134 1.83334H7.25967C8.55217 1.83334 9.58801 2.88751 9.58801 4.18093V7.30584C9.58801 8.60751 8.55217 9.65251 7.25967 9.65251H4.16134C2.87801 9.65251 1.83301 8.60751 1.83301 7.30584V4.18093C1.83301 2.88751 2.87801 1.83334 4.16134 1.83334ZM4.16134 12.3472H7.25967C8.55217 12.3472 9.58801 13.3932 9.58801 14.6948V17.8197C9.58801 19.1122 8.55217 20.1664 7.25967 20.1664H4.16134C2.87801 20.1664 1.83301 19.1122 1.83301 17.8197V14.6948C1.83301 13.3932 2.87801 12.3472 4.16134 12.3472ZM17.8381 1.83334H14.7398C13.4473 1.83334 12.4114 2.88751 12.4114 4.18093V7.30584C12.4114 8.60751 13.4473 9.65251 14.7398 9.65251H17.8381C19.1214 9.65251 20.1664 8.60751 20.1664 7.30584V4.18093C20.1664 2.88751 19.1214 1.83334 17.8381 1.83334ZM14.7398 12.3472H17.8381C19.1214 12.3472 20.1664 13.3932 20.1664 14.6948V17.8197C20.1664 19.1122 19.1214 20.1664 17.8381 20.1664H14.7398C13.4473 20.1664 12.4114 19.1122 12.4114 17.8197V14.6948C12.4114 13.3932 13.4473 12.3472 14.7398 12.3472Z" fill="#1ac4fc"/>
-                                    </svg>
-                                    All Collection
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="content mt-30">
-                            <h6>Account</h6>
-                            <ul class="menu-tab">
-                                <li class="tablinks" [routerLink]="['/my-nfts']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-                                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <g opacity="0.2">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M6.61499 14.6693C6.46832 14.6693 6.32074 14.6226 6.19607 14.5272C5.89541 14.2953 5.83857 13.8636 6.07049 13.5629L8.81407 9.99708C8.92591 9.85133 9.09182 9.75691 9.27332 9.73399C9.45849 9.71016 9.63999 9.76149 9.78391 9.87608L12.3689 11.9065L14.6303 8.98874C14.8632 8.68716 15.294 8.63124 15.5947 8.86591C15.8953 9.09874 15.9503 9.53049 15.7175 9.83024L13.0317 13.2952C12.9198 13.4401 12.7548 13.5345 12.5733 13.5565C12.39 13.5812 12.2085 13.5281 12.0637 13.4153L9.48049 11.3858L7.16041 14.4007C7.02474 14.5767 6.82124 14.6693 6.61499 14.6693Z" fill="white"/>
-                                        <mask id="mask0_1075_3648" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="15" y="1" width="6" height="6">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M15.8555 1.83344H20.7541V6.73293H15.8555V1.83344Z" fill="white"/>
-                                        </mask>
-                                        <g mask="url(#mask0_1075_3648)">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M18.3048 3.20834C17.7126 3.20834 17.2305 3.68959 17.2305 4.28268C17.2305 4.87484 17.7126 5.35793 18.3048 5.35793C18.897 5.35793 19.3791 4.87484 19.3791 4.28268C19.3791 3.68959 18.897 3.20834 18.3048 3.20834ZM18.3048 6.73293C16.9546 6.73293 15.8555 5.63384 15.8555 4.28268C15.8555 2.93151 16.9546 1.83334 18.3048 1.83334C19.656 1.83334 20.7541 2.93151 20.7541 4.28268C20.7541 5.63384 19.656 6.73293 18.3048 6.73293Z" fill="white"/>
-                                        </g>
-                                        <mask id="mask1_1075_3648" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="1" y="2" width="20" height="19">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M1.83398 2.60526H20.0407V20.8112H1.83398V2.60526Z" fill="white"/>
-                                        </mask>
-                                        <g mask="url(#mask1_1075_3648)">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M14.8809 20.8112H6.9939C3.90748 20.8112 1.83398 18.6433 1.83398 15.4166V8.00809C1.83398 4.77684 3.90748 2.60526 6.9939 2.60526H13.6562C14.0357 2.60526 14.3437 2.91326 14.3437 3.29276C14.3437 3.67226 14.0357 3.98026 13.6562 3.98026H6.9939C4.6949 3.98026 3.20898 5.56059 3.20898 8.00809V15.4166C3.20898 17.8962 4.65915 19.4362 6.9939 19.4362H14.8809C17.1799 19.4362 18.6658 17.8586 18.6658 15.4166V8.96417C18.6658 8.58467 18.9738 8.27667 19.3533 8.27667C19.7328 8.27667 20.0408 8.58467 20.0408 8.96417V15.4166C20.0408 18.6433 17.9673 20.8112 14.8809 20.8112Z" fill="white"/>
-                                        </g>
-                                        </g>
-                                    </svg>
-                                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M15.7481 4.0425C15.7481 2.82333 16.7381 1.83333 17.9573 1.83333C19.1764 1.83333 20.1664 2.82333 20.1664 4.0425C20.1664 5.26166 19.1764 6.25166 17.9573 6.25166C16.7381 6.25166 15.7481 5.26166 15.7481 4.0425ZM12.2188 13.5294L14.868 10.1111L14.8313 10.1294C14.978 9.92777 15.0055 9.6711 14.9047 9.44194C14.8048 9.21277 14.5838 9.05694 14.3464 9.0386C14.098 9.0111 13.8514 9.1211 13.7038 9.32277L11.4864 12.1919L8.94634 10.1936C8.79051 10.0744 8.60717 10.0277 8.42384 10.0469C8.24142 10.0744 8.07642 10.1744 7.96551 10.321L5.25309 13.8511L5.19717 13.9336C5.04134 14.226 5.11467 14.6019 5.38967 14.8044C5.51801 14.8869 5.65551 14.9419 5.81134 14.9419C6.02309 14.9511 6.22384 14.8402 6.35217 14.6669L8.65301 11.7052L11.2655 13.6678L11.348 13.7219C11.6413 13.8777 12.008 13.8053 12.2188 13.5294ZM14.1622 3.46527C14.1255 3.69444 14.1072 3.9236 14.1072 4.15277C14.1072 6.21527 15.7755 7.88269 17.8288 7.88269C18.058 7.88269 18.278 7.8561 18.5072 7.81944V15.216C18.5072 18.3244 16.6738 20.1669 13.5572 20.1669H6.78392C3.66634 20.1669 1.83301 18.3244 1.83301 15.216V8.4336C1.83301 5.31694 3.66634 3.46527 6.78392 3.46527H14.1622Z" fill="#1ac4fc"/>
-                                    </svg>
-                                    My NFT
-                                </li>
-                                <li class="tablinks" [routerLink]="['/my-favorite']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-                                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <g opacity="0.2">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M2.63385 10.6318C1.65026 7.56096 2.79976 4.05104 6.02368 3.01246C7.71951 2.46521 9.59135 2.78788 11.0012 3.84846C12.3349 2.81721 14.2755 2.46888 15.9695 3.01246C19.1934 4.05104 20.3503 7.56096 19.3676 10.6318C17.8368 15.4993 11.0012 19.2485 11.0012 19.2485C11.0012 19.2485 4.21601 15.5561 2.63385 10.6318Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <path d="M14.668 6.14166C15.6488 6.45883 16.3418 7.33425 16.4252 8.36183" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </g>
-                                    </svg>
-                                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M14.5279 2.29232C15.1063 2.29232 15.6838 2.3739 16.2329 2.55815C19.6163 3.65815 20.8355 7.37066 19.817 10.6157C19.2395 12.2739 18.2954 13.7873 17.0588 15.0239C15.2887 16.7381 13.3463 18.2597 11.2554 19.5706L11.0262 19.709L10.7879 19.5614C8.68963 18.2597 6.73621 16.7381 4.94963 15.0147C3.7213 13.7782 2.77621 12.2739 2.18955 10.6157C1.15371 7.37066 2.37288 3.65815 5.79296 2.5389C6.0588 2.44724 6.33288 2.38307 6.60788 2.34732H6.71788C6.97546 2.30974 7.23121 2.29232 7.48788 2.29232H7.58871C8.16621 2.30974 8.72538 2.41057 9.26713 2.59482H9.32121C9.35788 2.61224 9.38538 2.63149 9.40371 2.6489C9.6063 2.71399 9.79788 2.78732 9.98121 2.88815L10.3295 3.04399C10.4137 3.08888 10.5082 3.15747 10.5898 3.21675C10.6416 3.25431 10.6882 3.28813 10.7237 3.30982C10.7387 3.31865 10.7539 3.32752 10.7692 3.33647C10.8478 3.38235 10.9297 3.43014 10.9987 3.48307C12.0171 2.70482 13.2537 2.28315 14.5279 2.29232ZM16.9674 8.8923C17.3432 8.88222 17.6641 8.58063 17.6916 8.19472V8.08563C17.7191 6.80138 16.9408 5.63813 15.7574 5.18897C15.3816 5.05972 14.9691 5.2623 14.8316 5.6473C14.7032 6.0323 14.9049 6.45397 15.2899 6.59055C15.8775 6.81055 16.2707 7.38897 16.2707 8.02972V8.05813C16.2533 8.26805 16.3166 8.47063 16.4449 8.62647C16.5732 8.7823 16.7657 8.87305 16.9674 8.8923Z" fill="#1ac4fc"/>
-                                    </svg>
-                                    My favorite
-                                </li>
-                                <li class="tablinks" data-tabs="history">
-                                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <g opacity="0.2">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.0269 3.20831C4.70773 3.20831 3.20898 4.7969 3.20898 7.25631V14.7436C3.20898 17.2031 4.70773 18.7916 7.0269 18.7916H14.9726C17.2927 18.7916 18.7923 17.2031 18.7923 14.7436V7.25631C18.7923 4.7969 17.2936 3.20831 14.9735 3.20831H7.0269ZM14.9726 20.1666H7.0269C3.92032 20.1666 1.83398 17.9868 1.83398 14.7436V7.25631C1.83398 4.01315 3.92032 1.83331 7.0269 1.83331H14.9735C18.0801 1.83331 20.1673 4.01315 20.1673 7.25631V14.7436C20.1673 17.9868 18.0801 20.1666 14.9726 20.1666Z" fill="white"/>
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M14.1084 13.5369C13.9883 13.5369 13.8673 13.5058 13.7564 13.4407L10.648 11.5863C10.4408 11.4616 10.3125 11.237 10.3125 10.9959V6.99744C10.3125 6.61794 10.6205 6.30994 11 6.30994C11.3795 6.30994 11.6875 6.61794 11.6875 6.99744V10.6054L14.4613 12.2582C14.7867 12.4534 14.894 12.8751 14.6997 13.2014C14.5704 13.4169 14.3422 13.5369 14.1084 13.5369Z" fill="white"/>
-                                        </g>
-                                    </svg>
-                                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.03051 1.83337H14.978C18.0855 1.83337 20.1663 4.01412 20.1663 7.25912V14.7483C20.1663 17.985 18.0855 20.1667 14.978 20.1667H7.03051C3.92301 20.1667 1.83301 17.985 1.83301 14.7483V7.25912C1.83301 4.01412 3.92301 1.83337 7.03051 1.83337ZM14.2813 14.4925C14.5105 14.4925 14.7397 14.3734 14.868 14.1534C15.0697 13.8316 14.9597 13.41 14.6297 13.2092L11.3663 11.2659V7.02996C11.3663 6.65504 11.0638 6.34246 10.6788 6.34246C10.303 6.34246 9.99134 6.65504 9.99134 7.02996V11.66C9.99134 11.8984 10.1197 12.1275 10.3305 12.2467L13.9238 14.3917C14.0338 14.465 14.1622 14.4925 14.2813 14.4925Z" fill="#1ac4fc"/>
-                                    </svg>
-                                    History
-                                </li>
-                                <li>
-                                    <a (click)="logout()">Logout</a>
-                                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <g opacity="0.2">
-                                        <path d="M13.7627 6.77369V5.91844C13.7627 4.05303 12.2502 2.54053 10.3848 2.54053H5.91606C4.05156 2.54053 2.53906 4.05303 2.53906 5.91844V16.1209C2.53906 17.9864 4.05156 19.4989 5.91606 19.4989H10.394C12.2539 19.4989 13.7627 17.9909 13.7627 16.131V15.2666" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <path d="M19.9907 11.0196H8.95312" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <path d="M17.3047 8.34741L19.9887 11.0195L17.3047 13.6925" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </g>
-                                    </svg>
-                                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M9.0709 10.2942C8.66986 10.2942 8.35275 10.6059 8.35275 11C8.35275 11.385 8.66986 11.7059 9.0709 11.7059H14.6668V16.0875C14.6668 18.3334 12.8108 20.1667 10.5165 20.1667H5.97448C3.68948 20.1667 1.8335 18.3425 1.8335 16.0967V5.91254C1.8335 3.65754 3.69881 1.83337 5.98381 1.83337H10.5352C12.8108 1.83337 14.6668 3.65754 14.6668 5.90337V10.2942H9.0709ZM17.9945 7.82856L20.6712 10.4961C20.8087 10.6336 20.882 10.8077 20.882 11.0002C20.882 11.1836 20.8087 11.3669 20.6712 11.4952L17.9945 14.1627C17.857 14.3002 17.6737 14.3736 17.4995 14.3736C17.3162 14.3736 17.1328 14.3002 16.9953 14.1627C16.7203 13.8877 16.7203 13.4386 16.9953 13.1636L18.462 11.7061H14.667V10.2944H18.462L16.9953 8.83689C16.7203 8.56189 16.7203 8.11272 16.9953 7.83772C17.2703 7.55356 17.7195 7.55356 17.9945 7.82856Z" fill="#1ac4fc"/>
-                                    </svg>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="bottom">
-                        <p>© 2025 Universe Of Gamers</p>
-                    </div>
-                </div>
-
-                <!-- ===== CONTENT (slot halaman) ===== -->
-                <div class="content-tabs">
-                    <div>
-                        <div class="wrapper-content">
-                            <ng-content></ng-content>
-                            <div class="side-bar">
-                                <div class="widget widget-recently" *ngIf="latestNfts.length > 0">
-                                    <h5 class="title-widget">Recently added</h5>
-                                    <!-- NFT utama besar -->
-                                    <div class="card-small-main">
-                                        <img [src]="latestNfts[0].image || 'assets/images/blog/sidebar-01.jpg'" alt="">
-                                        <div class="card-bottom">
-                                            <h5>
-                                                <a href="javascript:void(0)" (click)="goToNftDetail(latestNfts[0].mintAddress, true)">
-                                                  {{ latestNfts[0].name }}
-                                                </a>
-                                            </h5>
-                                            <span class="date">{{ latestNfts[0].createdAt | date:'short' }}</span>
-                                        </div>
-                                    </div>
-                                    <!-- 3 NFT kecil -->
-                                    <div class="card-small" *ngFor="let nft of latestNfts.slice(1,4)">
-                                        <div class="author">
-                                            <img class="nft-thumb" [src]="nft.image || 'assets/images/blog/sidebar-01.jpg'" alt="">
-                                            <div class="info">
-                                                <h6><a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress, true)">{{ nft.name }}</a></h6>
-                                                <p>{{ nft.owner ? shorten(nft.owner) : 'Unknown' }}</p>
-                                            </div>
-                                        </div>
-                                        <span class="date">{{ nft.createdAt | date:'shortDate' }}</span>
-                                    </div>
-                                </div>
-                                <div class="widget widget-creators">
-                                    <div class="flex items-center justify-between">
-                                        <h5 class="title-widget">Top Creators</h5>
-                                        <a class="see-all" href="#">See all</a>
-                                    </div>
-
-                                    <div class="widget-creators-item flex items-center mb-20" *ngFor="let c of topCreators; let i = index">
-                                        <div class="order">{{ i + 1 }}.</div>
-                                        <div class="author flex items-center flex-grow">
-                                            <img [src]="c.avatar" alt="">
-                                            <div class="info">
-                                                <h6>{{ c.name || shorten(c.owner) }}</h6>
-                                                <span>{{ c.count }} NFTs</span>
-                                            </div>
-                                        </div>
-                                        <button class="follow">Follow</button>
-                                    </div>
-                                </div>
-
-                                <div class="widget widget-history">
-                                    <div class="flex items-center justify-between">
-                                        <h5 class="title-widget">History</h5>
-                                        <a class="see-all" href="#">See all</a>
-                                    </div>
-
-                                    <div class="widget-creators-item flex items-center mb-20" *ngFor="let h of history | slice:0:3">
-                                        <div class="author flex items-center flex-grow">
-                                            <a href="javascript:void(0)" (click)="goToNftDetail(h.mintAddress, true)">
-                                                <img [src]="h.image || 'assets/images/avatar/avatar-small-01.png'" alt="">
-                                            </a>
-                                            <div class="info">
-                                                <h6><a href="javascript:void(0)" (click)="goToNftDetail(h.mintAddress, true)">{{ h.name }}</a></h6>
-                                                <span>Listed at {{ h.price }} SOL</span>
-                                            </div>
-                                        </div>
-                                        <span class="time">{{ h.updatedAt | date:'shortDate' }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+        <ion-tab-button tab="transactions" [routerLink]="['/market-layout/transactions']" routerLinkActive="active">
+            <ion-icon name="filter-outline"></ion-icon>
+            <!-- <ion-label>History</ion-label> -->
+        </ion-tab-button>
+    </ion-tab-bar>
+</ion-tabs>

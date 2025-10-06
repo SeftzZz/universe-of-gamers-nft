@@ -8,15 +8,12 @@ import { CreatesPageRoutingModule } from './creates-routing.module';
 
 import { CreatesPage } from './creates.page';
 
-import { MarketLayoutPageModule } from '../market-layout/market-layout.module';
-
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
     CreatesPageRoutingModule,
-    MarketLayoutPageModule
   ],
   declarations: [CreatesPage]
 })

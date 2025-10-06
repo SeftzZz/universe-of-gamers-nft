@@ -1,26 +1,28 @@
-<div id="wrapper">
-    <div id="page" class="pt-40">
-        <div class="section-404-page relative">
-            <div class="content">
-                <div class="widget-bg-line">
-                    <div class="wraper">
-                        <div class="bg-grid-line y top">
-                            <div class="bg-line"></div>
-                        </div>
-                        <div class="bg-grid-line y bottom">
-                            <div class="bg-line"></div>
+<ion-content class="ion-padding">    
+    <div id="wrapper">
+        <div id="page" class="pt-40">
+            <div class="section-404-page relative">
+                <div class="content">
+                    <div class="widget-bg-line">
+                        <div class="wraper">
+                            <div class="bg-grid-line y top">
+                                <div class="bg-line"></div>
+                            </div>
+                            <div class="bg-grid-line y bottom">
+                                <div class="bg-line"></div>
+                            </div>
                         </div>
                     </div>
+                    Offline
                 </div>
-                Offline
+                <h3>Oh no... We lost connect to server</h3>
+                <a (click)="reconnect()" class="tf-button w320 style-1 h50" style="color: #161616;">
+                  Reconnect<i class="icon-arrow-up-right2"></i>
+                </a>
             </div>
-            <h3>Oh no... We lost connect to server</h3>
-            <a (click)="reconnect()" class="tf-button w320 style-1 h50" style="color: #161616;">
-              Reconnect<i class="icon-arrow-up-right2"></i>
-            </a>
-        </div>
 
+        </div>
+        <!-- /#page -->
     </div>
-    <!-- /#page -->
-</div>
-<!-- /#wrapper -->
+    <!-- /#wrapper -->
+</ion-content>

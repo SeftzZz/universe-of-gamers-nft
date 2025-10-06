@@ -1,173 +1,171 @@
-<ion-content>
-  <app-market-layout>
-      <div class="content-tabs">
-          <div class="">
-              <div class="wrapper-content">
-                  <div class="themesflat-container">
-                      <div class="row">
-                          <div class="col-md-12 pb-20">
-                              <!-- Jika belum login -->
-                              <a *ngIf="!isLoggedIn()" [routerLink]="['/explorer']" class="tf-button style-1 h50 w216">
-                                  Explore NFT<i class="icon-arrow-left2"></i>
-                              </a>
+<ion-content class="ion-padding">  
+  <div class="content-tabs">
+    <div class="">
+        <div class="wrapper-content">
+            <div class="themesflat-container">
+                <div class="row">
+                    <div class="col-md-12 pb-20">
+                        <!-- Jika belum login -->
+                        <a *ngIf="!isLoggedIn()" [routerLink]="['/explorer']" class="tf-button style-1 h50 w216">
+                            Explore NFT<i class="icon-arrow-left2"></i>
+                        </a>
 
-                              <!-- Jika sudah login -->
-                              <a *ngIf="isLoggedIn()" [routerLink]="['/all-collection']" class="tf-button style-1 h50 w216">
-                                All Collection<i class="icon-arrow-left2"></i>
-                              </a>
-                          </div>
-                          <div class="col-md-6 pb-20" *ngIf="metadata">
-                            <div class="tf-card-box style-5 mb-0">
-                              <div class="card-media mb-0">
-                                <a href="javascript:void(0)">
-                                  <img [src]="metadata.image || 'assets/images/box-item/product-detail-01.jpg'" alt="{{ metadata.name }}">
-                                </a>
-                              </div>
-                              <h6 class="price gem">
-                                <img src="assets/images/box-icon/coin-04.png" alt="">
-                              </h6>
-                              <div class="wishlist-button">10<i class="icon-heart"></i></div>
-                              <div class="featured-countdown">
-                                <span class="js-countdown" data-timer="7500" data-labels="d,h,m,s"></span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div class="col-md-6" *ngIf="metadata">
-                            <div class="infor-product">
-                              <div class="text">
-                                {{ metadata.symbol }}
-                                <span class="icon-tick"><span class="path1"></span><span class="path2"></span></span>
-                              </div>
-
-                              <!-- Dropdown menu -->
-                              <div class="menu_card">
-                                <div class="dropdown">
-                                  <div class="icon">
-                                    <a href="javascript:void(0);" class="btn-link" data-bs-toggle="dropdown">
-                                      <i class="icon-link-1"></i>
-                                    </a>
-                                    <div class="dropdown-menu">
-                                      <a class="dropdown-item" (click)="copyLink()"><i class="icon-link"></i>Copy link</a>
-                                      <a class="dropdown-item"><i class="icon-facebook"></i>Share on Facebook</a>
-                                      <a class="dropdown-item mb-0"><i class="icon-twitter"></i>Share on Twitter</a>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div class="dropdown">
-                                  <div class="icon">
-                                    <a href="javascript:void(0);" class="btn-link" data-bs-toggle="dropdown">
-                                      <i class="icon-content"></i>
-                                    </a>
-                                    <div class="dropdown-menu">
-                                      <a class="dropdown-item" (click)="refreshMetadata()"><i class="icon-refresh"></i>Refresh metadata</a>
-                                      <a class="dropdown-item mb-0"><i class="icon-report"></i>Report</a>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <!-- Nama NFT -->
-                              <h2>{{ metadata?.name }}</h2>
-
-                              <!-- Meta -->
-                              <div class="meta mb-20">
-                                <div class="meta-item view"><i class="icon-show"></i>{{ shortenAddress(metadata.properties?.creators?.[0]?.address) || 'Unknown' }}</div>
-                                <div class="meta-item rating" (click)="openSolscan()"><i class="icon-arrow-up-right2"></i>Solscan</div>
-                                <!-- <div class="meta-item favorites"><i class="icon-heart"></i>10 favorites</div> -->
-                                <div class="meta-item favorites"><i class="icon-link-3"></i>{{ metadata.seller_fee_basis_points / 100 }}%</div>
-                              </div>
-                            </div>
-
-                            <!-- Price -->
-                            <div class="product-item time-sales">
-                              <h6><i class="icon-description"></i>{{ shortenAddress(mintAddress) }}</h6>
-                              <div class="content">
-                                <div class="text">Current price</div>
-                                <div class="flex justify-between">
-                                  <p [innerHTML]="metadata?.price ? formatWithZeroCount(metadata.price) : '-'"> SOL</p>
-
-                                  <!-- Normal (Buy) -->
-                                  <a *ngIf="metadata.isSell"
-                                     (click)="toggleSendModal()" 
-                                     class="tf-button style-1 h50 w216">Buy NFT<i class="icon-arrow-up-right2"></i></a>
-
-                                  <!-- Sell Mode -->
-                                  <a *ngIf="!metadata.isSell"
-                                     (click)="openSellModal()" 
-                                     class="tf-button style-1 h50 w216">Sell NFT<i class="icon-arrow-up-right2"></i></a>
-
-                                </div>
-                              </div>
-                            </div>
-
-                            <!-- Description -->
-                            <div class="product-item description">
-                              <h6><i class="icon-description"></i>Description</h6>
-                              <i class="icon-keyboard_arrow_down"></i>
-                              <div class="content">
-                                <p>{{ metadata.description }}</p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div class="col-md-12" *ngIf="metadata">
-                            <!-- Attributes -->
-                            <div class="product-item traits style-1">
-                              <h6><i class="icon-description"></i>Traits</h6>
-                              <i class="icon-keyboard_arrow_down"></i>
-                              <div class="content">
-                                <div class="trait-item" *ngFor="let attr of metadata.attributes">
-                                  <p>{{ attr.trait_type }}</p>
-                                  <div class="title">{{ attr.value }}</div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div class="col-12" *ngIf="metadata">
-                              <div class="product-item item-activity mb-0">
-                                  <h6><i class="icon-two-arrow rotateZ90"></i>Item activity</h6>
-                                  <i class="icon-keyboard_arrow_down"></i>
-                                  <div class="content">
-                                      <div class="table-heading">
-                                          <div class="column">Event</div>
-                                          <div class="column">Amount</div>
-                                          <div class="column">Form</div>
-                                          <div class="column">To</div>
-                                          <div class="column">Date</div>
-                                      </div>
-                                      <div 
-                                          class="table-item" 
-                                          *ngFor="let h of metadata.history">
-                                          <div class="column flex items-center">
-                                            <i class="icon-two-arrow"></i>{{ h.event }}
-                                          </div>
-                                          <div class="column">{{ h.amount }}</div>
-                                          <div class="column">
-                                            <span class="tf-color">
-                                              {{ h.from ? shortenAddress(h.from) : '-' }}
-                                            </span>
-                                          </div>
-                                          <div class="column">
-                                            <span class="tf-color">
-                                              {{ h.to ? shortenAddress(h.to) : (shortenAddress(metadata.properties?.creators?.[0]?.address) || 'Unknown') }}
-                                            </span>
-                                          </div>
-                                          <div class="column">
-                                            {{ h.blockTime }}
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
-
+                        <!-- Jika sudah login -->
+                        <a *ngIf="isLoggedIn()" [routerLink]="['/all-collection']" class="tf-button style-1 h50 w216">
+                          All Collection<i class="icon-arrow-left2"></i>
+                        </a>
+                    </div>
+                    <div class="col-md-6 pb-20" *ngIf="metadata">
+                      <div class="tf-card-box style-5 mb-0">
+                        <div class="card-media mb-0">
+                          <a href="javascript:void(0)">
+                            <img [src]="metadata.image || 'assets/images/box-item/product-detail-01.jpg'" alt="{{ metadata.name }}">
+                          </a>
+                        </div>
+                        <h6 class="price gem">
+                          <img src="assets/images/box-icon/coin-04.png" alt="">
+                        </h6>
+                        <div class="wishlist-button">10<i class="icon-heart"></i></div>
+                        <div class="featured-countdown">
+                          <span class="js-countdown" data-timer="7500" data-labels="d,h,m,s"></span>
+                        </div>
                       </div>
-                  </div>
-              </div>
-          </div>
-      </div>
-  </app-market-layout>
+                    </div>
+
+                    <div class="col-md-6" *ngIf="metadata">
+                      <div class="infor-product">
+                        <div class="text">
+                          {{ metadata.symbol }}
+                          <span class="icon-tick"><span class="path1"></span><span class="path2"></span></span>
+                        </div>
+
+                        <!-- Dropdown menu -->
+                        <div class="menu_card">
+                          <div class="dropdown">
+                            <div class="icon">
+                              <a href="javascript:void(0);" class="btn-link" data-bs-toggle="dropdown">
+                                <i class="icon-link-1"></i>
+                              </a>
+                              <div class="dropdown-menu">
+                                <a class="dropdown-item" (click)="copyLink()"><i class="icon-link"></i>Copy link</a>
+                                <a class="dropdown-item"><i class="icon-facebook"></i>Share on Facebook</a>
+                                <a class="dropdown-item mb-0"><i class="icon-twitter"></i>Share on Twitter</a>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="dropdown">
+                            <div class="icon">
+                              <a href="javascript:void(0);" class="btn-link" data-bs-toggle="dropdown">
+                                <i class="icon-content"></i>
+                              </a>
+                              <div class="dropdown-menu">
+                                <a class="dropdown-item" (click)="refreshMetadata()"><i class="icon-refresh"></i>Refresh metadata</a>
+                                <a class="dropdown-item mb-0"><i class="icon-report"></i>Report</a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Nama NFT -->
+                        <h2>{{ metadata?.name }}</h2>
+
+                        <!-- Meta -->
+                        <div class="meta mb-20">
+                          <div class="meta-item view"><i class="icon-show"></i>{{ shortenAddress(metadata.properties?.creators?.[0]?.address) || 'Unknown' }}</div>
+                          <div class="meta-item rating" (click)="openSolscan()"><i class="icon-arrow-up-right2"></i>Solscan</div>
+                          <!-- <div class="meta-item favorites"><i class="icon-heart"></i>10 favorites</div> -->
+                          <div class="meta-item favorites"><i class="icon-link-3"></i>{{ metadata.seller_fee_basis_points / 100 }}%</div>
+                        </div>
+                      </div>
+
+                      <!-- Price -->
+                      <div class="product-item time-sales">
+                        <h6><i class="icon-description"></i>{{ shortenAddress(mintAddress) }}</h6>
+                        <div class="content">
+                          <div class="text">Current price</div>
+                          <div class="flex justify-between">
+                            <p [innerHTML]="metadata?.price ? formatWithZeroCount(metadata.price) : '-'"> SOL</p>
+
+                            <!-- Normal (Buy) -->
+                            <a *ngIf="metadata.isSell"
+                               (click)="toggleSendModal()" 
+                               class="tf-button style-1 h50 w216">Buy NFT<i class="icon-arrow-up-right2"></i></a>
+
+                            <!-- Sell Mode -->
+                            <a *ngIf="!metadata.isSell"
+                               (click)="openSellModal()" 
+                               class="tf-button style-1 h50 w216">Sell NFT<i class="icon-arrow-up-right2"></i></a>
+
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Description -->
+                      <div class="product-item description">
+                        <h6><i class="icon-description"></i>Description</h6>
+                        <i class="icon-keyboard_arrow_down"></i>
+                        <div class="content">
+                          <p>{{ metadata.description }}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-md-12" *ngIf="metadata">
+                      <!-- Attributes -->
+                      <div class="product-item traits style-1">
+                        <h6><i class="icon-description"></i>Traits</h6>
+                        <i class="icon-keyboard_arrow_down"></i>
+                        <div class="content">
+                          <div class="trait-item" *ngFor="let attr of metadata.attributes">
+                            <p>{{ attr.trait_type }}</p>
+                            <div class="title">{{ attr.value }}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-12" *ngIf="metadata">
+                        <div class="product-item item-activity mb-0">
+                            <h6><i class="icon-two-arrow rotateZ90"></i>Item activity</h6>
+                            <i class="icon-keyboard_arrow_down"></i>
+                            <div class="content">
+                                <div class="table-heading">
+                                    <div class="column">Event</div>
+                                    <div class="column">Amount</div>
+                                    <div class="column">Form</div>
+                                    <div class="column">To</div>
+                                    <div class="column">Date</div>
+                                </div>
+                                <div 
+                                    class="table-item" 
+                                    *ngFor="let h of metadata.history">
+                                    <div class="column flex items-center">
+                                      <i class="icon-two-arrow"></i>{{ h.event }}
+                                    </div>
+                                    <div class="column">{{ h.amount }}</div>
+                                    <div class="column">
+                                      <span class="tf-color">
+                                        {{ h.from ? shortenAddress(h.from) : '-' }}
+                                      </span>
+                                    </div>
+                                    <div class="column">
+                                      <span class="tf-color">
+                                        {{ h.to ? shortenAddress(h.to) : (shortenAddress(metadata.properties?.creators?.[0]?.address) || 'Unknown') }}
+                                      </span>
+                                    </div>
+                                    <div class="column">
+                                      {{ h.blockTime }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
 
   <div class="custom-modal" *ngIf="showSendModal">
     <div class="modal-backdrop" (click)="resetSendModal()"></div>
@@ -334,5 +332,4 @@
 
     </div>
   </div>
-
 </ion-content>

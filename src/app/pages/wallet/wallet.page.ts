@@ -4,7 +4,6 @@ import { environment } from '../../../environments/environment';
 import { firstValueFrom } from 'rxjs';
 import { Auth } from '../../services/auth';
 import { Router } from '@angular/router';
-import { MarketLayoutPage } from '../market-layout/market-layout.page';
 
 @Component({
     selector: 'app-wallet',

@@ -175,7 +175,6 @@ export class CreatesPage implements OnInit {
     await this.loadRunes();
     await this.loadGatchaPacks();
     await this.fetchRates();
-    await this.onChainAll();
     this.setLatestNfts();
   }
 
@@ -191,7 +190,7 @@ export class CreatesPage implements OnInit {
       localStorage.setItem('walletTokens', JSON.stringify(this.tokens));
     } catch (err) {
       console.error('Error fetch tokens from API', err);
-      this.router.navigateByUrl('/tabs/offline');
+      this.router.navigateByUrl('/offline');
     }
   }
 
@@ -681,30 +680,6 @@ export class CreatesPage implements OnInit {
   onPriceSOLChange() {
     if (this.solToUogRate > 0) {
       this.gatchaData.priceUOG = this.gatchaData.priceSOL * this.solToUogRate;
-    }
-  }
-
-  async onChainAll() {
-    try {
-      const resp = await firstValueFrom(
-        this.http.get<any[]>(`${environment.apiUrl}/nft/onchain`)
-      );
-
-      this.nfts = resp || [];
-      console.log("NFTs:", this.nfts);
-
-      this.nftMap = this.nfts.reduce(
-        (acc: Record<string, any[]>, nft: any) => {
-          const rarity = nft?.rarity || nft?.metadata?.attributes?.find((a: any) => a.trait_type === "Rarity")?.value || "Unknown";
-          acc[rarity] = [...(acc[rarity] || []), nft];
-          return acc;
-        },
-        {} as Record<string, any[]>
-      );
-    } catch (err) {
-      console.error("❌ Error loading NFTs:", err);
-      this.nfts = [];
-      this.nftMap = {};
     }
   }
 

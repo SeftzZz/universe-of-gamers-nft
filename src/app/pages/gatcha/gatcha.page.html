@@ -1,91 +1,89 @@
-<ion-content>  
-  <app-market-layout>
-      <div class="content-tabs">
-          <div class="">
-            <div class="wrapper-content-create">
-                <div class="heading-section">
-                    <h2 class="tf-title pb-30">Buy Gatcha</h2>
-                </div>
-                <div class="widget-tabs relative">
-                    <div class="widget-content-tab">
-                        <div class="widget-content-inner buy-gatcha active">
-                            <div class="wrap-content w-full">
-                                <div class="inner-content">
-                                    <div class="top-collections style-bottom mb-40">
-                                        <div class="featured pt-10 swiper-container carousel3-type1" data-swiper='{
-                                            "loop":false,
-                                            "slidesPerView": 1,
-                                            "spaceBetween": 25,
-                                            "observer": true,
-                                            "observeParents": true,
-                                            "navigation": {
-                                                "clickable": true,
-                                                "nextEl": ".next-type1",
-                                                "prevEl": ".prev-type1"
+<ion-content class="ion-padding">
+  <div class="content-tabs">
+      <div class="">
+        <div class="wrapper-content-create">
+            <div class="heading-section">
+                <h2 class="tf-title pb-30">Buy Gatcha</h2>
+            </div>
+            <div class="widget-tabs relative">
+                <div class="widget-content-tab">
+                    <div class="widget-content-inner buy-gatcha active">
+                        <div class="wrap-content w-full">
+                            <div class="inner-content">
+                                <div class="top-collections style-bottom mb-40">
+                                    <div class="featured pt-10 swiper-container carousel3-type1" data-swiper='{
+                                        "loop":false,
+                                        "slidesPerView": 1,
+                                        "spaceBetween": 25,
+                                        "observer": true,
+                                        "observeParents": true,
+                                        "navigation": {
+                                            "clickable": true,
+                                            "nextEl": ".next-type1",
+                                            "prevEl": ".prev-type1"
+                                        },
+                                        "pagination": {
+                                            "el": ".pagination-type1",
+                                            "clickable": true
+                                        },
+                                        "breakpoints": {
+                                            "768": {
+                                                "slidesPerView": 1
                                             },
-                                            "pagination": {
-                                                "el": ".pagination-type1",
-                                                "clickable": true
-                                            },
-                                            "breakpoints": {
-                                                "768": {
-                                                    "slidesPerView": 1
-                                                },
-                                                "1024": {
-                                                    "slidesPerView": 3
-                                                }
+                                            "1024": {
+                                                "slidesPerView": 3
                                             }
-                                        }'>
-                                            <div class="swiper-wrapper">
-                                              <div class="swiper-slide" *ngFor="let pack of gatchaPacks">
-                                                <div class="tf-card-collection">
-                                                  <a href="javascript:void(0)">
-                                                    <div class="media-images-collection grid-2x2" [class.shuffling]="pack.isShuffling">
-                                                      <ng-container *ngFor="let reward of pack.rewards">
-                                                        <img *ngFor="let img of reward.previewImages | slice:0:4"
-                                                             [src]="img"
-                                                             [alt]="reward.type + ' ' + reward.rarity"
-                                                             class="reward-img" />
-                                                      </ng-container>
+                                        }
+                                    }'>
+                                        <div class="swiper-wrapper">
+                                          <div class="swiper-slide" *ngFor="let pack of gatchaPacks">
+                                            <div class="tf-card-collection">
+                                              <a href="javascript:void(0)">
+                                                <div class="media-images-collection grid-2x2" [class.shuffling]="pack.isShuffling">
+                                                  <ng-container *ngFor="let reward of pack.rewards">
+                                                    <img *ngFor="let img of reward.previewImages | slice:0:4"
+                                                         [src]="img"
+                                                         [alt]="reward.type + ' ' + reward.rarity"
+                                                         class="reward-img" />
+                                                  </ng-container>
 
-                                                      <!-- Final Result Overlay -->
-                                                      <div class="final-overlay" *ngIf="pack.finalImage">
-                                                        <img [src]="pack.finalImage" alt="Final Result" class="final-img" />
-                                                      </div>
-                                                    </div>
-                                                  </a>
-                                                  <div class="card-bottom">
-                                                    <div class="author">
-                                                      <h5 style="font-size: 24px;">{{ pack.name }}</h5>
-                                                      <!-- <p>{{ pack.description }}</p> -->
-                                                    </div>
-                                                    <div class="bottom-right">
-                                                      <div class="shop"> 
-                                                        <div class="icon">
-                                                          <img src="assets/images/box-icon/coin-00.png" alt="">
-                                                        </div>
-                                                      </div>
-                                                      <div class="shop" style="margin-right: 0px;border-right: 0px;"> 
-                                                        <div class="icon">
-                                                          <img src="assets/images/box-icon/coin-04.png" alt="">
-                                                        </div>
-                                                      </div>
+                                                  <!-- Final Result Overlay -->
+                                                  <div class="final-overlay" *ngIf="pack.finalImage">
+                                                    <img [src]="pack.finalImage" alt="Final Result" class="final-img" />
+                                                  </div>
+                                                </div>
+                                              </a>
+                                              <div class="card-bottom">
+                                                <div class="author">
+                                                  <h5 style="font-size: 24px;">{{ pack.name }}</h5>
+                                                  <!-- <p>{{ pack.description }}</p> -->
+                                                </div>
+                                                <div class="bottom-right">
+                                                  <div class="shop"> 
+                                                    <div class="icon">
+                                                      <img src="assets/images/box-icon/coin-00.png" alt="">
                                                     </div>
                                                   </div>
-                                                  <!-- Tombol Buy & Mint -->
-                                                  <div class="btn-submit flex gap30 justify-center mt-3">
-                                                    <button class="tf-button style-1 h40" (click)="toggleSendModal(pack)">
-                                                      Buy & Mint <i class="icon-arrow-up-right2"></i>
-                                                    </button>
+                                                  <div class="shop" style="margin-right: 0px;border-right: 0px;"> 
+                                                    <div class="icon">
+                                                      <img src="assets/images/box-icon/coin-04.png" alt="">
+                                                    </div>
                                                   </div>
                                                 </div>
                                               </div>
+                                              <!-- Tombol Buy & Mint -->
+                                              <div class="btn-submit flex gap30 justify-center mt-3">
+                                                <button class="tf-button style-1 h40" (click)="toggleSendModal(pack)">
+                                                  Buy & Mint <i class="icon-arrow-up-right2"></i>
+                                                </button>
+                                              </div>
                                             </div>
-
-                                            <div class="swiper-pagination pagination-type1"></div>
-                                            <div class="swiper-button-next next-type1"></div>
-                                            <div class="swiper-button-prev prev-type1"></div>
+                                          </div>
                                         </div>
+
+                                        <div class="swiper-pagination pagination-type1"></div>
+                                        <div class="swiper-button-next next-type1"></div>
+                                        <div class="swiper-button-prev prev-type1"></div>
                                     </div>
                                 </div>
                             </div>
@@ -93,11 +91,10 @@
                     </div>
                 </div>
             </div>
-          </div>
-          
-      </div>
-  </app-market-layout>
-    <!-- /#page -->
+        </div>
+      </div> 
+  </div>
+  <!-- /#page -->
 
   <div class="custom-modal" *ngIf="showSendModal">
     <div class="modal-backdrop" (click)="resetSendModal()"></div>

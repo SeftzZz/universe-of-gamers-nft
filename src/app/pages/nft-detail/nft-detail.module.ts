@@ -8,15 +8,12 @@ import { NftDetailPageRoutingModule } from './nft-detail-routing.module';
 
 import { NftDetailPage } from './nft-detail.page';
 
-import { MarketLayoutPageModule } from '../market-layout/market-layout.module';
-
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
     NftDetailPageRoutingModule,
-    MarketLayoutPageModule
   ],
   declarations: [NftDetailPage],
   schemas: [

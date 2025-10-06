@@ -172,7 +172,7 @@ export class LoginPage implements OnInit {
               }
 
               this.showToast('Wallet connected ✅', 'success');
-              this.authRedirect.redirectAfterLogin('/all-collection');
+              this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
             },
             error: (err) => {
               this.dismissLoading();
@@ -307,7 +307,7 @@ export class LoginPage implements OnInit {
 
         this.showToast('Login success 🎉', 'success');
         this.clearForm();
-        this.authRedirect.redirectAfterLogin('/all-collection');
+        this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
       },
       error: (err) => {
         this.dismissLoading();
@@ -457,7 +457,7 @@ export class LoginPage implements OnInit {
       if (resp.authId) localStorage.setItem('userId', resp.authId);
       if (resp.token) this.auth.setToken(resp.token, resp.authId);
 
-      this.authRedirect.redirectAfterLogin('/all-collection');
+      this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
 
     } catch (err) {
       console.error("❌ Import phrase error", err);
@@ -502,7 +502,7 @@ export class LoginPage implements OnInit {
       if (resp.authId) localStorage.setItem('userId', resp.authId);
       if (resp.token) this.auth.setToken(resp.token, resp.authId);
 
-      this.authRedirect.redirectAfterLogin('/all-collection');
+      this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
 
     } catch (err) {
       console.error("❌ Import private key error", err);

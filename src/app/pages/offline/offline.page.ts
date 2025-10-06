@@ -27,7 +27,7 @@ export class OfflinePage implements OnInit {
       await this.http.get(`${environment.apiUrl}/ping`).toPromise();
 
       // kalau sukses, redirect ke halaman utama
-      this.router.navigateByUrl('/tabs/home');
+      this.router.navigateByUrl('/market-layout/all-collection');
     } catch (err) {
       console.error("❌ Still offline:", err);
       // bisa tambahkan toast error

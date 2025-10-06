@@ -1,17 +1,20 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import { IonicModule } from '@ionic/angular';
-import { MyFavoritePageRoutingModule } from './my-favorite-routing.module';
-import { MyFavoritePage } from './my-favorite.page';
+
+import { TransactionsPageRoutingModule } from './transactions-routing.module';
+
+import { TransactionsPage } from './transactions.page';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    MyFavoritePageRoutingModule,
+    TransactionsPageRoutingModule
   ],
-  declarations: [MyFavoritePage]
+  declarations: [TransactionsPage]
 })
-export class MyFavoritePageModule {}
+export class TransactionsPageModule {}

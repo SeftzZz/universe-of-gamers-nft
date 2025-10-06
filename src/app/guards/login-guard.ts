@@ -10,7 +10,7 @@ export class LoginGuard implements CanActivate {
   canActivate(): boolean | UrlTree {
     if (this.auth.isLoggedIn()) {
       console.log('🔄 LoginGuard → sudah login, redirect ke /all-collection');
-      return this.router.parseUrl('/all-collection');
+      return this.router.parseUrl('/market-layout/all-collection');
     }
     return true;
   }

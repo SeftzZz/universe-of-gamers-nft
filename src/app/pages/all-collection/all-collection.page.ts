@@ -76,7 +76,7 @@ export class AllCollectionPage implements OnInit {
   ) {}
 
   async ngOnInit() {
-    await this.refreshData();
+    // await this.refreshData();
     await this.loadFavorites();
   }
 
