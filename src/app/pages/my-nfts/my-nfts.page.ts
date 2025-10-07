@@ -271,11 +271,11 @@ export class MyNftsPage implements OnInit {
         await this.refreshAll();
         console.log('✅ NFT delisted:', resp);
       } else {
-        console.error('❌ Failed to delist:', resp.error || resp);
+        console.error('❌ Failed to delist:', JSON.stringify(resp.error));
         alert('Failed to delist NFT');
       }
     } catch (err) {
-      console.error('❌ Error delisting NFT:', err);
+      console.error('❌ Error delisting NFT:', JSON.stringify(err));
       alert('Error delisting NFT');
     }
   }

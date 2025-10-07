@@ -1,5 +1,5 @@
 <ion-content class="ion-padding">  
-  <div class="content-tabs">
+  <div class="content-tabs" style="margin-top: 10vh;">
     <div class="">
         <div class="wrapper-content">
             <div class="themesflat-container">
@@ -83,7 +83,7 @@
                         <h6><i class="icon-description"></i>{{ shortenAddress(mintAddress) }}</h6>
                         <div class="content">
                           <div class="text">Current price</div>
-                          <div class="flex justify-between">
+                          <div class="flex justify-between" style="display: flex;">
                             <p [innerHTML]="metadata?.price ? formatWithZeroCount(metadata.price) : '-'"> SOL</p>
 
                             <!-- Normal (Buy) -->

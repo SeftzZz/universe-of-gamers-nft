@@ -133,7 +133,7 @@ export class ExplorerPage implements OnInit {
   }
 
   goToNftDetail(mintAddress: string) {
-    const target = `/nft-detail/${mintAddress}`;
+    const target = `/market-layout/nft-detail/${mintAddress}`;
     this.authRedirect.setNextRoute(target);
 
     if (!this.userAddress) {

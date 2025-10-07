@@ -1,39 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
+import { HttpClient } from '@angular/common/http';
 import { Auth } from '../../services/auth';
-import { Market } from '../../services/market';   // ✅ pakai service global
-import { LoadingController } from '@ionic/angular';
+import { Wallet } from '../../services/wallet';
+import { Modal } from '../../services/modal';
+import { User, UserProfile } from '../../services/user';
 
-interface Collection {
-  id: string;
-  name: string;
-  image: string;
-  creator: string;
-  items: number;
-}
-
-interface INftItem {
-  _id: string;
-  name: string;
-  description: string;
-  image: string;
-  owner: string;
-  character?: string;
-  rune?: string;
-  isSell?: boolean;
-  price?: number;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-  mintAddress?: string;   // ✅ tambahin ini
-  [key: string]: any;
-}
-
-interface Creator {
-  owner: string;
-  count: number;
-  avatar: string;
-  name?: string;
-}
+import { ToastController, LoadingController } from '@ionic/angular';
 
 @Component({
   selector: 'app-market-layout',
@@ -42,124 +15,307 @@ interface Creator {
   standalone: false,
 })
 export class MarketLayoutPage implements OnInit {
-  // === User Info ===
-  userName: string = '';
-  userAvatar: string = 'assets/images/avatar/avatar-small-01.png';
-  userAddress: string | null = null;
-  role: string | null = null;
+  wallets: any[] = [];
+  activeWallet: string | null = null;
 
-  // === Data dari service ===
-  fetchnft: INftItem[] = [];
-  latestNfts: INftItem[] = [];
-  topCreators: Creator[] = [];
-  allUsers: any[] = [];
-  history: any[] = [];
+  mobileNavActive = false;
 
-  // === UI State ===
-  isOpen = false;
-  selected = '';
-  activeTab: 'character' | 'rune' = 'character';
-  itemsToShowCharacter = 8;
-  itemsToShowRune = 8;
-  loadStep = 8;
+  avatar: string = '';
+
+  showAccountsModal = false;
+  private sub: any;
+  isClosingAccounts = false;
+  selectedAccountAction: 'create' | 'phrase' | 'private' | null = null;
+
+  recoveryPhrase = '';
+  privateKey = '';
+
+  profile!: UserProfile;
 
   constructor(
+    private http: HttpClient,
     private auth: Auth,
-    private router: Router,
+    private walletService: Wallet,
+    private modalService: Modal,
+    private userService: User,
     private loadingCtrl: LoadingController,
-    private market: Market    // ✅ inject Market service
+    private toastCtrl: ToastController,
   ) {}
 
-  async ngOnInit() {
-    // load data sekali
-    await this.market.loadNfts();
-    await this.market.loadLatestNfts();
-    await this.market.loadTopCreators();
-    await this.market.loadUsers();
-    await this.market.loadHistory();
-    this.restoreUser();
-
-    // subscribe data ke variabel lokal
-    this.market.getNfts().subscribe(d => (this.fetchnft = d));
-    this.market.getLatestNfts().subscribe(d => (this.latestNfts = d));
-    this.market.getTopCreators().subscribe(d => (this.topCreators = d));
-    this.market.getUsers().subscribe(d => (this.allUsers = d));
-    this.market.getHistory().subscribe(d => (this.history = d));
-
-    // load data sekali
-    await this.refreshData();
-
-    // subscribe data ke variabel lokal
-    this.subscribeMarket();
-  }
-
-  async ionViewWillEnter() {
-    this.restoreUser();
-    await this.refreshData(); // refresh tiap kali masuk halaman
-  }
-
-  private restoreUser() {
-    const storedUser = localStorage.getItem('userProfile');
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      this.userName = user.name;
-      this.userAvatar = user.avatar || 'assets/images/avatar/avatar-small-01.png';
-      this.role = user.role || null;
-    }
-    const saved = localStorage.getItem('walletAddress');
-    if (saved) {
-      this.userAddress = saved;
-    }
-  }
-
-  private subscribeMarket() {
-    this.market.getNfts().subscribe(d => (this.fetchnft = d));
-    this.market.getLatestNfts().subscribe(d => (this.latestNfts = d));
-    this.market.getTopCreators().subscribe(d => (this.topCreators = d));
-    this.market.getUsers().subscribe(d => (this.allUsers = d));
-    this.market.getHistory().subscribe(d => (this.history = d));
-  }
-
-  private async refreshData() {
-    await this.market.loadNfts();
-    await this.market.loadLatestNfts();
-    await this.market.loadTopCreators();
-    await this.market.loadUsers();
-    await this.market.loadHistory();
-  }
-
-  // === Helpers ===
-  shorten(addr: string) {
-    return addr.slice(0, 6) + '...' + addr.slice(-4);
-  }
-
-  formatWithZeroCount(num: number): string {
-    const str = num.toString();
-    if (!str.includes('.')) return `$${str}`;
-    const [intPart, decPart] = str.split('.');
-    let zeroCount = 0;
-    for (const ch of decPart) {
-      if (ch === '0') zeroCount++;
-      else break;
-    }
-    const rest = decPart.slice(zeroCount);
-    const subscripts: Record<string, string> = {
-      '0': '₀','1': '₁','2': '₂','3': '₃','4': '₄',
-      '5': '₅','6': '₆','7': '₇','8': '₈','9': '₉'
-    };
-    const zeroCountStr = zeroCount
-      .toString()
-      .split('')
-      .map((d) => subscripts[d] || d)
-      .join('');
-    return `${intPart}.0${zeroCountStr}${rest} SOL`;
-  }
-
-  goToNftDetail(mintAddress?: string, sell: boolean = false) {
-    if (!mintAddress) return;  // guard
-    this.router.navigate(['/nft-detail', mintAddress], {
-      queryParams: { sell: sell ? '1' : '0' },
+  ngOnInit() {
+    // 🔹 listen perubahan wallets dari service
+    this.walletService.getWallets().subscribe(ws => {
+      this.wallets = ws || [];
+      this.loadAllWalletBalances(); // preload balance tiap wallet
     });
+
+    // 🔹 listen perubahan activeWallet dari service
+    this.walletService.getActiveWallet().subscribe(addr => {
+      this.activeWallet = addr;
+    });
+
+    this.userService.getUser().subscribe(u => {
+      this.profile = u;
+      console.log('✅ User profile updated:', this.profile);
+    });
+
+    this.sub = this.modalService.accountsModal$.subscribe(open => {
+      this.showAccountsModal = open;
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.sub) this.sub.unsubscribe();
+  }
+
+  private async loadAllWalletBalances() {
+    const updatedWallets = await Promise.all(
+      this.wallets.map(async (w) => {
+        try {
+          const resp: any = await this.http
+            .get(`${environment.apiUrl}/wallet/tokens/${w.address}`)
+            .toPromise();
+
+          return { ...w, usdValue: resp.total ?? 0 }; // ✅ pakai total dari response
+        } catch (err) {
+          console.error('❌ Error fetch tokens for wallet:', w.address, err);
+          return { ...w, usdValue: 0 };
+        }
+      })
+    );
+
+    this.wallets = updatedWallets;
+    localStorage.setItem('wallets', JSON.stringify(this.wallets));
+  }
+
+  async connectWallet() {
+    try {
+      const resp = await (window as any).solana.connect();
+      const newAddress = resp.publicKey.toString();
+
+      if (newAddress) {
+        // tambahkan ke wallets[] kalau belum ada
+        if (!this.wallets.find(w => w.address === newAddress)) {
+          this.wallets.push({ provider: 'phantom', address: newAddress });
+          localStorage.setItem('wallets', JSON.stringify(this.wallets));
+        }
+
+        this.switchWallet(newAddress);
+      }
+    } catch (err) {
+      console.error('Wallet connect error', err);
+    }
+  }
+
+  disconnectWallet() {
+    this.activeWallet = null;
+    localStorage.removeItem('walletAddress');
+    // optional: clear semua wallets juga kalau mau logout total
+    // this.wallets = [];
+    // localStorage.removeItem('wallets');
+  }
+
+  shorten(addr: string) {
+    return addr.slice(0, 3) + '...' + addr.slice(-3);
+  }
+
+  toggleMobileNav() {
+    const navWrap = document.querySelector('#header_main .mobile-nav-wrap');
+    navWrap?.classList.toggle('active');
+  }
+
+  closeMobileNav() {
+    const navWrap = document.querySelector('#header_main .mobile-nav-wrap');
+    navWrap?.classList.remove('active');
+  }
+
+  get uniqueWallets() {
+    const seen = new Set<string>();
+    return this.wallets.filter(w => {
+      if (seen.has(w.address)) {
+        return false;
+      }
+      seen.add(w.address);
+      return true;
+    });
+  }
+
+  toggleAccountsModal() {
+    this.modalService.openAccountsModal();
+  }
+
+  resetAccountsModal() {
+    this.isClosingAccounts = true;
+    setTimeout(() => {
+      this.modalService.closeAccountsModal();
+      this.isClosingAccounts = false;
+      this.selectedAccountAction = null;
+      this.recoveryPhrase = '';
+      this.privateKey = '';
+    }, 300);
+  }
+
+  selectAccountAction(action: 'create' | 'phrase' | 'private') {
+    this.selectedAccountAction = action;
+  }
+
+  async addCustodialAccount() {
+    try {
+      const userId = localStorage.getItem('userId');
+      const resp: any = await this.http.post(`${environment.apiUrl}/auth/create/custodial`, {
+        userId,
+        provider: 'solana'
+      }).toPromise();
+
+      if (resp.wallet) {
+        // load wallets lama dari localStorage
+        const existing = JSON.parse(localStorage.getItem('wallets') || '[]');
+
+        // tambahkan wallet baru
+        existing.push(resp.wallet);
+
+        // simpan kembali
+        this.wallets = existing;
+        this.walletService.setWallets(this.wallets);
+        this.walletService.setActiveWallet(resp.wallet.address);
+
+        // set active wallet
+        this.switchWallet(resp.wallet.address);
+      }
+
+      this.resetAccountsModal();
+      if (resp.authId) localStorage.setItem('userId', resp.authId);
+      if (resp.token) this.auth.setToken(resp.token, resp.authId);
+
+    } catch (err) {
+      console.error("❌ Add custodial wallet error", err);
+
+      const toast = await this.toastCtrl.create({
+        message: `Add custodial wallet error ❌ ${err}`,
+        duration: 2000,
+        position: "bottom",
+        color: "danger",
+        icon: "close-circle-outline",
+        cssClass: "custom-toast",
+      });
+      await toast.present();
+    }
+  }
+
+  async importRecoveryPhrase(event: Event) {
+    event.preventDefault();
+    try {
+      const userId = localStorage.getItem('userId');
+      const resp: any = await this.http.post(`${environment.apiUrl}/auth/import/phrase`, {
+        userId,
+        phrase: this.recoveryPhrase,
+      }).toPromise();
+
+      if (resp.wallet) {
+        // load wallets lama dari localStorage
+        const existing = JSON.parse(localStorage.getItem('wallets') || '[]');
+
+        // tambahkan wallet baru
+        existing.push(resp.wallet);
+
+        // simpan kembali
+        this.wallets = existing;
+        this.walletService.setWallets(this.wallets);
+        this.walletService.setActiveWallet(resp.wallet.address);
+        this.switchWallet(resp.wallet.address);
+      }
+
+      this.resetAccountsModal();
+      if (resp.authId) localStorage.setItem('userId', resp.authId);
+      if (resp.token) this.auth.setToken(resp.token, resp.authId);
+
+    } catch (err) {
+      console.error("❌ Import phrase error", err);
+
+      const toast = await this.toastCtrl.create({
+        message: `Import phrase error ❌ ${err}`,
+        duration: 2000,
+        position: "bottom",
+        color: "danger",
+        icon: "close-circle-outline",
+        cssClass: "custom-toast",
+      });
+      await toast.present();
+    }
+  }
+
+  async importPrivateKey(event: Event) {
+    event.preventDefault();
+    try {
+      const userId = localStorage.getItem('userId');
+      const resp: any = await this.http.post(`${environment.apiUrl}/auth/import/private`, {
+        userId,
+        privateKey: this.privateKey,
+      }).toPromise();
+
+      if (resp.wallet) {
+        // load wallets lama dari localStorage
+        const existing = JSON.parse(localStorage.getItem('wallets') || '[]');
+
+        // tambahkan wallet baru
+        existing.push(resp.wallet);
+
+        // simpan kembali
+        this.wallets = existing;
+        this.walletService.setWallets(this.wallets);
+        this.walletService.setActiveWallet(resp.wallet.address);
+
+        this.switchWallet(resp.wallet.address);
+      }
+
+      this.resetAccountsModal();
+      if (resp.authId) localStorage.setItem('userId', resp.authId);
+      if (resp.token) this.auth.setToken(resp.token, resp.authId);
+
+    } catch (err) {
+      console.error("❌ Import private key error", err);
+
+      const toast = await this.toastCtrl.create({
+        message: `Import private key error ❌ ${err}`,
+        duration: 2000,
+        position: "bottom",
+        color: "danger",
+        icon: "close-circle-outline",
+        cssClass: "custom-toast",
+      });
+      await toast.present();
+    }
+  }
+
+  async switchWallet(address: string) {
+    this.walletService.setActiveWallet(address);
+    console.log('✅ Active wallet switched to:', address);
+    const toast = await this.toastCtrl.create({
+      message: `Switch account success ✅`,
+      duration: 2500,
+      position: "bottom",
+      color: "success",
+      icon: "checkmark-circle-outline",
+      cssClass: "custom-toast",
+    });
+    await toast.present();
+
+    try {
+      const resp: any = await this.http
+        .get(`${environment.apiUrl}/wallet/balance/${address}`)
+        .toPromise();
+
+      // update balance di wallets[]
+      this.wallets = this.wallets.map(w =>
+        w.address === address
+          ? { ...w, usdValue: resp.usdValue ?? 0 }
+          : w
+      );
+
+      localStorage.setItem('wallets', JSON.stringify(this.wallets));
+    } catch (err) {
+      console.error('❌ Error fetch balance for wallet:', address, err);
+    }
   }
 
   async showLoading(message: string = 'Loading...') {
@@ -172,6 +328,7 @@ export class MarketLayoutPage implements OnInit {
   }
 
   async logout() {
+    this.closeMobileNav();
     const loading = await this.showLoading('Logging out...');
     try {
       await this.auth.logout();

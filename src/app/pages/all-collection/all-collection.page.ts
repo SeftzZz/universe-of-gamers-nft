@@ -167,7 +167,7 @@ export class AllCollectionPage implements OnInit {
 
   goToNftDetail(mintAddress?: string) {
     if (!mintAddress) return;
-    this.router.navigate(['/nft-detail', mintAddress]);
+    this.router.navigate(['/market-layout/nft-detail', mintAddress]);
   }
 
   toggleDropdown() {

@@ -168,8 +168,9 @@ export class NftDetailPage implements OnInit {
         console.log('🔄 Active wallet updated in Home:', addr);
 
         // refresh data setiap kali wallet diganti
-        await this.updateBalance();
+        await this.loadUsers();
         await this.loadTokens();
+        await this.updateBalance();
         await this.loadTopCreators();
         await this.loadNftHistory();
       }
@@ -210,8 +211,9 @@ export class NftDetailPage implements OnInit {
         console.log('🔄 Active wallet updated in Home:', addr);
 
         // refresh data setiap kali wallet diganti
-        await this.updateBalance();
+        await this.loadUsers();
         await this.loadTokens();
+        await this.updateBalance();
         await this.loadTopCreators();
         await this.loadNftHistory();
       }
@@ -349,6 +351,7 @@ export class NftDetailPage implements OnInit {
 
       this.tokens = resp.tokens || [];
       localStorage.setItem('walletTokens', JSON.stringify(this.tokens));
+      console.log('walletTokens', JSON.stringify(this.tokens));
     } catch (err) {
       console.error('Error fetch tokens from API', err);
       this.router.navigateByUrl('/tabs/offline');
@@ -441,7 +444,7 @@ export class NftDetailPage implements OnInit {
       await this.updateBalance();
       await this.loadTokens();
 
-      console.error("❌ buyNft error:", err);
+      console.error("❌ buyNft error:", JSON.stringify(err));
       const toast = await this.toastCtrl.create({
         message: `Failed to buy NFT`,
         duration: 2000,
@@ -606,7 +609,7 @@ export class NftDetailPage implements OnInit {
         await this.loadNftHistory();
       },
       error: (err) => {
-        console.error("❌ Error listing NFT:", err);
+        console.error("❌ Error listing NFT:", JSON.stringify(err));
         this.isListing = false;
       }
     });

@@ -1,5 +1,5 @@
 <ion-content class="ion-padding">
-  <div class="content-tabs">
+  <div class="content-tabs" style="margin-top: 10vh;">
       <div class="">
         <div class="wrapper-content-create">
             <div class="heading-section">
@@ -10,6 +10,9 @@
                     <div class="widget-content-inner buy-gatcha active">
                         <div class="wrap-content w-full">
                             <div class="inner-content">
+                                <div class="heading-section">
+                                    <h2 class="tf-title pb-20">Buy Gatcha</h2>
+                                </div>
                                 <div class="top-collections style-bottom mb-40">
                                     <div class="featured pt-10 swiper-container carousel3-type1" data-swiper='{
                                         "loop":false,
@@ -53,27 +56,29 @@
                                                   </div>
                                                 </div>
                                               </a>
-                                              <div class="card-bottom">
+                                              <div class="card-bottom mb-20">
                                                 <div class="author">
                                                   <h5 style="font-size: 24px;">{{ pack.name }}</h5>
-                                                  <!-- <p>{{ pack.description }}</p> -->
+                                                  <p>{{ pack.description }}</p>
                                                 </div>
                                                 <div class="bottom-right">
-                                                  <div class="shop"> 
+                                                  <!-- <div class="shop"> 
                                                     <div class="icon">
                                                       <img src="assets/images/box-icon/coin-00.png" alt="">
                                                     </div>
-                                                  </div>
+                                                    <p>{{ pack.priceUOG }}</p>
+                                                  </div> -->
                                                   <div class="shop" style="margin-right: 0px;border-right: 0px;"> 
                                                     <div class="icon">
                                                       <img src="assets/images/box-icon/coin-04.png" alt="">
                                                     </div>
+                                                    <p>{{ pack.priceSOL }}</p>
                                                   </div>
                                                 </div>
                                               </div>
                                               <!-- Tombol Buy & Mint -->
                                               <div class="btn-submit flex gap30 justify-center mt-3">
-                                                <button class="tf-button style-1 h40" (click)="toggleSendModal(pack)">
+                                                <button class="tf-button style-1 h40" (click)="toggleSendModal(pack)" style="color: #161616;">
                                                   Buy & Mint <i class="icon-arrow-up-right2"></i>
                                                 </button>
                                               </div>
