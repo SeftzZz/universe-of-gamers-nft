@@ -62,6 +62,8 @@ export class MarketLayoutPage implements OnInit {
     this.sub = this.modalService.accountsModal$.subscribe(open => {
       this.showAccountsModal = open;
     });
+
+    this.toggleMobileNav();
   }
 
   ngOnDestroy() {
