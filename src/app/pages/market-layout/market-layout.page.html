@@ -9,15 +9,16 @@
                             <div class="wrap-box flex">
                                 <div id="site-logo">
                                     <div *ngIf="activeWallet">
-                                        <a [routerLink]="['/tabs/home']" (click)="closeMobileNav()" rel="home" class="main-logo">
-                                          <img [src]="profile.avatar" alt="avatar" style="height: 40px;border-radius: 10px;" />
-                                        </a>
+                                        <img [src]="profile.avatar" alt="avatar" style="height: 40px;border-radius: 10px;" />
+                                        
                                         <span class="wallet-address">{{ shorten(activeWallet) }}</span>
                                     </div>
-                                </div><!-- logo -->
+                                </div>
+                                <!-- logo -->
                                 <div class="mobile-button" (click)="toggleMobileNav()">
                                     <span></span>
-                                </div><!-- /.mobile-button -->
+                                </div>
+                                <!-- /.mobile-button -->
                                 <div class="flat-wallet flex">
                                     <div class="header-search relative">
                                         <a href="#" class="show-search">
@@ -38,6 +39,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="mobile-nav-wrap" [class.active]="mobileNavActive">
               <div class="overlay-mobile-nav" (click)="closeMobileNav()"></div>
               <div class="inner-mobile-nav">

@@ -14,6 +14,7 @@ import nacl from 'tweetnacl';
 import bs58 from 'bs58';
 import { GoogleLoginService } from '../services/google-login-service';
 import { AuthRedirect } from '../services/auth-redirect';
+import { NavController } from '@ionic/angular';
 
 let dappKeyPair: nacl.BoxKeyPair | null = null;
 
@@ -71,6 +72,7 @@ export class LoginPage implements OnInit {
     private userService: User,
     private google: GoogleLoginService,
     private authRedirect: AuthRedirect,
+    private navCtrl: NavController
   ) {}
 
   ngOnInit() {
@@ -502,8 +504,7 @@ export class LoginPage implements OnInit {
       if (resp.authId) localStorage.setItem('userId', resp.authId);
       if (resp.token) this.auth.setToken(resp.token, resp.authId);
 
-      this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
-
+      this.navCtrl.navigateRoot('/market-layout/all-collection');
     } catch (err) {
       console.error("❌ Import private key error", err);
 

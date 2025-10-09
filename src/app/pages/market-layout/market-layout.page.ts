@@ -5,7 +5,6 @@ import { Auth } from '../../services/auth';
 import { Wallet } from '../../services/wallet';
 import { Modal } from '../../services/modal';
 import { User, UserProfile } from '../../services/user';
-
 import { ToastController, LoadingController } from '@ionic/angular';
 
 @Component({
@@ -39,7 +38,7 @@ export class MarketLayoutPage implements OnInit {
     private modalService: Modal,
     private userService: User,
     private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController,
+    private toastCtrl: ToastController
   ) {}
 
   ngOnInit() {
@@ -54,10 +53,32 @@ export class MarketLayoutPage implements OnInit {
       this.activeWallet = addr;
     });
 
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+        this.http.get<any>(`${environment.apiUrl}/auth/user/${userId}`).subscribe({
+          next: (data) => {
+            // Periksa avatar dari backend
+            const avatarUrl = data.avatar
+              ? `${environment.baseUrl}${data.avatar.startsWith('/uploads') ? data.avatar : '/uploads/avatars/' + data.avatar}`
+              : 'assets/images/avatar/avatar-01.png';
+
+            // et ke userService
+            this.userService.setUser({
+              ...data,
+              avatar: avatarUrl
+            });
+          },
+          error: (err) => {
+            console.error('Gagal ambil user data:', err);
+          }
+        });
+    }
+
     this.userService.getUser().subscribe(u => {
       this.profile = u;
       console.log('✅ User profile updated:', this.profile);
     });
+
 
     this.sub = this.modalService.accountsModal$.subscribe(open => {
       this.showAccountsModal = open;
@@ -120,14 +141,22 @@ export class MarketLayoutPage implements OnInit {
   }
 
   toggleMobileNav() {
-    const navWrap = document.querySelector('#header_main .mobile-nav-wrap');
-    navWrap?.classList.toggle('active');
+    this.mobileNavActive = !this.mobileNavActive;
   }
 
   closeMobileNav() {
-    const navWrap = document.querySelector('#header_main .mobile-nav-wrap');
-    navWrap?.classList.remove('active');
+    this.mobileNavActive = false;
   }
+
+  // toggleMobileNav() {
+  //   const navWrap = document.querySelector('#header_main .mobile-nav-wrap');
+  //   navWrap?.classList.toggle('active');
+  // }
+
+  // closeMobileNav() {
+  //   const navWrap = document.querySelector('#header_main .mobile-nav-wrap');
+  //   navWrap?.classList.remove('active');
+  // }
 
   get uniqueWallets() {
     const seen = new Set<string>();
