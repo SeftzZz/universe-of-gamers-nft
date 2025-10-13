@@ -27,11 +27,26 @@ export class Wallet {
 
   // === Wallets List ===
   setWallets(wallets: any[]) {
-    localStorage.setItem('wallets', JSON.stringify(wallets));
-    this.wallets$.next(wallets);
+    const updated = [...wallets]; // buat array baru
+    localStorage.setItem('wallets', JSON.stringify(updated));
+    this.wallets$.next(updated);
   }
 
   getWallets(): Observable<any[]> {
     return this.wallets$.asObservable();
   }
+
+  addWallet(wallet: any) {
+    const current = this.wallets$.getValue();
+    const updated = [...current, wallet];
+    this.setWallets(updated);
+  }
+
+  clearWallets() {
+    localStorage.removeItem('wallets');
+    localStorage.removeItem('walletAddress');
+    this.wallets$.next([]);
+    this.activeWallet$.next(null);
+  }
+
 }

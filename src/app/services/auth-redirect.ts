@@ -25,7 +25,7 @@ export class AuthRedirect {
   }
 
   // Shortcut: langsung arahkan ke tujuan setelah login
-  redirectAfterLogin(defaultRoute: string = '/home') {
+  redirectAfterLogin(defaultRoute: string = '/market-layout') {
     const next = this.getNextRoute();
     if (next) {
       this.router.navigate([next]);

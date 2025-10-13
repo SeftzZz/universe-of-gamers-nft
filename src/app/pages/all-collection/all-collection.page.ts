@@ -1,9 +1,10 @@
 // src/app/pages/all-collection/all-collection.page.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { Auth } from '../../services/auth';
 import { Market } from '../../services/market';   // ✅ pakai Market service
 import { LoadingController } from '@ionic/angular';
+import { IonContent } from '@ionic/angular';
 
 interface Collection {
   id: string;
@@ -19,8 +20,10 @@ interface INftItem {
   description: string;
   image: string;
   owner: string;
-  character?: string;
-  rune?: string;
+  // ✅ ubah jadi union type agar bisa string atau object hasil populate
+  character?: string | { name?: string; rarity?: string; element?: string };
+  rune?: string | { name?: string; rarity?: string };
+  rarity?: string;
   isSell?: boolean;
   price?: number;
   createdAt?: string | Date;
@@ -68,6 +71,9 @@ export class AllCollectionPage implements OnInit {
   itemsToShowRune = 8;
   loadStep = 8;
 
+  @ViewChild(IonContent, { read: ElementRef }) ionContentRef!: ElementRef;
+  scrollIsActive = false;
+
   constructor(
     private auth: Auth,
     private router: Router,
@@ -82,6 +88,21 @@ export class AllCollectionPage implements OnInit {
 
   async ionViewWillEnter() {
     await this.refreshData();  // refresh setiap kali halaman aktif kembali
+  }
+
+  ionViewDidEnter() {
+    this.scrollIsActive = false;
+
+    // Re-inisialisasi progress circle setelah halaman selesai render
+    setTimeout(() => {
+      const path = this.ionContentRef.nativeElement.querySelector('.progress-circle path') as SVGPathElement | null;
+      if (path) {
+        const radius = 49;
+        const circumference = 2 * Math.PI * radius;
+        path.style.strokeDasharray = `${circumference}`;
+        path.style.strokeDashoffset = circumference.toString();
+      }
+    }, 300);
   }
 
   private async refreshData() {
@@ -137,7 +158,7 @@ export class AllCollectionPage implements OnInit {
   // -------------------------------
   shorten(addr?: string) {
     if (!addr) return 'Unknown';
-    return addr.slice(0, 6) + '...' + addr.slice(-4);
+    return addr.slice(0, 6) + '...' + addr.slice(-6);
   }
 
   formatWithZeroCount(num?: number): string {
@@ -154,7 +175,7 @@ export class AllCollectionPage implements OnInit {
     }
     const rest = decPart.slice(zeroCount);
     const subscripts: Record<string, string> = {
-      "0": "₀","1": "₁","2": "₂","3": "₃","4": "₄",
+      "0": "0","1": "0","2": "0","3": "0","4": "₄",
       "5": "₅","6": "₆","7": "₇","8": "₈","9": "₉"
     };
     const zeroCountStr = zeroCount.toString()
@@ -224,4 +245,61 @@ export class AllCollectionPage implements OnInit {
       loading.dismiss();
     }
   }
+
+  onScroll(event: CustomEvent) {
+    if (!event) return;
+
+    const scrollEl = event.detail?.scrollElement as HTMLElement | null;
+    if (!scrollEl) return;
+
+    const scrollTop = scrollEl.scrollTop || 0;
+    const scrollHeight = scrollEl.scrollHeight - scrollEl.clientHeight;
+    const percent = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+
+    this.scrollIsActive = percent > 10;
+
+    // ✅ akses aman via ElementRef
+    const path = this.ionContentRef.nativeElement.querySelector('.progress-circle path') as SVGPathElement | null;
+
+    if (path) {
+      const radius = 49;
+      const circumference = 2 * Math.PI * radius;
+      path.style.strokeDasharray = `${circumference}`;
+      const offset = circumference - (percent / 100) * circumference;
+      path.style.strokeDashoffset = offset.toString();
+    }
+  }
+
+  // 🆙 Scroll to top
+  scrollToTop() {
+    const ion = this.ionContentRef.nativeElement as any;
+    if (ion && ion.scrollToTop) {
+      ion.scrollToTop(500);
+    }
+  }
+
+  getTokenSymbol(nft: any): string {
+    // NFT karakter → UOG, lainnya fleksibel
+    if (nft.character) return 'UOG';
+    return nft.tokenSymbol || 'SOL'; // default SOL jika tidak ada field tokenSymbol
+  }
+
+  formatPriceDisplay(price?: number, symbol?: string): string {
+    if (price == null || isNaN(price)) return '-';
+    if (!symbol) symbol = 'SOL';
+
+    // === Kalau SOL → format microdecimal ===
+    if (symbol === 'SOL') {
+      return this.formatWithZeroCount(price);
+    }
+
+    // === Token lain (UOG, BONK, dll) → pakai format singkat ===
+    const abs = Math.abs(price);
+    if (abs >= 1_000_000_000) return (price / 1_000_000_000).toFixed(2).replace(/\.00$/, '') + 'B';
+    if (abs >= 1_000_000) return (price / 1_000_000).toFixed(2).replace(/\.00$/, '') + 'M';
+    if (abs >= 1_000) return (price / 1_000).toFixed(2).replace(/\.00$/, '') + 'K';
+    if (abs >= 1) return price.toFixed(2).replace(/\.00$/, '');
+    return price.toPrecision(2);
+  }
+
 }

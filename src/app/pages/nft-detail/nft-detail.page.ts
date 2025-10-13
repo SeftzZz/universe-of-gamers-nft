@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -22,6 +22,7 @@ import {
 
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
+import { IonContent } from '@ionic/angular';
 
 interface Collection {
   id: string;
@@ -145,6 +146,9 @@ export class NftDetailPage implements OnInit {
   loadStep = 8;
 
   history: any[] = [];
+
+  @ViewChild(IonContent, { static: false }) ionContent!: IonContent;
+  scrollIsActive = false;
 
   constructor(
     private http: HttpClient,
@@ -351,7 +355,7 @@ export class NftDetailPage implements OnInit {
 
       this.tokens = resp.tokens || [];
       localStorage.setItem('walletTokens', JSON.stringify(this.tokens));
-      console.log('walletTokens', JSON.stringify(this.tokens));
+      // console.log('walletTokens', JSON.stringify(this.tokens));
     } catch (err) {
       console.error('Error fetch tokens from API', err);
       this.router.navigateByUrl('/tabs/offline');
@@ -475,7 +479,7 @@ export class NftDetailPage implements OnInit {
   formatWithZeroCount(num: number): string {
       const str = num.toString();
 
-      if (!str.includes(".")) return `$${str}`;
+      if (!str.includes(".")) return `${str}`;
 
       const [intPart, decPart] = str.split(".");
 
@@ -491,8 +495,8 @@ export class NftDetailPage implements OnInit {
 
       // map angka ke subscript unicode
       const subscripts: Record<string, string> = {
-        "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄",
-        "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉"
+        "0": "0","1": "0","2": "0","3": "0","4": "₄",
+        "5": "₅","6": "₆","7": "₇","8": "₈","9": "₉"
       };
 
       const zeroCountStr = zeroCount.toString()
@@ -500,10 +504,35 @@ export class NftDetailPage implements OnInit {
         .map((d) => subscripts[d] || d)
         .join("");
 
-      const result = `${intPart}.0${zeroCountStr}${rest} SOL`;
+      const result = `${intPart}.0${zeroCountStr}${rest}`;
 
       // console.log(`formatWithZeroCount(${num}) => ${result}`);
       return result;
+  }
+
+  formatPriceDisplay(price: number, symbol: string): string {
+    if (!price || price <= 0) return '-';
+
+    // ✅ Kalau token SOL → pakai format existing kamu
+    if (symbol === 'SOL') {
+      return this.formatWithZeroCount(price);
+    }
+
+    // ✅ Kalau bukan SOL → pakai format singkat (K, M, B)
+    const absValue = Math.abs(price);
+    let formatted: string;
+
+    if (absValue >= 1_000_000_000) {
+      formatted = (price / 1_000_000_000).toFixed(2).replace(/\.00$/, '') + 'B';
+    } else if (absValue >= 1_000_000) {
+      formatted = (price / 1_000_000).toFixed(2).replace(/\.00$/, '') + 'M';
+    } else if (absValue >= 1_000) {
+      formatted = (price / 1_000).toFixed(2).replace(/\.00$/, '') + 'K';
+    } else {
+      formatted = price.toFixed(2).replace(/\.00$/, '');
+    }
+
+    return formatted;
   }
 
   isLoggedIn(): boolean {
@@ -613,5 +642,62 @@ export class NftDetailPage implements OnInit {
         this.isListing = false;
       }
     });
+  }
+
+  onScroll(event: CustomEvent) {
+    if (!event) return;
+
+    // ✅ Coba ambil dari detail dulu
+    let scrollEl = event.detail?.scrollElement as HTMLElement | null;
+
+    // 🔁 Jika undefined, ambil manual dari ion-content (DOM)
+    if (!scrollEl) {
+      const ionContent = document.querySelector('ion-content');
+      scrollEl = ionContent?.shadowRoot?.querySelector('.inner-scroll') as HTMLElement | null;
+    }
+
+    if (!scrollEl) {
+      console.warn('⚠️ Tidak bisa menemukan elemen scroll (scrollEl)');
+      return;
+    }
+
+    const scrollTop = scrollEl.scrollTop || 0;
+    const scrollHeight = scrollEl.scrollHeight || 1;
+    const clientHeight = scrollEl.clientHeight || 1;
+
+    const denominator = scrollHeight - clientHeight;
+    const percent = denominator > 0 ? (scrollTop / denominator) * 100 : 0;
+
+    this.scrollIsActive = percent > 10;
+
+    // 🎯 Update progress ring stroke
+    const path = document.querySelector('.progress-circle path') as SVGPathElement;
+    if (path) {
+      const radius = 49; // dari path: M50,1 a49,49 ...
+      const circumference = 2 * Math.PI * radius;
+      path.style.strokeDasharray = `${circumference}`;
+      const offset = circumference - (percent / 100) * circumference;
+      path.style.strokeDashoffset = offset.toString();
+    }
+  }
+
+  // 🆙 Scroll to top dengan animasi halus
+  scrollToTop() {
+    this.ionContent.scrollToTop(500); // 500ms animasi smooth scroll
+  }
+
+  get tokenSymbol(): string {
+    return (
+      this.metadata?.paymentSymbol ||
+      (this.metadata?.character || this.metadata?.rune ? 'UOG' : this.selectedToken?.symbol || 'SOL')
+    );
+  }
+
+  get uogTokens() {
+    // tampilkan hanya token UOG
+    const search = (this.tokenSearch || '').toLowerCase();
+    return (this.filteredTokens || [])
+      .filter(t => t.symbol?.toLowerCase() === 'uog')
+      .filter(t => !search || t.symbol.toLowerCase().includes(search));
   }
 }

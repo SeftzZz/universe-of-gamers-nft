@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -9,6 +9,7 @@ import { ToastController } from '@ionic/angular'; // untuk notif ===add by fpp 0
 import { Auth } from '../../services/auth';
 import { MarketLayoutPage } from '../market-layout/market-layout.page';
 import { Router } from '@angular/router';
+import { IonContent } from '@ionic/angular';
 
 interface IGatchaReward {
   type: "character" | "rune";
@@ -137,6 +138,9 @@ export class CreatesPage implements OnInit {
   tokenSearch: string = '';
   txSig: string | null = null;
   isSending: boolean = false;
+
+  @ViewChild(IonContent, { static: false }) ionContent!: IonContent;
+  scrollIsActive = false;
 
   constructor(
     private fb: FormBuilder,
@@ -737,5 +741,47 @@ export class CreatesPage implements OnInit {
 
   logout() {
     this.auth.logout();
+  }
+
+  onScroll(event: CustomEvent) {
+    if (!event) return;
+
+    // ✅ Coba ambil dari detail dulu
+    let scrollEl = event.detail?.scrollElement as HTMLElement | null;
+
+    // 🔁 Jika undefined, ambil manual dari ion-content (DOM)
+    if (!scrollEl) {
+      const ionContent = document.querySelector('ion-content');
+      scrollEl = ionContent?.shadowRoot?.querySelector('.inner-scroll') as HTMLElement | null;
+    }
+
+    if (!scrollEl) {
+      console.warn('⚠️ Tidak bisa menemukan elemen scroll (scrollEl)');
+      return;
+    }
+
+    const scrollTop = scrollEl.scrollTop || 0;
+    const scrollHeight = scrollEl.scrollHeight || 1;
+    const clientHeight = scrollEl.clientHeight || 1;
+
+    const denominator = scrollHeight - clientHeight;
+    const percent = denominator > 0 ? (scrollTop / denominator) * 100 : 0;
+
+    this.scrollIsActive = percent > 10;
+
+    // 🎯 Update progress ring stroke
+    const path = document.querySelector('.progress-circle path') as SVGPathElement;
+    if (path) {
+      const radius = 49; // dari path: M50,1 a49,49 ...
+      const circumference = 2 * Math.PI * radius;
+      path.style.strokeDasharray = `${circumference}`;
+      const offset = circumference - (percent / 100) * circumference;
+      path.style.strokeDashoffset = offset.toString();
+    }
+  }
+
+  // 🆙 Scroll to top dengan animasi halus
+  scrollToTop() {
+    this.ionContent.scrollToTop(500); // 500ms animasi smooth scroll
   }
 }

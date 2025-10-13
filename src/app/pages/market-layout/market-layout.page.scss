@@ -441,6 +441,36 @@ i.danger {
   padding-top: 20px;  
 }
 
+.mobile-button {
+  display: block; /* ⬅️ Pastikan tombol tampil */
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  top: 50%;
+  right: 15px;
+  background-color: transparent;
+  cursor: pointer;
+  z-index: 10001; /* ⬅️ pastikan di atas elemen lain */
+  transition: all 0.3s ease;
+  transform: translateY(-50%);
+}
+
+.market-page .wrap-box-card .col-item {
+  width: 10% !important;
+}
+
+.progress-wrap {
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.4s ease;
+}
+
+.progress-wrap.active-progress {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
 @media (max-width: 991px) {
     .widget-table-ranking .table-ranking-heading, .widget-table-ranking .table-ranking-content {
         width: auto;
@@ -449,6 +479,9 @@ i.danger {
 @media (max-width: 1440px) {
     .wrap-box-card .col-item {
         width: calc(50% - 28.5px) !important;
+    }
+    .mobile-button {
+        display: block;
     }
 }
 @media (max-width: 1024px) {

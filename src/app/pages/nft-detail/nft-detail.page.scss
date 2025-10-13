@@ -436,6 +436,49 @@ i.danger {
     border-radius: 50%;
 }
 
+.progress-wrap {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+.progress-wrap.active-progress {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+.progress-circle path {
+  stroke: #00c6ff;
+  stroke-width: 5;
+  fill: none;
+  transition: stroke-dashoffset 0.1s linear;
+}
+.progress-wrap::after {
+    position: absolute;
+    content: '\e911';
+    font-family: 'icomoon';
+    text-align: center;
+    line-height: 44px;
+    font-size: 20px;
+    font-weight: 900;
+    color: #1ac4fc;
+    left: 0;
+    top: 0;
+    height: 25px;
+    width: 50px;
+    cursor: pointer;
+    display: block;
+    z-index: 1;
+    -webkit-transition: all 400ms linear;
+    -o-transition: all 400ms linear;
+    transition: all 400ms linear;
+}
+
 @media (max-width: 991px) {
     .widget-table-ranking .table-ranking-heading, .widget-table-ranking .table-ranking-content {
         width: auto;

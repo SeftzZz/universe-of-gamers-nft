@@ -286,7 +286,7 @@ export class AppComponent implements AfterViewInit {
   async initStatusBar() {
     try {
       // 🔹 Tampilkan status bar
-      await StatusBar.show();
+      await StatusBar.hide();
 
       // 🔹 Atur style (DARK → teks putih, LIGHT → teks hitam)
       await StatusBar.setStyle({ style: Style.Light });

@@ -1,212 +1,216 @@
-<div id="wrapper" style="margin-top: 3vh;">
-  <div id="page" class="home-1 ion-padding">
-    <div class="wrapper-content mlr-15">
-      <div class="inner-content">
-        <div class="heading-section pt-40">
-          <h2 class="tf-title pb-30">Setting</h2>
-        </div>
-
-        <!-- Avatar -->
-        <div class="widget-edit mb-30 avatar">
-          <div class="title">
-            <h4>Edit your avatar</h4>
-            <i class="icon-keyboard_arrow_up"></i>
-          </div>
-          <form (ngSubmit)="saveAvatar()">
-            <div class="uploadfile flex">
-              <img [src]="avatar || 'assets/images/app-logo.jpeg'" alt="avatar" />
-              <div>
-                <h6>Upload a new avatar (ratio 1:1)</h6>
-                <label>
-                  <input 
-                    type="file" 
-                    id="avatarInput"
-                    #avatarInput
-                    (change)="onAvatarChange($event)"
-                  />
-                  <span class="text filename">{{ fileName }}</span>
-                </label>
-              </div>
-            </div>
-            <div class="btn-submit">
-              <button class="w242" type="submit">Save</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Profile -->
-        <div class="widget-edit mb-30 profile">
-          <div class="title">
-            <h4>Edit your profile</h4>
-            <i class="icon-keyboard_arrow_up"></i>
-          </div>
-          <form (ngSubmit)="updateProfile()" class="comment-form">
-            <div class="flex gap30">
-              <fieldset class="name">
-                <label>Your name*</label>
-                <input type="text" [(ngModel)]="name" name="name" placeholder="Enter your name" required>
-              </fieldset>
-              <fieldset class="email">
-                <label>Email address*</label>
-                <input type="email" [(ngModel)]="email" name="email" placeholder="Your email" required>
-              </fieldset>
-            </div>
-            <div class="btn-submit">
-              <button class="w242" type="submit">Save</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Password -->
-        <div class="widget-edit mb-30 password">
-          <div class="title">
-            <h4>Change password</h4>
-            <i class="icon-keyboard_arrow_up"></i>
-          </div>
-          <form (ngSubmit)="changePassword()" class="comment-form">
-            <fieldset class="password">
-              <label>Old password (Blank if no have password)</label>
-              <input type="password" [(ngModel)]="oldPassword" name="oldPassword" placeholder="Enter your old password" required>
-            </fieldset>
-            <fieldset class="password">
-              <label>New password</label>
-              <input type="password" [(ngModel)]="newPassword" name="newPassword" placeholder="Enter your new password" required>
-            </fieldset>
-            <fieldset class="password">
-              <label>Confirm password</label>
-              <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Confirm password" required>
-            </fieldset>
-            <div class="btn-submit">
-              <button class="w242" type="submit">Save</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Notifications -->
-        <div class="widget-edit mb-30 setting">
-          <div class="title">
-            <h4>Notification setting</h4>
-            <i class="icon-keyboard_arrow_up"></i>
-          </div>
-          <form (ngSubmit)="updateNotifications()" class="comment-form">
-            <div class="notification-setting-item">
-              <div class="content">
-                <h6>New Items Notification</h6>
-                <p>Mauris a velit commodo erat lobortis eleifend</p>
-              </div>
-              <input class="check" type="checkbox" [(ngModel)]="notifyNewItems" name="notifyNewItems">
-            </div>
-            <div class="notification-setting-item">
-              <div class="content">
-                <h6>Email notification</h6>
-                <p>Turn on email notification to get updates through email</p>
-              </div>
-              <input class="check" type="checkbox" [(ngModel)]="notifyEmail" name="notifyEmail">
-            </div>
-            <div class="btn-submit">
-              <button class="w242" type="submit">Save</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Secret Key & Phaseprase -->
-        <div class="widget-edit mb-30 setting">
-          <div class="title">
-            <h4>Account Secret</h4>
-            <i class="icon-keyboard_arrow_up"></i>
-          </div>
-          <form (ngSubmit)="updateNotifications()" class="comment-form">
-            <div class="notification-setting-item">
-              <div class="content">
-                <h6>Show Recovery Phrase</h6>
-                <p *ngIf="recoveryPhrase" (click)="copyToClipboard(recoveryPhrase)">
-                  {{ recoveryPhrase }}
-                </p>
-              </div>
-              <input
-                class="check"
-                type="checkbox"
-                [(ngModel)]="showRecoveryPhraseToggle"
-                name="showRecoveryPhraseToggle"
-                (change)="showSecretPrompt('recovery')"
-              >
-            </div>
-
-            <div class="notification-setting-item">
-              <div class="content">
-                <h6>Show Private Key</h6>
-                <p *ngIf="privateKey" (click)="copyToClipboard(privateKey)">
-                  {{ privateKey }}
-                </p>
-              </div>
-              <input
-                class="check"
-                type="checkbox"
-                [(ngModel)]="showPrivateKeyToggle"
-                name="showPrivateKeyToggle"
-                (change)="showSecretPrompt('privateKey')"
-              >
-            </div>
-          </form>
-        </div>
-
-        <!-- Two-Factor Authentication -->
-        <div class="widget-edit mb-30 setting">
-          <div class="title">
-            <h4>Two-Factor Authentication</h4>
-            <i class="icon-keyboard_arrow_up"></i>
-          </div>
-          <form class="comment-form" (ngSubmit)="onSubmit2FA()">
-            <div class="notification-setting-item">
-              <div class="content">
-                <h6>Enable 2FA</h6>
-                <p>Protect your account using Google Authenticator</p>
-              </div>
-              <input
-                class="check"
-                type="checkbox"
-                [(ngModel)]="twoFactorEnabled"
-                name="twoFactorEnabled"
-                (change)="toggle2FA($event)"
-              >
-            </div>
-
-            <!-- Tampilkan QR Code jika setup -->
-            <div class="notification-setting-item" *ngIf="qrImage">
-              <div class="content">
-                <h6>Scan QR Code</h6>
-                <p>Scan with Google Authenticator</p>
-                <img [src]="qrImage" alt="2FA QR Code" style="max-width:200px; margin:1rem auto;">
-
-                <h6>Or Enter This Key Manually</h6>
-                <p (click)="copyToClipboard(secretCode)">
-                  {{ secretCode }}
-                </p>
-              </div>
-            </div>
-
-            <!-- Input OTP untuk verifikasi -->
-            <div class="notification-setting-item" *ngIf="qrImage">
-              <div class="content">
-                <h6>Enter OTP</h6>
-                <p>Enter code 6 digit from Google Authenticator</p>
-                <input
-                  type="text"
-                  [(ngModel)]="otpCode"
-                  name="otpCode"
-                  placeholder="123456"
-                  class="form-control"
-                />
-              </div>
-            </div>
-
-            <div class="btn-submit" *ngIf="qrImage">
-              <button class="w242" type="submit">Verify & Enable</button>
-            </div>
-          </form>
-        </div>
-
+<ion-content class="ion-padding" (ionScroll)="onScroll($event)" scrollEvents="true">  
+  <div class="wrapper-content mlr-15">
+    <div class="inner-content">
+      <div class="heading-section pt-40">
+        <h2 class="tf-title pb-30">Setting</h2>
       </div>
+
+      <!-- Avatar -->
+      <div class="widget-edit mb-30 avatar">
+        <div class="title">
+          <h4>Edit your avatar</h4>
+          <i class="icon-keyboard_arrow_up"></i>
+        </div>
+        <form (ngSubmit)="saveAvatar()">
+          <div class="uploadfile flex">
+            <img [src]="avatar || 'assets/images/app-logo.jpeg'" alt="avatar" />
+            <div>
+              <h6>Upload a new avatar (ratio 1:1)</h6>
+              <label>
+                <input 
+                  type="file" 
+                  id="avatarInput"
+                  #avatarInput
+                  (change)="onAvatarChange($event)"
+                />
+                <span class="text filename">{{ fileName }}</span>
+              </label>
+            </div>
+          </div>
+          <div class="btn-submit">
+            <button class="w242" type="submit">Save</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Profile -->
+      <div class="widget-edit mb-30 profile">
+        <div class="title">
+          <h4>Edit your profile</h4>
+          <i class="icon-keyboard_arrow_up"></i>
+        </div>
+        <form (ngSubmit)="updateProfile()" class="comment-form">
+          <div class="flex gap30">
+            <fieldset class="name">
+              <label>Your name*</label>
+              <input type="text" [(ngModel)]="name" name="name" placeholder="Enter your name" required>
+            </fieldset>
+            <fieldset class="email">
+              <label>Email address*</label>
+              <input type="email" [(ngModel)]="email" name="email" placeholder="Your email" required>
+            </fieldset>
+          </div>
+          <div class="btn-submit">
+            <button class="w242" type="submit">Save</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Password -->
+      <div class="widget-edit mb-30 password">
+        <div class="title">
+          <h4>Change password</h4>
+          <i class="icon-keyboard_arrow_up"></i>
+        </div>
+        <form (ngSubmit)="changePassword()" class="comment-form">
+          <fieldset class="password">
+            <label>Old password (Blank if no have password)</label>
+            <input type="password" [(ngModel)]="oldPassword" name="oldPassword" placeholder="Enter your old password" required>
+          </fieldset>
+          <fieldset class="password">
+            <label>New password</label>
+            <input type="password" [(ngModel)]="newPassword" name="newPassword" placeholder="Enter your new password" required>
+          </fieldset>
+          <fieldset class="password">
+            <label>Confirm password</label>
+            <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Confirm password" required>
+          </fieldset>
+          <div class="btn-submit">
+            <button class="w242" type="submit">Save</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Notifications -->
+      <div class="widget-edit mb-30 setting">
+        <div class="title">
+          <h4>Notification setting</h4>
+          <i class="icon-keyboard_arrow_up"></i>
+        </div>
+        <form (ngSubmit)="updateNotifications()" class="comment-form">
+          <div class="notification-setting-item">
+            <div class="content">
+              <h6>New Items Notification</h6>
+              <p>Mauris a velit commodo erat lobortis eleifend</p>
+            </div>
+            <input class="check" type="checkbox" [(ngModel)]="notifyNewItems" name="notifyNewItems">
+          </div>
+          <div class="notification-setting-item">
+            <div class="content">
+              <h6>Email notification</h6>
+              <p>Turn on email notification to get updates through email</p>
+            </div>
+            <input class="check" type="checkbox" [(ngModel)]="notifyEmail" name="notifyEmail">
+          </div>
+          <div class="btn-submit">
+            <button class="w242" type="submit">Save</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Secret Key & Phaseprase -->
+      <div class="widget-edit mb-30 setting">
+        <div class="title">
+          <h4>Account Secret</h4>
+          <i class="icon-keyboard_arrow_up"></i>
+        </div>
+        <form (ngSubmit)="updateNotifications()" class="comment-form">
+          <div class="notification-setting-item">
+            <div class="content">
+              <h6>Show Recovery Phrase</h6>
+              <p *ngIf="recoveryPhrase" (click)="copyToClipboard(recoveryPhrase)">
+                {{ recoveryPhrase }}
+              </p>
+            </div>
+            <input
+              class="check"
+              type="checkbox"
+              [(ngModel)]="showRecoveryPhraseToggle"
+              name="showRecoveryPhraseToggle"
+              (change)="showSecretPrompt('recovery')"
+            >
+          </div>
+
+          <div class="notification-setting-item">
+            <div class="content">
+              <h6>Show Private Key</h6>
+              <p *ngIf="privateKey" (click)="copyToClipboard(privateKey)">
+                {{ privateKey }}
+              </p>
+            </div>
+            <input
+              class="check"
+              type="checkbox"
+              [(ngModel)]="showPrivateKeyToggle"
+              name="showPrivateKeyToggle"
+              (change)="showSecretPrompt('privateKey')"
+            >
+          </div>
+        </form>
+      </div>
+
+      <!-- Two-Factor Authentication -->
+      <div class="widget-edit mb-30 setting">
+        <div class="title">
+          <h4>Two-Factor Authentication</h4>
+          <i class="icon-keyboard_arrow_up"></i>
+        </div>
+        <form class="comment-form" (ngSubmit)="onSubmit2FA()">
+          <div class="notification-setting-item">
+            <div class="content">
+              <h6>Enable 2FA</h6>
+              <p>Protect your account using Google Authenticator</p>
+            </div>
+            <input
+              class="check"
+              type="checkbox"
+              [(ngModel)]="twoFactorEnabled"
+              name="twoFactorEnabled"
+              (change)="toggle2FA($event)"
+            >
+          </div>
+
+          <!-- Tampilkan QR Code jika setup -->
+          <div class="notification-setting-item" *ngIf="qrImage">
+            <div class="content">
+              <h6>Scan QR Code</h6>
+              <p>Scan with Google Authenticator</p>
+              <img [src]="qrImage" alt="2FA QR Code" style="max-width:200px; margin:1rem auto;">
+
+              <h6>Or Enter This Key Manually</h6>
+              <p (click)="copyToClipboard(secretCode)">
+                {{ secretCode }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Input OTP untuk verifikasi -->
+          <div class="notification-setting-item" *ngIf="qrImage">
+            <div class="content">
+              <h6>Enter OTP</h6>
+              <p>Enter code 6 digit from Google Authenticator</p>
+              <input
+                type="text"
+                [(ngModel)]="otpCode"
+                name="otpCode"
+                placeholder="123456"
+                class="form-control"
+              />
+            </div>
+          </div>
+
+          <div class="btn-submit" *ngIf="qrImage">
+            <button class="w242" type="submit">Verify & Enable</button>
+          </div>
+        </form>
+      </div>
+
     </div>
   </div>
-</div>
+
+  <div class="progress-wrap" [class.active-progress]="scrollIsActive" (click)="scrollToTop()">
+      <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+      <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" style="transition: stroke-dashoffset 10ms linear 0s; stroke-dasharray: 307.919, 307.919; stroke-dashoffset: 286.138;"></path>
+      </svg>
+  </div>
+</ion-content>

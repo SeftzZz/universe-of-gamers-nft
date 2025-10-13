@@ -100,13 +100,13 @@
     }
     .market-page .bg-home7 {
         justify-content: end;
-        right: -50px;
+        right: -10px;
     }
     .market-page .bg-home7 .swiper-container {
         margin: unset;
     }
     .market-page .bg-home7 .autoslider3reverse {
-        display: none;
+        display: flex;
     }
     .section-menu-left.null {
         left: -100%;
@@ -139,7 +139,7 @@
 @media (max-width: 1200px) {
     .home-6 .bg-home7,
     .market-page .bg-home7 {
-        display: none;
+        display: flex;
     }
     .swiper-button-next,
     .swiper-button-prev,
@@ -316,7 +316,7 @@
     }
     .bg-home7 .swiper-container:first-child,
     .bg-home7 .swiper-container:last-child {
-        display: none;
+        display: flex;
     }
     .bg-home7 {
         justify-content: end;
@@ -377,7 +377,7 @@
         height: auto;
     }
     .home-6 .bg-home7 {
-        display: none;
+        display: flex;
     }
     .tf-card-article.style-1,
     .widget-related-posts .related-posts-item {
@@ -441,7 +441,7 @@
         width: calc(50% - 28.5px) !important;
     }
     .bg-home7 .swiper-container:nth-last-child(2) {
-        display: none;
+        display: flex;
     }
     .widget-category-checkbox {
         padding-left: 10px;
@@ -535,7 +535,7 @@
         width: 100%;
     }
     .bg-home7 .swiper-container {
-        display: none;
+        display: flex;
     }
     .flat-pages-title-home7 .content {
         margin-top: 70px;

@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
-import { AuthGuard } from './guards/auth-guard';
 import { LoginGuard } from './guards/login-guard';
 
 const routes: Routes = [
@@ -16,11 +15,6 @@ const routes: Routes = [
       import('./registration/registration.module').then(m => m.RegistrationPageModule)
   },
   {
-    path: 'explorer',
-    loadChildren: () =>
-      import('./explorer/explorer.module').then(m => m.ExplorerPageModule)
-  },
-  {
     path: 'offline',
     loadChildren: () =>
       import('./pages/offline/offline.module').then(m => m.OfflinePageModule)
@@ -29,19 +23,18 @@ const routes: Routes = [
   {
     path: 'market-layout',
     loadChildren: () =>
-      import('./pages/market-layout/market-layout.module').then(m => m.MarketLayoutPageModule),
-    canActivate: [AuthGuard]
+      import('./pages/market-layout/market-layout.module').then(m => m.MarketLayoutPageModule)
   },
   // ✅ Default redirect
   {
     path: '',
-    redirectTo: 'explorer',
+    redirectTo: 'market-layout',
     pathMatch: 'full'
   },
   // (Optional) 404 fallback
   {
     path: '**',
-    redirectTo: 'explorer'
+    redirectTo: 'market-layout'
   },
 ];
 

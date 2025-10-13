@@ -1,11 +1,12 @@
 // src/app/pages/my-nfts/my-nfts.page.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { LoadingController } from '@ionic/angular';
 import { Auth } from '../../services/auth';
 import { Market } from '../../services/market';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
+import { IonContent } from '@ionic/angular';
 
 interface Collection {
   id: string;
@@ -79,6 +80,9 @@ export class MyNftsPage implements OnInit {
 
   history: any[] = [];
 
+  @ViewChild(IonContent, { read: ElementRef }) ionContentRef!: ElementRef;
+  scrollIsActive = false;
+
   constructor(
     private market: Market,
     private auth: Auth,
@@ -93,6 +97,21 @@ export class MyNftsPage implements OnInit {
 
   async ionViewWillEnter() {
     await this.refreshAll();
+  }
+
+  ionViewDidEnter() {
+    this.scrollIsActive = false;
+
+    // Re-inisialisasi progress circle setelah halaman selesai render
+    setTimeout(() => {
+      const path = this.ionContentRef.nativeElement.querySelector('.progress-circle path') as SVGPathElement | null;
+      if (path) {
+        const radius = 49;
+        const circumference = 2 * Math.PI * radius;
+        path.style.strokeDasharray = `${circumference}`;
+        path.style.strokeDashoffset = circumference.toString();
+      }
+    }, 300);
   }
 
   private async refreshAll() {
@@ -137,16 +156,8 @@ export class MyNftsPage implements OnInit {
     const rest = decPart.slice(zeroCount);
 
     const subscripts: Record<string, string> = {
-      '0': '₀',
-      '1': '₁',
-      '2': '₂',
-      '3': '₃',
-      '4': '₄',
-      '5': '₅',
-      '6': '₆',
-      '7': '₇',
-      '8': '₈',
-      '9': '₉',
+      "0": "0","1": "0","2": "0","3": "0","4": "₄",
+      "5": "₅","6": "₆","7": "₇","8": "₈","9": "₉"
     };
 
     const zeroCountStr = zeroCount
@@ -279,4 +290,37 @@ export class MyNftsPage implements OnInit {
       alert('Error delisting NFT');
     }
   }
+
+  onScroll(event: CustomEvent) {
+    if (!event) return;
+
+    const scrollEl = event.detail?.scrollElement as HTMLElement | null;
+    if (!scrollEl) return;
+
+    const scrollTop = scrollEl.scrollTop || 0;
+    const scrollHeight = scrollEl.scrollHeight - scrollEl.clientHeight;
+    const percent = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+
+    this.scrollIsActive = percent > 10;
+
+    // ✅ akses aman via ElementRef
+    const path = this.ionContentRef.nativeElement.querySelector('.progress-circle path') as SVGPathElement | null;
+
+    if (path) {
+      const radius = 49;
+      const circumference = 2 * Math.PI * radius;
+      path.style.strokeDasharray = `${circumference}`;
+      const offset = circumference - (percent / 100) * circumference;
+      path.style.strokeDashoffset = offset.toString();
+    }
+  }
+
+  // 🆙 Scroll to top
+  scrollToTop() {
+    const ion = this.ionContentRef.nativeElement as any;
+    if (ion && ion.scrollToTop) {
+      ion.scrollToTop(500);
+    }
+  }
+
 }

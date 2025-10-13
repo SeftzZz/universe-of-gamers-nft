@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { Auth } from '../services/auth';
 import { Wallet } from '../services/wallet';
 import { Modal } from '../services/modal';
@@ -14,7 +14,6 @@ import nacl from 'tweetnacl';
 import bs58 from 'bs58';
 import { GoogleLoginService } from '../services/google-login-service';
 import { AuthRedirect } from '../services/auth-redirect';
-import { NavController } from '@ionic/angular';
 
 let dappKeyPair: nacl.BoxKeyPair | null = null;
 
@@ -59,7 +58,7 @@ export class LoginPage implements OnInit {
 
   private phantomFlow: 'connect' | 'signMessage' | null = null;
   private challengeNonce: string | null = null;
-  
+
   constructor(
     private http: HttpClient,
     private auth: Auth,
@@ -72,7 +71,7 @@ export class LoginPage implements OnInit {
     private userService: User,
     private google: GoogleLoginService,
     private authRedirect: AuthRedirect,
-    private navCtrl: NavController
+    private ngZone: NgZone,
   ) {}
 
   ngOnInit() {
@@ -305,9 +304,15 @@ export class LoginPage implements OnInit {
             ...(res.custodialWallets || [])
           ];
           localStorage.setItem('wallets', JSON.stringify(allWallets));
+          // 🟢 Trigger BehaviorSubject agar UI langsung update
+          this.walletService.setWallets(allWallets);
         }
 
-        this.showToast('Login success', 'success');
+        this.ngZone.run(() => {
+          this.walletService.setActiveWallet(walletAddr);
+        });
+              
+        this.showToast('Login success 🎉', 'success');
         this.clearForm();
         this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
       },
@@ -504,7 +509,8 @@ export class LoginPage implements OnInit {
       if (resp.authId) localStorage.setItem('userId', resp.authId);
       if (resp.token) this.auth.setToken(resp.token, resp.authId);
 
-      this.navCtrl.navigateRoot('/market-layout/all-collection');
+      this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
+
     } catch (err) {
       console.error("❌ Import private key error", err);
 
@@ -553,14 +559,14 @@ export class LoginPage implements OnInit {
 
   // === Logout user ===
   logout() {
-      this.auth.logout(); // hapus token, authId, userId (sudah ada di Auth service)
-      localStorage.removeItem('walletAddress');
-      localStorage.removeItem('wallets');
+    this.auth.logout(); // hapus token, authId, userId (sudah ada di Auth service)
+    localStorage.removeItem('walletAddress');
+    localStorage.removeItem('wallets');
 
-      this.showToast('You have been logged out', 'success');
+    this.showToast('You have been logged out', 'success');
 
-      //redirect ke explorer
-      window.location.href = 'http://localhost:8100/explorer';
+    //redirect ke explorer
+    window.location.href = 'http://localhost:8100/explorer';
   }
 
 }
