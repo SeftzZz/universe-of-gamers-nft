@@ -359,14 +359,14 @@ export class MarketLayoutPage implements OnInit {
   }
 
   async logout() {
-    this.closeMobileNav();
-    const loading = await this.showLoading('Logging out...');
-    try {
-      await this.auth.logout();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      loading.dismiss();
-    }
+      this.closeMobileNav();
+      const loading = await this.showLoading('Logging out...');
+      try {
+        await this.auth.logout();
+      } catch (err) {
+        console.error(err);
+      } finally {
+        loading.dismiss();
+      }
   }
 }

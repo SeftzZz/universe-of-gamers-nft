@@ -59,7 +59,7 @@ export class LoginPage implements OnInit {
 
   private phantomFlow: 'connect' | 'signMessage' | null = null;
   private challengeNonce: string | null = null;
-
+  
   constructor(
     private http: HttpClient,
     private auth: Auth,
@@ -307,7 +307,7 @@ export class LoginPage implements OnInit {
           localStorage.setItem('wallets', JSON.stringify(allWallets));
         }
 
-        this.showToast('Login success 🎉', 'success');
+        this.showToast('Login success', 'success');
         this.clearForm();
         this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
       },
@@ -553,14 +553,14 @@ export class LoginPage implements OnInit {
 
   // === Logout user ===
   logout() {
-    this.auth.logout(); // hapus token, authId, userId (sudah ada di Auth service)
-    localStorage.removeItem('walletAddress');
-    localStorage.removeItem('wallets');
+      this.auth.logout(); // hapus token, authId, userId (sudah ada di Auth service)
+      localStorage.removeItem('walletAddress');
+      localStorage.removeItem('wallets');
 
-    this.showToast('You have been logged out', 'success');
+      this.showToast('You have been logged out', 'success');
 
-    //redirect ke explorer
-    window.location.href = 'http://localhost:8100/explorer';
+      //redirect ke explorer
+      window.location.href = 'http://localhost:8100/explorer';
   }
 
 }
