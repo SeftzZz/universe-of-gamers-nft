@@ -77,7 +77,7 @@
                                 <!-- Character tab -->
                                 <div class="widget-content-inner" [class.active]="activeTab === 'character'">
                                     <div class="row">
-                                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4" *ngFor="let nft of nftCharacter | slice:0:itemsToShowCharacter">
+                                        <div class="col-item" *ngFor="let nft of nftCharacter | slice:0:itemsToShowCharacter">
                                             <div class="tf-card-box style-1 d-flex flex-column">
                                                 <div class="card-media">
                                                     <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">
@@ -105,7 +105,7 @@
                                 <!-- Rune tab -->
                                 <div class="widget-content-inner" [class.active]="activeTab === 'rune'">
                                     <div class="row">
-                                        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4" *ngFor="let nft of nftRune | slice:0:itemsToShowRune">
+                                        <div class="col-item" *ngFor="let nft of nftRune | slice:0:itemsToShowRune">
                                             <div class="tf-card-box style-1 h-100 d-flex flex-column">
                                                 <div class="card-media">
                                                     <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">

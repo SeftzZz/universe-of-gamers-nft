@@ -289,17 +289,13 @@ input:checked~.btn-checkbox {
     color: #161616;
     background-color: #DEE8E8;
     border-radius: 12px;
-    font-family: 'Manrope', sans-serif;
+    font-family: "Manrope", sans-serif;
     font-size: 14px;
     font-weight: 800;
-    width: 116px;
-    height: 42px;
+    width: 90px;
+    height: 30px;
     text-transform: capitalize;
-    -webkit-transition: all 0.3s ease;
-    -moz-transition   : all 0.3s ease;
-    -ms-transition    : all 0.3s ease;
-    -o-transition     : all 0.3s ease;
-    transition        : all 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .tf-button:hover,
@@ -511,9 +507,77 @@ ion-content {
   --background: #111 !important;
 }
 
+ion-tab-bar {
+    --background: #3687fc;
+    --background-focused: var(--ion-tab-bar-background-focused, #e0e0e0);
+    --border: 1px solid var(--ion-tab-bar-border-color, var(--ion-border-color, var(--ion-color-step-150, var(--ion-background-color-step-150, rgba(0, 0, 0, 0.07)))));
+    --color: #fff;
+    --color-selected: var(--ion-tab-bar-color-selected, var(--ion-color-primary, #0054e9));
+    height: 56px;
+}
+
+.tf-card-box.style-4 .button-place-bid {
+    position: unset;
+    transform: translateY(10px);
+    opacity: 1;
+}
+
+.tf-card-box {
+    border-radius: 20px;
+    background: #1E1E1E;
+    padding: 12px 12px 17px 12px;
+    margin-bottom: 40px;
+    -webkit-transition: all 0.2s ease;
+    -moz-transition: all 0.2s ease;
+    -ms-transition: all 0.2s ease;
+    -o-transition: all 0.2s ease;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.price.gem {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 20px;
+}
+
+.action__body .bg-home7 {
+    z-index: 0;
+    width: 486px;
+    height: 268px;
+    gap: 14px;
+    transform: rotate(-32deg);
+    right: -270px;
+}
+
+.tf-button.style-1 {
+    width: 170px;
+    height: 44px;
+    gap: 10px;
+    flex-shrink: 0;
+    background: linear-gradient(45deg, #524afc 0%, #1ac4fc 100%);
+}
+
+.product-item.time-sales .content p {
+    color: #FFF;
+    font-size: 25px;
+    font-weight: 800;
+    line-height: 44px;
+    text-transform: capitalize;
+}
+
+.wrapper-content {
+    width: 100%;
+    display: flex;
+    gap: 15px;
+}
+.tf-soft .soft-right .dropdown {
+    width: 182px;
+}
+
 @media (max-width: 1440px) {
     .wrap-box-card .col-item {
-        width: calc(100% - 28.5px) !important;
+        width: calc(50% - 28.5px) !important;
     }
     .flex {
         display: -webkit-box;
@@ -522,13 +586,24 @@ ion-content {
         display: -webkit-flex;
         display: inline;
     }
+    .side-bar {
+        width: 100%;
+    }
 }
 
-ion-tab-bar {
-    --background: #3687fc;
-    --background-focused: var(--ion-tab-bar-background-focused, #e0e0e0);
-    --border: 1px solid var(--ion-tab-bar-border-color, var(--ion-border-color, var(--ion-color-step-150, var(--ion-background-color-step-150, rgba(0, 0, 0, 0.07)))));
-    --color: #fff;
-    --color-selected: var(--ion-tab-bar-color-selected, var(--ion-color-primary, #0054e9));
-    height: 56px;
+@media (max-width: 768px) {
+    .action__body .bg-home7 {
+        z-index: 0;
+        width: 486px;
+        height: 268px;
+        gap: 14px;
+        transform: rotate(-32deg);
+        right: -270px;
+        filter: blur(5px) brightness(1.2);
+        opacity: 0.8;
+        transform-origin: center;
+    }
+    .wrapper-content {
+        display: block;
+    }
 }

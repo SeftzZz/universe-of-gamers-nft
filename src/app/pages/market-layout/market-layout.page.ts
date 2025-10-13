@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, NgZone, OnInit, HostListener, ElementRef } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Auth } from '../../services/auth';
@@ -7,6 +7,10 @@ import { Modal } from '../../services/modal';
 import { User, UserProfile } from '../../services/user';
 
 import { ToastController, LoadingController } from '@ionic/angular';
+
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { Clipboard } from '@capacitor/clipboard';
 
 @Component({
   selector: 'app-market-layout',
@@ -32,6 +36,8 @@ export class MarketLayoutPage implements OnInit {
 
   profile!: UserProfile;
 
+  private isToggling = false;
+
   constructor(
     private http: HttpClient,
     private auth: Auth,
@@ -40,8 +46,27 @@ export class MarketLayoutPage implements OnInit {
     private userService: User,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
+    private ngZone: NgZone,
+    private router: Router,
+    private el: ElementRef,
   ) {}
 
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    const progress = this.el.nativeElement.querySelector('.progress-wrap');
+    if (!progress) return;
+
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollPercent = (scrollTop / docHeight) * 100;
+
+    if (scrollPercent > 10) {
+      progress.classList.add('active-progress');
+    } else {
+      progress.classList.remove('active-progress');
+    }
+  }
+  
   ngOnInit() {
     // 🔹 listen perubahan wallets dari service
     this.walletService.getWallets().subscribe(ws => {
@@ -59,11 +84,37 @@ export class MarketLayoutPage implements OnInit {
       console.log('✅ User profile updated:', this.profile);
     });
 
+    this.userService.loadFromStorage();
+
     this.sub = this.modalService.accountsModal$.subscribe(open => {
       this.showAccountsModal = open;
     });
 
-    this.toggleMobileNav();
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        // Pastikan dalam zone Angular
+        this.ngZone.run(() => {
+          this.mobileNavActive = false;
+        });
+      });
+  }
+
+  toggleMobileNav() {
+    if (this.isToggling) return;
+    this.isToggling = true;
+
+    this.ngZone.run(() => {
+      this.mobileNavActive = !this.mobileNavActive;
+    });
+
+    setTimeout(() => (this.isToggling = false), 300); // delay aman
+  }
+
+  closeMobileNav() {
+    this.ngZone.run(() => {
+      this.mobileNavActive = false;
+    });
   }
 
   ngOnDestroy() {
@@ -121,22 +172,10 @@ export class MarketLayoutPage implements OnInit {
     return addr.slice(0, 3) + '...' + addr.slice(-3);
   }
 
-  toggleMobileNav() {
-    const navWrap = document.querySelector('#header_main .mobile-nav-wrap');
-    navWrap?.classList.toggle('active');
-  }
-
-  closeMobileNav() {
-    const navWrap = document.querySelector('#header_main .mobile-nav-wrap');
-    navWrap?.classList.remove('active');
-  }
-
   get uniqueWallets() {
     const seen = new Set<string>();
-    return this.wallets.filter(w => {
-      if (seen.has(w.address)) {
-        return false;
-      }
+    return (this.wallets || []).filter(w => {
+      if (!w?.address || seen.has(w.address)) return false;
       seen.add(w.address);
       return true;
     });
@@ -332,12 +371,64 @@ export class MarketLayoutPage implements OnInit {
   async logout() {
     this.closeMobileNav();
     const loading = await this.showLoading('Logging out...');
+
     try {
-      await this.auth.logout();
+      // Jalankan dalam Angular zone agar UI ikut update
+      this.ngZone.run(async () => {
+        await this.auth.logout();
+
+        // 🧹 Bersihkan wallet
+        this.walletService.setActiveWallet(''); // <-- pastikan BehaviorSubject dikosongkan
+        this.walletService.setWallets([]);        // opsional
+        localStorage.removeItem('walletAddress');
+        localStorage.removeItem('wallets');
+
+        // 🧹 Bersihkan auth info
+        localStorage.removeItem('userId');
+        localStorage.removeItem('token');
+
+        this.activeWallet = null; // update lokal
+        this.profile = {} as any;
+
+        // 🚀 Redirect ke halaman umum (tanpa guard)
+        this.router.navigate(['/market-layout/all-collection']);
+      });
     } catch (err) {
-      console.error(err);
+      console.error('❌ Logout error:', err);
     } finally {
       loading.dismiss();
     }
   }
+
+  async onCopyIconClick(event: Event, text: string) {
+    event.preventDefault();
+    event.stopPropagation();
+    try {
+      await Clipboard.write({ string: text });
+      console.log(`📋 Copied to clipboard! ${text}`);
+      const toast = await this.toastCtrl.create({
+        message: `📋 Copied to clipboard!`,
+        duration: 2000,
+        position: "bottom",
+        color: "success",
+        icon: "checkmark-circle-outline",
+        cssClass: "custom-toast visible-toast",
+        mode: "ios"
+      });
+      await toast.present();
+    } catch (err: any) {
+      console.error('❌ Failed to copy:', JSON.stringify(err.message));
+      const toast = await this.toastCtrl.create({
+        message: `❌ Failed to copy text`,
+        duration: 2000,
+        position: "bottom",
+        color: "danger",
+        icon: "close-circle-outline",
+        cssClass: "custom-toast visible-toast",
+        mode: "ios"
+      });
+      await toast.present();
+    }
+  }
+
 }

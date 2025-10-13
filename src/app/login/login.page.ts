@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { Auth } from '../services/auth';
 import { Wallet } from '../services/wallet';
 import { Modal } from '../services/modal';
@@ -71,6 +71,7 @@ export class LoginPage implements OnInit {
     private userService: User,
     private google: GoogleLoginService,
     private authRedirect: AuthRedirect,
+    private ngZone: NgZone,
   ) {}
 
   ngOnInit() {
@@ -303,8 +304,14 @@ export class LoginPage implements OnInit {
             ...(res.custodialWallets || [])
           ];
           localStorage.setItem('wallets', JSON.stringify(allWallets));
+          // 🟢 Trigger BehaviorSubject agar UI langsung update
+          this.walletService.setWallets(allWallets);
         }
 
+        this.ngZone.run(() => {
+          this.walletService.setActiveWallet(walletAddr);
+        });
+              
         this.showToast('Login success 🎉', 'success');
         this.clearForm();
         this.authRedirect.redirectAfterLogin('/market-layout/all-collection');

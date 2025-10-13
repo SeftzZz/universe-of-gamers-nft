@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { ToastController, LoadingController, AlertController } from '@ionic/angular';
 import { User, UserProfile } from '../../services/user';
+import { IonContent } from '@ionic/angular';
 
 @Component({
   selector: 'app-setting',
@@ -37,6 +38,9 @@ export class SettingPage implements OnInit {
   secretCode: string = '';
   twoFactorEnabled: boolean = false;
 
+  @ViewChild(IonContent, { static: false }) ionContent!: IonContent;
+  scrollIsActive = false;
+  
   constructor(
     private http: HttpClient, 
     private toastCtrl: ToastController,
@@ -471,5 +475,47 @@ export class SettingPage implements OnInit {
       console.error('❌ Verifikasi 2FA gagal:', err);
       this.showToast(err.error?.error || '❌ Verifikasi 2FA gagal');
     }
+  }
+
+  onScroll(event: CustomEvent) {
+    if (!event) return;
+
+    // ✅ Coba ambil dari detail dulu
+    let scrollEl = event.detail?.scrollElement as HTMLElement | null;
+
+    // 🔁 Jika undefined, ambil manual dari ion-content (DOM)
+    if (!scrollEl) {
+      const ionContent = document.querySelector('ion-content');
+      scrollEl = ionContent?.shadowRoot?.querySelector('.inner-scroll') as HTMLElement | null;
+    }
+
+    if (!scrollEl) {
+      console.warn('⚠️ Tidak bisa menemukan elemen scroll (scrollEl)');
+      return;
+    }
+
+    const scrollTop = scrollEl.scrollTop || 0;
+    const scrollHeight = scrollEl.scrollHeight || 1;
+    const clientHeight = scrollEl.clientHeight || 1;
+
+    const denominator = scrollHeight - clientHeight;
+    const percent = denominator > 0 ? (scrollTop / denominator) * 100 : 0;
+
+    this.scrollIsActive = percent > 10;
+
+    // 🎯 Update progress ring stroke
+    const path = document.querySelector('.progress-circle path') as SVGPathElement;
+    if (path) {
+      const radius = 49; // dari path: M50,1 a49,49 ...
+      const circumference = 2 * Math.PI * radius;
+      path.style.strokeDasharray = `${circumference}`;
+      const offset = circumference - (percent / 100) * circumference;
+      path.style.strokeDashoffset = offset.toString();
+    }
+  }
+
+  // 🆙 Scroll to top dengan animasi halus
+  scrollToTop() {
+    this.ionContent.scrollToTop(500); // 500ms animasi smooth scroll
   }
 }

@@ -25,10 +25,12 @@ export class User {
     email: '',
     notifyNewItems: false,
     notifyEmail: false,
-    avatar: 'assets/images/avatar/avatar-01.png',
+    avatar: '',
     custodialWallets: [],
     role: ''
   });
+
+  private avatar$ = new BehaviorSubject<string>('assets/images/avatar/avatar-07.png');
 
   setUser(profile: Partial<UserProfile>) {
     const current = this.user$.getValue();
@@ -50,8 +52,6 @@ export class User {
       this.user$.next(JSON.parse(stored));
     }
   }
-
-  private avatar$ = new BehaviorSubject<string>('assets/images/avatar/avatar-07.png');
 
   setAvatar(url: string) {
     this.avatar$.next(url);
