@@ -111,106 +111,126 @@
                 <div class="widget-content-tab">
                     <!-- Character tab -->
                     <div class="widget-content-inner" [class.active]="activeTab === 'character'">
-                        <div>
-                            <div class="wrap-box-card">
-                                <div class="col-item" *ngFor="let nft of nftBC | slice:0:itemsToShowCharacter">
-                                    <div class="tf-card-box style-4">
-                                        <div class="card-media">
-                                            <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress, true)">
-                                                <img [src]="nft.image || 'assets/images/box-item/card-item-01.jpg'" alt="">
-                                            </a>
-                                            <span class="wishlist-button icon-heart" [class.active]="isFavorite(nft)" (click)="toggleFavorite(nft)"></span>
-                                        </div>
-                                        <div class="author flex items-center">
-                                            <div class="info">
-                                                <span>Created by:</span>
-                                                <h6>{{ shorten(nft.owner) }}</h6>
-                                            </div>
-                                        </div>
-                                        <h5 class="name"><a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress, true)">{{ nft.name }}</a></h5>
-                                        <!-- ✅ Tambahkan label jika NFT sedang dijual -->
-                                        <span *ngIf="nft.isSell" class="badge bg-primary text-bid">
-                                          On Sale
-                                        </span>
-                                        <div class="meta-info flex items-center justify-between" style="display: flex;">
-                                            <!-- <div>
-                                                <span class="text-bid">Price</span>
-                                                <h6 class="price gem" style="margin-top: 0px;margin-bottom: 0px;" [innerHTML]="nft?.price ? formatWithZeroCount(nft.price) : '-'">
-                                                    <i class="icon-gem"></i>
-                                                </h6>
-                                            </div> -->
-                                            <div class="button-place-bid">
-                                                <!-- ✅ Ganti tombol Sell Now jadi Delist Now -->
-                                                <a href="javascript:void(0)"
-                                                   (click)="nft.isSell ? delistNft(nft.mintAddress) : goToNftDetail(nft.mintAddress, true)"
-                                                   class="tf-button">
-                                                  <span>{{ nft.isSell ? 'Delist Now' : 'Sell Now' }}</span>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                      <!-- Skeleton loader -->
+                      <div *ngIf="isLoading" class="loading-state">
+                        <ion-spinner name="crescent"></ion-spinner>
+                        <p>Loading NFTs...</p>
+                      </div>
+
+                      <!-- ✅ Pesan kosong muncul jika tidak ada NFT -->
+                      <ng-container *ngIf="activeTab === 'character'">
+                        <div *ngIf="!isLoading && nftBC.length === 0" class="empty-state">
+                          <p>No character NFTs found for this wallet.</p>
                         </div>
-                        <div *ngIf="itemsToShowCharacter < nftBC.length">
-                            <div class="col-md-12 load-more">
-                                <a class="tf-button-loadmore" (click)="loadMoreCharacter()">
-                                    <span>Load More</span><i class="icon-loading-1"></i>
+                      </ng-container>
+
+                      <!-- ✅ Daftar NFT -->
+                      <div *ngIf="nftBC.length > 0">
+                        <div class="wrap-box-card">
+                          <div class="col-item" *ngFor="let nft of nftBC | slice:0:itemsToShowCharacter">
+                            <div class="tf-card-box style-4">
+                              <div class="card-media">
+                                <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress, true)">
+                                  <img [src]="nft.image || 'assets/images/box-item/card-item-01.jpg'" alt="">
                                 </a>
+                                <span class="wishlist-button icon-heart"
+                                      [class.active]="isFavorite(nft)"
+                                      (click)="toggleFavorite(nft)">
+                                </span>
+                              </div>
+                              <div class="author flex items-center">
+                                <div class="info">
+                                  <span>Created by:</span>
+                                  <h6>{{ shorten(nft.owner) }}</h6>
+                                </div>
+                              </div>
+                              <h5 class="name">
+                                <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress, true)">
+                                  {{ nft.name }}
+                                </a>
+                              </h5>
+
+                              <!-- Label jika NFT sedang dijual -->
+                              <span *ngIf="nft.isSell" class="badge bg-primary text-bid">On Sale</span>
+
+                              <div class="meta-info flex items-center justify-between">
+                                <div class="button-place-bid">
+                                  <a href="javascript:void(0)"
+                                     (click)="nft.isSell ? delistNft(nft.mintAddress) : goToNftDetail(nft.mintAddress, true)"
+                                     class="tf-button">
+                                    <span>{{ nft.isSell ? 'Delist Now' : 'Sell Now' }}</span>
+                                  </a>
+                                </div>
+                              </div>
                             </div>
+                          </div>
                         </div>
+
+                        <!-- Tombol Load More -->
+                        <div *ngIf="itemsToShowCharacter < nftBC.length" class="col-md-12 load-more">
+                          <a class="tf-button-loadmore" (click)="loadMoreCharacter()">
+                            <span>Load More</span><i class="icon-loading-1"></i>
+                          </a>
+                        </div>
+                      </div>
                     </div>
 
                     <!-- Rune tab -->
                     <div class="widget-content-inner" [class.active]="activeTab === 'rune'">
-                        <div>
-                            <div class="wrap-box-card">
-                                <div class="col-item" *ngFor="let nft of nftRuneBC | slice:0:itemsToShowRune">
-                                    <div class="tf-card-box style-4">
-                                        <div class="card-media">
-                                            <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress, true)">
-                                                <img [src]="nft.image || 'assets/images/box-item/card-item-01.jpg'" alt="">
-                                            </a>
-                                            <span class="wishlist-button icon-heart" [class.active]="isFavorite(nft)" (click)="toggleFavorite(nft)"></span>
-                                        </div>
-                                        <div class="author flex items-center">
-                                            <div class="info">
-                                                <span>Created by:</span>
-                                                <h6>{{ shorten(nft.owner) }}</h6>
-                                            </div>
-                                        </div>
-                                        <h5 class="name">{{ nft.name }}</h5>
-                                        <!-- ✅ Tambahkan label jika NFT sedang dijual -->
-                                        <span *ngIf="nft.isSell" class="badge bg-primary text-bid">
-                                          On Sale
-                                        </span>
-                                        <div class="meta-info flex items-center justify-between" style="display: flex;">
-                                            <!-- <div>
-                                                <span class="text-bid">Price</span>
-                                                <h6 class="price gem" [innerHTML]="nft?.price ? formatWithZeroCount(nft.price) : '-'">
-                                                    <i class="icon-gem"></i>
-                                                </h6>
-                                            </div> -->
-                                            <div class="button-place-bid">
-                                                <a href="javascript:void(0)"
-                                                   (click)="nft.isSell ? delistNft(nft.mintAddress) : goToNftDetail(nft.mintAddress, true)"
-                                                   class="tf-button">
-                                                  <span>{{ nft.isSell ? 'Delist Now' : 'Sell Now' }}</span>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+
+                      <!-- ✅ Pesan kosong muncul jika tidak ada NFT -->
+                      <ng-container *ngIf="activeTab === 'rune'">
+                        <div *ngIf="!isLoading && nftRuneBC.length === 0" class="empty-state">
+                          <p>No rune NFTs found for this wallet.</p>
                         </div>
-                        <div *ngIf="itemsToShowRune < nftRuneBC.length">
-                            <div class="col-md-12 load-more">
-                                <a class="tf-button-loadmore" (click)="loadMoreRune()">
-                                    <span>Load More</span><i class="icon-loading-1"></i>
+                      </ng-container>
+
+                      <!-- ✅ Daftar NFT -->
+                      <div *ngIf="nftRuneBC.length > 0">
+                        <div class="wrap-box-card">
+                          <div class="col-item" *ngFor="let nft of nftRuneBC | slice:0:itemsToShowRune">
+                            <div class="tf-card-box style-4">
+                              <div class="card-media">
+                                <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress, true)">
+                                  <img [src]="nft.image || 'assets/images/box-item/card-item-01.jpg'" alt="">
                                 </a>
+                                <span class="wishlist-button icon-heart"
+                                      [class.active]="isFavorite(nft)"
+                                      (click)="toggleFavorite(nft)">
+                                </span>
+                              </div>
+                              <div class="author flex items-center">
+                                <div class="info">
+                                  <span>Created by:</span>
+                                  <h6>{{ shorten(nft.owner) }}</h6>
+                                </div>
+                              </div>
+                              <h5 class="name">{{ nft.name }}</h5>
+
+                              <span *ngIf="nft.isSell" class="badge bg-primary text-bid">On Sale</span>
+
+                              <div class="meta-info flex items-center justify-between">
+                                <div class="button-place-bid">
+                                  <a href="javascript:void(0)"
+                                     (click)="nft.isSell ? delistNft(nft.mintAddress) : goToNftDetail(nft.mintAddress, true)"
+                                     class="tf-button">
+                                    <span>{{ nft.isSell ? 'Delist Now' : 'Sell Now' }}</span>
+                                  </a>
+                                </div>
+                              </div>
                             </div>
+                          </div>
                         </div>
+
+                        <!-- Tombol Load More -->
+                        <div *ngIf="itemsToShowRune < nftRuneBC.length" class="col-md-12 load-more">
+                          <a class="tf-button-loadmore" (click)="loadMoreRune()">
+                            <span>Load More</span><i class="icon-loading-1"></i>
+                          </a>
+                        </div>
+                      </div>
                     </div>
+
                 </div>
             </div>
         </div>

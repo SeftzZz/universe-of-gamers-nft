@@ -11,6 +11,7 @@ export class Market {
   private latestNfts$ = new BehaviorSubject<any[]>([]);
   private topCreators$ = new BehaviorSubject<any[]>([]);
   private history$ = new BehaviorSubject<any[]>([]);
+  private myHistory$ = new BehaviorSubject<any[]>([]);
   private users$ = new BehaviorSubject<any[]>([]);
 
   constructor(private http: HttpClient) {}
@@ -87,6 +88,21 @@ export class Market {
     }
   }
 
+  async loadMyHistory(): Promise<any[]> {
+    try {
+      const data: any = await firstValueFrom(
+        this.http.get<any>(`${environment.apiUrl}/nft/my-history`)
+      );
+      const history = data?.history || [];
+      this.myHistory$.next(history);
+      return history;
+    } catch (err) {
+      console.error('Error loadMyHistory:', err);
+      this.myHistory$.next([]);
+      return [];
+    }
+  }
+
   async loadUsers() {
     try {
       const data: any = await firstValueFrom(
@@ -118,6 +134,10 @@ export class Market {
 
   getHistory() {
     return this.history$.asObservable();
+  }
+
+  getMyHistory() {
+    return this.myHistory$.asObservable();
   }
 
   getUsers() {

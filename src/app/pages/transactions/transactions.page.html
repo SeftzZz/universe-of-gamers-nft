@@ -1,48 +1,81 @@
-<ion-content class="ion-padding">  
+<ion-content class="ion-padding">
   <div class="content-tabs" style="margin-top: 10vh;">
-    <div class="">
-        <div class="wrapper-content">
-            <div class="themesflat-container">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="product-item item-activity mb-0">
-                            <h6><i class="icon-two-arrow rotateZ90"></i>Item activity</h6>
-                            <i class="icon-keyboard_arrow_down"></i>
-                            <div class="content">
-                                <div class="table-heading">
-                                    <div class="column">Event</div>
-                                    <div class="column">Amount</div>
-                                    <div class="column">Form</div>
-                                    <div class="column">To</div>
-                                    <div class="column">Date</div>
-                                </div>
-                                <span *ngIf="metadata">
-                                  <div class="table-item" *ngFor="let h of metadata.history">
-                                      <div class="column flex items-center">
-                                        <i class="icon-two-arrow"></i>{{ h.event }}
-                                      </div>
-                                      <div class="column">{{ h.amount }}</div>
-                                      <div class="column">
-                                        <span class="tf-color">
-                                          {{ h.from ? shortenAddress(h.from) : '-' }}
-                                        </span>
-                                      </div>
-                                      <div class="column">
-                                        <span class="tf-color">
-                                          {{ h.to ? shortenAddress(h.to) : (shortenAddress(metadata.properties?.creators?.[0]?.address) || 'Unknown') }}
-                                        </span>
-                                      </div>
-                                      <div class="column">
-                                        {{ h.blockTime }}
-                                      </div>
-                                  </div>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+    <div class="wrapper-content">
+      <div class="themesflat-container">
+        <div class="row">
+          <div class="col-12">
+            <div class="product-item item-activity mb-0">
+              <h6>
+                <i class="icon-two-arrow rotateZ90"></i>
+                Item Activity
+              </h6>
+              <i class="icon-keyboard_arrow_down"></i>
+
+              <div class="content">
+                <!-- 🔹 Tabel Header -->
+                <div class="table-heading">
+                  <div class="column">NFT</div>
+                  <div class="column">Price</div>
+                  <div class="column">Seller → Buyer</div>
+                  <div class="column">Mint</div>
+                  <div class="column">Date</div>
                 </div>
+
+                <!-- 🔹 Loading State -->
+                <div class="no-data text-center mt-3" *ngIf="isLoading">
+                  <ion-spinner name="crescent" color="primary"></ion-spinner>
+                  <p class="mt-2">Fetching on-chain history...</p>
+                </div>
+
+                <!-- 🔹 Data Rows -->
+                <ng-container *ngIf="!isLoading && history.length; else emptyState">
+                  <div class="table-item" *ngFor="let h of history">
+                    <!-- NFT Column -->
+                    <div class="column flex items-center">
+                      <img
+                        [src]="h.image"
+                        alt="{{ h.name }}"
+                        style="height: 35px; width: 35px; border-radius: 6px; margin-right: 8px;"
+                      />
+                      {{ h.name }}
+                    </div>
+
+                    <!-- Price Column -->
+                    <div class="column">
+                      {{ h.price ? (h.price | number:'1.2-4') : '-' }}
+                    </div>
+
+                    <!-- Seller → Buyer -->
+                    <div class="column">
+                      <span class="tf-color">{{ shortenAddress(h.sellerWallet) }}</span>
+                      <span style="margin: 0 4px;">→</span>
+                      <span class="tf-color">{{ shortenAddress(h.owner) }}</span>
+                    </div>
+
+                    <!-- Mint Column -->
+                    <div class="column">
+                      <span class="tf-color">{{ shortenAddress(h.mintAddress) }}</span>
+                    </div>
+
+                    <!-- Date Column -->
+                    <div class="column">
+                      {{ h.updatedAt | date: 'medium' }}
+                    </div>
+                  </div>
+                </ng-container>
+
+                <!-- 🔹 Empty State -->
+                <ng-template #emptyState>
+                  <div class="no-data text-center mt-3">
+                    <ion-icon name="time-outline" size="large" color="medium"></ion-icon>
+                    <p class="mt-2">No transaction history found</p>
+                  </div>
+                </ng-template>
+              </div>
             </div>
+          </div>
         </div>
+      </div>
     </div>
   </div>
 </ion-content>
