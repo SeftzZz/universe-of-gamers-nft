@@ -577,7 +577,7 @@ ion-tab-bar {
 
 @media (max-width: 1440px) {
     .wrap-box-card .col-item {
-        width: calc(50% - 28.5px) !important;
+        width: calc(33.333% - 28.5px) !important;
     }
     .flex {
         display: -webkit-box;
@@ -588,6 +588,7 @@ ion-tab-bar {
     }
     .side-bar {
         width: 350px;
+        margin-top: 10vh;
     }
 
     .inner-content {
@@ -612,8 +613,6 @@ ion-tab-bar {
     .wrapper-content {
         display: block;
     }
-}
-@media (max-width: 768px) {
     .side-bar {
         width: 100%;
         margin-top: 30px;
@@ -621,10 +620,15 @@ ion-tab-bar {
     .tf-soft .soft-right .dropdown, .soft-right {
         width: 100%;
     }
+
+    .wrap-box-card .col-item {
+        width: 100% !important;
+    }
 }
 @media (min-width: 1440px) {
     .side-bar {
         width: 400px;
+        margin-top: 10vh;
     }
 
     .inner-content {
