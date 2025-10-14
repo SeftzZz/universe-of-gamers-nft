@@ -4,9 +4,11 @@ import { Router } from '@angular/router';
 import { LoadingController } from '@ionic/angular';
 import { Auth } from '../../services/auth';
 import { Market } from '../../services/market';
+import { Wallet } from '../../services/wallet';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { IonContent } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 
 interface Collection {
   id: string;
@@ -82,9 +84,11 @@ export class MyNftsPage implements OnInit {
 
   @ViewChild(IonContent, { read: ElementRef }) ionContentRef!: ElementRef;
   scrollIsActive = false;
+  isLoading = true;
 
   constructor(
     private market: Market,
+    private wallet: Wallet,
     private auth: Auth,
     private router: Router,
     private loadingCtrl: LoadingController,
@@ -92,6 +96,11 @@ export class MyNftsPage implements OnInit {
   ) {}
 
   async ngOnInit() {
+    this.wallet.getActiveWallet().subscribe((addr) => {
+      this.userAddress = addr;
+      this.filterNftsByActiveWallet();
+    });
+
     await this.refreshAll();
   }
 
@@ -115,26 +124,36 @@ export class MyNftsPage implements OnInit {
   }
 
   private async refreshAll() {
-    await this.market.loadNfts();
-    await this.market.loadMyNfts();
-    await this.market.loadLatestNfts();
-    await this.market.loadTopCreators();
-    await this.market.loadHistory();
-    await this.market.loadUsers();
+    this.isLoading = true; // 🔄 mulai loading
 
-    // ambil cache dari service
-    this.market.getMyNfts().subscribe((myNfts) => {
-      this.fetchnft = myNfts || [];
-      this.nftBC = this.fetchnft.filter((n) => !!n.character);
-      this.nftRuneBC = this.fetchnft.filter((n) => !!n.rune);
-    });
+    try {
+      // Ambil wallet aktif
+      this.userAddress = await firstValueFrom(this.wallet.getActiveWallet());
 
-    this.market.getLatestNfts().subscribe((data) => (this.latestNfts = data));
-    this.market.getTopCreators().subscribe((data) => (this.topCreators = data));
-    this.market.getHistory().subscribe((data) => (this.history = data));
-    this.market.getUsers().subscribe((data) => (this.allUsers = data));
+      // Ambil data dari service
+      await this.market.loadMyNfts();
+      await this.market.loadLatestNfts();
+      await this.market.loadTopCreators();
+      await this.market.loadHistory();
+      await this.market.loadUsers();
 
-    this.loadFavorites();
+      // Ambil hasil cache dari service
+      this.market.getMyNfts().subscribe((myNfts) => {
+        this.fetchnft = myNfts || [];
+        this.filterNftsByActiveWallet();
+        this.isLoading = false; // ✅ selesai loading
+      });
+
+      this.market.getLatestNfts().subscribe((data) => (this.latestNfts = data));
+      this.market.getTopCreators().subscribe((data) => (this.topCreators = data));
+      this.market.getHistory().subscribe((data) => (this.history = data));
+      this.market.getUsers().subscribe((data) => (this.allUsers = data));
+
+      this.loadFavorites();
+    } catch (err) {
+      console.error('❌ refreshAll error:', err);
+      this.isLoading = false;
+    }
   }
 
   shorten(addr: string) {
@@ -320,6 +339,43 @@ export class MyNftsPage implements OnInit {
     const ion = this.ionContentRef.nativeElement as any;
     if (ion && ion.scrollToTop) {
       ion.scrollToTop(500);
+    }
+  }
+
+  private filterNftsByActiveWallet() {
+    console.log("🔍 [filterNftsByActiveWallet] Called");
+    console.log("   🧩 userAddress:", this.userAddress);
+    console.log("   🧮 Total fetched NFT:", this.fetchnft?.length || 0);
+
+    if (!this.userAddress) {
+      console.warn("⚠️ No active wallet found. Clearing NFT lists.");
+      this.nftBC = [];
+      this.nftRuneBC = [];
+      return;
+    }
+
+    const walletAddr = this.userAddress.toLowerCase();
+
+    // 🔹 Filter Character NFT
+    this.nftBC = this.fetchnft.filter(
+      (n) => n.character && n.owner?.toLowerCase() === walletAddr
+    );
+
+    // 🔹 Filter Rune NFT
+    this.nftRuneBC = this.fetchnft.filter(
+      (n) => n.rune && n.owner?.toLowerCase() === walletAddr
+    );
+
+    console.log("✅ [filterNftsByActiveWallet] Done filtering:");
+    console.log("   🎭 Characters:", this.nftBC.length);
+    console.log("   🔮 Runes:", this.nftRuneBC.length);
+
+    // (Opsional) log contoh 1 item untuk memastikan struktur benar
+    if (this.nftBC.length > 0) {
+      console.log("   🔹 Example Character NFT:", this.nftBC[0]);
+    }
+    if (this.nftRuneBC.length > 0) {
+      console.log("   🔹 Example Rune NFT:", this.nftRuneBC[0]);
     }
   }
 
