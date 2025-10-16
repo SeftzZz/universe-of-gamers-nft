@@ -312,7 +312,7 @@ export class LoginPage implements OnInit {
           this.walletService.setActiveWallet(walletAddr);
         });
               
-        this.showToast('Login success 🎉', 'success');
+        this.showToast('Login success', 'success');
         this.clearForm();
         this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
       },

@@ -1,9 +1,11 @@
 // src/app/pages/all-collection/all-collection.page.ts
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { Auth } from '../../services/auth';
-import { Market } from '../../services/market';   // ✅ pakai Market service
 import { LoadingController } from '@ionic/angular';
+import { Auth } from '../../services/auth';
+import { Market } from '../../services/market';
+import { environment } from '../../../environments/environment';
+import { HttpClient } from '@angular/common/http';
 import { IonContent } from '@ionic/angular';
 
 interface Collection {
