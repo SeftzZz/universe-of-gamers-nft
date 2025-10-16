@@ -644,7 +644,7 @@ export class CreatesPage implements OnInit {
         position: "top",
       });
       toast.present();
-
+      await this.loadTokens();
     } catch (err: any) {
       console.error("❌ Error minting gatcha:", err);
       const toast = await this.toastCtrl.create({
@@ -654,9 +654,8 @@ export class CreatesPage implements OnInit {
         position: "top",
       });
       toast.present();
-    } finally {
-      this.resetSendModal();
-    }
+      await this.loadTokens();
+    } 
   }
 
   async fetchRates() {
