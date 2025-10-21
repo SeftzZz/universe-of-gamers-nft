@@ -113,7 +113,7 @@
                     <div class="widget-content-inner" [class.active]="activeTab === 'character'">
                         <div>
                             <div class="wrap-box-card">
-                                <div class="col-item" *ngFor="let nft of nftBC | slice:0:itemsToShowCharacter">
+                                <div class="col-lg-4 col-md-6 col-6" *ngFor="let nft of nftBC | slice:0:itemsToShowCharacter">
                                     <div class="tf-card-box style-4">
                                         <div class="card-media">
                                             <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">
@@ -121,14 +121,13 @@
                                             </a>
                                             <span class="wishlist-button icon-heart" [class.active]="isFavorite(nft)" (click)="toggleFavorite(nft)"></span>
                                         </div>
-                                        <h5 class="name"><a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">{{ nft.name }}</a></h5>
                                         <h6
                                           class="price gem rarity-tag"
-                                          [ngClass]="(typeof nft.character === 'object' ? nft.character?.rarity?.toLowerCase() : 'common')"
+                                          [ngClass]="(typeof nft.character === 'object' ? nft.character.rarity?.toLowerCase() : 'common')"
                                         >
-                                          {{ typeof nft.character === 'object' ? nft.character?.rarity : '' }}
+                                          {{ typeof nft.character === 'object' ? nft.character.rarity : '' }}
                                         </h6>
-
+                                        <h5 class="name"><a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">{{ nft.name }}</a></h5>
                                         <div class="author flex items-center">
                                             <div class="info">
                                                 <span>Created by:</span>
@@ -139,8 +138,8 @@
                                             <div>
                                                 <span class="text-bid">Price</span>
                                                 <h6 class="price gem" style="margin-top: 0px;margin-bottom: 0px;">
-                                                  {{ formatPriceDisplay(nft.price, getTokenSymbol(nft)) }}
-                                                  {{ getTokenSymbol(nft) }}
+                                                  {{ formatPriceDisplay(nft.price) }}
+                                                  {{ nft?.paymentSymbol || 'SOL' }}
                                                 </h6>
                                             </div>
                                             <!-- <div class="button-place-bid">
@@ -164,7 +163,7 @@
                     <div class="widget-content-inner" [class.active]="activeTab === 'rune'">
                         <div>
                             <div class="wrap-box-card">
-                                <div class="col-item" *ngFor="let nft of nftRuneBC | slice:0:itemsToShowRune">
+                                <div class="col-lg-4 col-md-6 col-6" *ngFor="let nft of nftRuneBC | slice:0:itemsToShowRune">
                                     <div class="tf-card-box style-4">
                                         <div class="card-media">
                                             <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">
@@ -172,13 +171,13 @@
                                             </a>
                                             <span class="wishlist-button icon-heart" [class.active]="isFavorite(nft)" (click)="toggleFavorite(nft)"></span>
                                         </div>
-                                        <h5 class="name">{{ nft.name }}</h5>
                                         <h6
                                           class="price gem rarity-tag"
-                                          [ngClass]="(typeof nft.rune === 'object' ? nft.rune?.rarity?.toLowerCase() : 'common')"
+                                          [ngClass]="(typeof nft.rune === 'object' ? nft.rune.rarity?.toLowerCase() : 'common')"
                                         >
-                                          {{ typeof nft.rune === 'object' ? nft.rune?.rarity : '' }}
+                                          {{ typeof nft.rune === 'object' ? nft.rune.rarity : '' }}
                                         </h6>
+                                        <h5 class="name"><a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress)">{{ nft.name }}</a></h5>
                                         <div class="author flex items-center">
                                             <div class="info">
                                                 <span>Created by:</span>
@@ -189,8 +188,8 @@
                                             <div>
                                                 <span class="text-bid">Price</span>
                                                 <h6 class="price gem" style="margin-top: 0px;margin-bottom: 0px;">
-                                                  {{ formatPriceDisplay(nft.price, getTokenSymbol(nft)) }}
-                                                  {{ getTokenSymbol(nft) }}
+                                                  {{ formatPriceDisplay(nft.price) }}
+                                                  {{ nft?.paymentSymbol || 'SOL' }}
                                                 </h6>
                                             </div>
                                             <!-- <div class="button-place-bid">

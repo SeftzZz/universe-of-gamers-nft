@@ -127,7 +127,7 @@
                       <!-- ✅ Daftar NFT -->
                       <div *ngIf="nftBC.length > 0">
                         <div class="wrap-box-card">
-                          <div class="col-item" *ngFor="let nft of nftBC | slice:0:itemsToShowCharacter">
+                          <div class="col-lg-4 col-md-6 col-6" *ngFor="let nft of nftBC | slice:0:itemsToShowCharacter">
                             <div class="tf-card-box style-4">
                               <div class="card-media">
                                 <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress, true)">
@@ -144,12 +144,25 @@
                                   <h6>{{ shorten(nft.owner) }}</h6>
                                 </div>
                               </div>
+                              <h6
+                                class="price gem rarity-tag"
+                                [ngClass]="
+                                  (nft.character?.rarity || nft.rune?.rarity || 'common').toLowerCase()
+                                "
+                              >
+                                {{
+                                  typeof nft.character === 'object'
+                                    ? nft.character.rarity
+                                    : typeof nft.rune === 'object'
+                                    ? nft.rune.rarity
+                                    : ''
+                                }}
+                              </h6>
                               <h5 class="name">
                                 <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress, true)">
                                   {{ nft.name }}
                                 </a>
                               </h5>
-
                               <!-- Label jika NFT sedang dijual -->
                               <span *ngIf="nft.isSell" class="badge bg-primary text-bid">On Sale</span>
 
@@ -188,7 +201,7 @@
                       <!-- ✅ Daftar NFT -->
                       <div *ngIf="nftRuneBC.length > 0">
                         <div class="wrap-box-card">
-                          <div class="col-item" *ngFor="let nft of nftRuneBC | slice:0:itemsToShowRune">
+                          <div class="col-lg-4 col-md-6 col-6" *ngFor="let nft of nftRuneBC | slice:0:itemsToShowRune">
                             <div class="tf-card-box style-4">
                               <div class="card-media">
                                 <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress, true)">
@@ -205,7 +218,18 @@
                                   <h6>{{ shorten(nft.owner) }}</h6>
                                 </div>
                               </div>
-                              <h5 class="name">{{ nft.name }}</h5>
+                              <h5 class="name">
+                                <a href="javascript:void(0)" (click)="goToNftDetail(nft.mintAddress, true)">
+                                  {{ nft.name }}
+                                </a>
+                              </h5>
+                              <h6
+                                class="name rarity-badge"
+                                [ngClass]="nft.character?.rarity?.toLowerCase()"
+                                style="margin: 0;"
+                              >
+                                {{ nft.character?.rarity }}
+                              </h6>
 
                               <span *ngIf="nft.isSell" class="badge bg-primary text-bid">On Sale</span>
 

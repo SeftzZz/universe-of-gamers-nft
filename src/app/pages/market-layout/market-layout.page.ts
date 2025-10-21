@@ -100,6 +100,10 @@ export class MarketLayoutPage implements OnInit {
       });
   }
 
+  get activeWalletData() {
+    return this.uniqueWallets.find(w => w.address === this.activeWallet);
+  }
+
   toggleMobileNav() {
     if (this.isToggling) return;
     this.isToggling = true;

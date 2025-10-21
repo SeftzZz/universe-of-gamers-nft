@@ -115,6 +115,23 @@ export class Market {
     }
   }
 
+  async loadMyHistoryWithWallet(wallet?: string): Promise<any[]> {
+    try {
+      const url = wallet
+        ? `${environment.apiUrl}/nft/my-history?wallet=${wallet}`
+        : `${environment.apiUrl}/nft/my-history`;
+
+      const data: any = await firstValueFrom(this.http.get<any>(url));
+      const history = data?.history || [];
+      this.myHistory$.next(history);
+      return history;
+    } catch (err) {
+      console.error('Error loadMyHistoryWithWallet:', err);
+      this.myHistory$.next([]);
+      return [];
+    }
+  }
+
   // === OBSERVABLES ===
   getNfts() {
     return this.nfts$.asObservable();

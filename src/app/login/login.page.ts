@@ -329,29 +329,119 @@ export class LoginPage implements OnInit {
 
   async googleLogin() {
     try {
-      const user = await this.google.loginWithGoogle();
-      console.log('Google User:', user);
+      console.log('🚀 [GoogleLogin] Starting Google login flow...');
+      const startTime = performance.now();
 
-      const idToken = user.idToken;
-      if (!idToken) {
-        console.error('❌ Tidak dapat mengambil idToken dari Google');
+      // 1️⃣ Trigger login dari Google service
+      const user = await this.google.loginWithGoogle();
+
+      if (!user) {
+        console.warn('⚠️ [GoogleLogin] Login Google dibatalkan oleh user');
         return;
       }
 
-      // kirim ke backend
-      const resp: any = await this.http
-        .post(`${environment.apiUrl}/auth/google`, { idToken })
-        .toPromise();
+      console.log('✅ [GoogleLogin] User object received:', JSON.stringify(user, null, 2));
 
-      console.log('✅ Backend response:', resp);
-
-      if (resp.token) {
-        this.auth.setToken(resp.token, resp.authId);
-        localStorage.setItem('userId', resp.authId);
-        localStorage.setItem('wallets', JSON.stringify(resp.wallets || []));
+      // 2️⃣ Validasi idToken
+      const idToken = user.idToken;
+      if (!idToken) {
+        console.error('❌ [GoogleLogin] Tidak dapat mengambil idToken dari Google');
+        this.showToast('Failed to retrieve Google token', 'danger');
+        return;
       }
-    } catch (err) {
-      console.error('❌ Google login error:', err);
+
+      console.log(`🪙 [GoogleLogin] Extracted idToken (length: ${idToken.length} chars)`);
+
+      // 3️⃣ Kirim token ke backend
+      console.log('📡 [GoogleLogin] Sending Google ID token to backend...');
+      console.log('   → Payload:', {
+        idToken: idToken.substring(0, 20) + '...',
+        email: user.email,
+        name: user.name,
+        picture: user.photo,
+      });
+
+      const resp: any = await this.http
+        .post(`${environment.apiUrl}/auth/google`, {
+          idToken,
+          email: user.email,
+          name: user.name,
+          picture: user.photo,
+        })
+        .toPromise()
+        .catch((err) => {
+          console.error('❌ [GoogleLogin] Backend request failed:', err);
+          throw err;
+        });
+
+      console.log('✅ [GoogleLogin] Backend raw response:', resp);
+
+      // 4️⃣ Cek hasil dari backend
+      if (!resp || !resp.token) {
+        console.warn('❌ [GoogleLogin] No token returned from backend!');
+        console.log('🧾 Full backend response:', JSON.stringify(resp, null, 2));
+        this.showToast('Login failed — no token received', 'danger');
+        return;
+      }
+
+      // 5️⃣ Simpan token JWT
+      this.auth.setToken(resp.token, resp.authId);
+
+      // 6️⃣ Tentukan avatar user
+      const avatarUrl = resp.avatar
+        ? `${environment.baseUrl}${resp.avatar}`
+        : user.photo || 'assets/images/app-logo.jpeg';
+
+      // 7️⃣ Set data user di service global
+      this.userService.setUser({
+        name: resp.name || user.name,
+        email: resp.email || user.email,
+        notifyNewItems: resp.notifyNewItems || false,
+        notifyEmail: resp.notifyEmail || false,
+        avatar: avatarUrl,
+        role: resp.role || 'user',
+      });
+
+      // 8️⃣ Ambil wallet (custodial dulu, lalu external)
+      let walletAddr: string | null = null;
+      if (resp.custodialWallets?.length > 0) {
+        walletAddr = resp.custodialWallets[0].address;
+      } else if (resp.wallets?.length > 0) {
+        walletAddr = resp.wallets[0].address;
+      }
+
+      // 9️⃣ Simpan ke localStorage
+      localStorage.setItem('userId', resp.authId);
+      if (walletAddr) localStorage.setItem('walletAddress', walletAddr);
+
+      if (resp.wallets || resp.custodialWallets) {
+        const allWallets = [
+          ...(resp.wallets || []),
+          ...(resp.custodialWallets || []),
+        ];
+        localStorage.setItem('wallets', JSON.stringify(allWallets));
+
+        // 🟢 Trigger update UI wallet
+        this.walletService.setWallets(allWallets);
+      }
+
+      // 🔁 Aktifkan wallet utama di UI
+      this.ngZone.run(() => {
+        if (walletAddr) this.walletService.setActiveWallet(walletAddr);
+      });
+
+      // 10️⃣ Log waktu eksekusi
+      const elapsed = (performance.now() - startTime).toFixed(0);
+      console.log(`🎉 [GoogleLogin] Flow completed successfully in ${elapsed} ms`);
+
+      // ✅ Feedback ke user
+      this.showToast('Google Login Success ✅', 'success');
+      this.clearForm?.();
+      this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
+    } catch (err: any) {
+      console.error('💥 [GoogleLogin] Unhandled error:', JSON.stringify(err));
+      const errorMsg = err?.message || err?.error || 'Unknown Google login error';
+      this.showToast(`Google login failed: ${errorMsg}`, 'danger');
     }
   }
 

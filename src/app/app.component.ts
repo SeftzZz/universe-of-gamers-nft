@@ -1,5 +1,5 @@
 // app.component.ts
-import { Component, AfterViewInit, NgZone } from '@angular/core';
+import { Component, AfterViewInit, NgZone, OnInit } from '@angular/core';
 import { Auth } from './services/auth';
 import { App } from '@capacitor/app';
 import { Router, NavigationEnd } from '@angular/router';
@@ -14,6 +14,8 @@ import { environment } from '../environments/environment';
 import { User, UserProfile } from './services/user';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
+import { GoogleLoginService } from './services/google-login-service';
+import { WebSocket } from './services/websocket';
 
 declare var bootstrap: any;
 declare function btnmenu(): void;
@@ -27,7 +29,7 @@ export let dappKeys: nacl.BoxKeyPair | null = null;
   styleUrls: ['app.component.scss'],
   standalone: false,
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements AfterViewInit, OnInit {
   userAddress: string = '';
   private loading: HTMLIonLoadingElement | null = null;
 
@@ -42,6 +44,8 @@ export class AppComponent implements AfterViewInit {
     private phantom: Phantom,
     private http: HttpClient, 
     private userService: User,
+    private googleLogin: GoogleLoginService,
+    private ws: WebSocket,
   ) {
     // this.listenPhantomCallback();
 
@@ -54,12 +58,11 @@ export class AppComponent implements AfterViewInit {
     this.initStatusBar();
 
     const userId = localStorage.getItem('userId');
-    
-    // Hanya untuk Web (PWA) supaya tidak nabrak gapi.auth2
-    GoogleAuth.initialize({
-      clientId: '542126096811-asmbfaoqgk3itq0amjjn85q4qvabl3aa.apps.googleusercontent.com',
-      scopes: ['profile', 'email'],
-    });
+  }
+
+  ngOnInit() {
+    this.googleLogin.init(); // pastikan inisialisasi dipanggil
+    this.ws.connect();
   }
 
   /**

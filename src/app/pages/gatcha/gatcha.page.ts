@@ -90,10 +90,23 @@ export class GatchaPage implements OnInit {
         .get(`${environment.apiUrl}/wallet/tokens/${this.activeWallet}`)
         .toPromise();
 
-      this.tokens = resp.tokens || [];
+      // ✅ Filter hanya token SOL & USDC
+      const allowedMints = [
+        'So11111111111111111111111111111111111111111', // Native SOL
+        // 'So11111111111111111111111111111111111111112', // Wrapped SOL
+        'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
+      ];
+
+      this.tokens = (resp.tokens || []).filter((t: any) =>
+        allowedMints.includes(t.mint)
+      );
+
+      // Simpan hasilnya ke localStorage
       localStorage.setItem('walletTokens', JSON.stringify(this.tokens));
+
+      console.log('💰 Filtered wallet tokens (SOL & USDC only):', this.tokens);
     } catch (err) {
-      console.error('Error fetch tokens from API', err);
+      console.error('❌ Error fetch tokens from API', err);
       this.router.navigateByUrl('/tabs/offline');
     }
   }
@@ -176,10 +189,11 @@ export class GatchaPage implements OnInit {
   }
 
   // === Modal Control ===
-  toggleSendModal(pack: any) {
+  async toggleSendModal(pack: any) {
     this.selectedPack = pack;
     this.showSendModal = true;
     this.isClosingSend = false;
+    await this.loadTokens();
   }
 
   resetSendModal() {

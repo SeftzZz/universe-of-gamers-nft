@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Auth } from '../services/auth';
 import { ToastController, LoadingController } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { User, UserProfile } from '../services/user';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-registration',
@@ -24,7 +26,8 @@ export class RegistrationPage implements OnInit {
     private auth: Auth,
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
-    private router: Router
+    private router: Router,
+    private userService: User,
   ) {}
 
   ngOnInit() {}
@@ -96,6 +99,19 @@ export class RegistrationPage implements OnInit {
         // ✅ simpan token + userId
         this.auth.setToken(res.token, res.authId);
         
+        const avatarUrl = res.avatar
+          ? `${environment.baseUrl}${res.avatar}`
+          : 'assets/images/app-logo.jpeg';
+
+        this.userService.setUser({
+          name: res.name,
+          email: res.email,
+          notifyNewItems: res.notifyNewItems || false,
+          notifyEmail: res.notifyEmail || false,
+          avatar: avatarUrl,
+          role: res.role
+        });
+
         // ✅ ambil walletAddress (custodial dulu, kalau tidak ada pakai external)
         let walletAddr = null;
         if (res.custodialWallets?.length > 0) {
@@ -122,8 +138,9 @@ export class RegistrationPage implements OnInit {
         this.showToast('Register success 🎉', 'success');
         this.clearForm();
 
-        // redirect ke home
-        this.router.navigate(['/all-collection']);
+        setTimeout(() => {
+          window.location.href = '/market-layout/all-collection';
+        }, 500);
       },
       error: (err) => {
         this.dismissLoading();

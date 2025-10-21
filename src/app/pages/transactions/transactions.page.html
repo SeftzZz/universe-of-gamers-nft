@@ -15,14 +15,13 @@
                 <!-- 🔹 Tabel Header -->
                 <div class="table-heading">
                   <div class="column">NFT</div>
-                  <div class="column">Price</div>
-                  <div class="column">Seller → Buyer</div>
-                  <div class="column">Mint</div>
                   <div class="column">Date</div>
+                  <div class="column">Amount</div>
+                  <div class="column">Type</div>
                 </div>
 
                 <!-- 🔹 Loading State -->
-                <div class="no-data text-center mt-3" *ngIf="isLoading">
+                <div class="no-data text-left mt-3" *ngIf="isLoading">
                   <ion-spinner name="crescent" color="primary"></ion-spinner>
                   <p class="mt-2">Fetching on-chain history...</p>
                 </div>
@@ -31,43 +30,49 @@
                 <ng-container *ngIf="!isLoading && history.length; else emptyState">
                   <div class="table-item" *ngFor="let h of history">
                     <!-- NFT Column -->
-                    <div class="column flex items-center">
+                    <div class="column flex items-center" style="width: 600px;">
                       <img
-                        [src]="h.image"
-                        alt="{{ h.name }}"
+                        [src]="h.model?.image || 'assets/img/default-nft.png'"
+                        alt="{{ h.model?.name || 'Unknown NFT' }}"
                         style="height: 35px; width: 35px; border-radius: 6px; margin-right: 8px;"
                       />
-                      {{ h.name }}
-                    </div>
-
-                    <!-- Price Column -->
-                    <div class="column">
-                      {{ h.price ? (h.price | number:'1.2-4') : '-' }}
-                    </div>
-
-                    <!-- Seller → Buyer -->
-                    <div class="column">
-                      <span class="tf-color">{{ shortenAddress(h.sellerWallet) }}</span>
-                      <span style="margin: 0 4px;">→</span>
-                      <span class="tf-color">{{ shortenAddress(h.owner) }}</span>
-                    </div>
-
-                    <!-- Mint Column -->
-                    <div class="column">
-                      <span class="tf-color">{{ shortenAddress(h.mintAddress) }}</span>
+                      {{ shortenAddress(h.model?.name) }}
                     </div>
 
                     <!-- Date Column -->
-                    <div class="column">
-                      {{ h.updatedAt | date: 'medium' }}
+                    <div class="column" style="width: 600px;">
+                      {{ h.blockTime | date: 'medium' }}
+                    </div>
+
+                    <!-- Price Column -->
+                    <div class="column" style="width: 600px;">
+                      <span
+                        [ngStyle]="{
+                          color: h.amount_from ? 'red' : h.amount_to ? '#1ac4fc' : 'inherit'
+                        }"
+                      >
+                        {{
+                          h.model.price > 0
+                            ? h.model.price
+                            : h.amount_from
+                            ? '-' + h.amount_from.toFixed(4)
+                            : h.amount_to
+                            ? '+' + h.amount_to.toFixed(4)
+                            : '—'
+                        }}
+                      </span>
+                    </div>
+
+                    <!-- Event Column -->
+                    <div class="column" style="width: 600px;">
+                      <span class="tf-color">{{ h.eventType }}</span>
                     </div>
                   </div>
                 </ng-container>
 
                 <!-- 🔹 Empty State -->
                 <ng-template #emptyState>
-                  <div class="no-data text-center mt-3">
-                    <ion-icon name="time-outline" size="large" color="medium"></ion-icon>
+                  <div class="no-data text-left mt-3">
                     <p class="mt-2">No transaction history found</p>
                   </div>
                 </ng-template>

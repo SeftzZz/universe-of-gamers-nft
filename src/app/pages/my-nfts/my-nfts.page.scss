@@ -69,3 +69,13 @@
     color: #3687fc;
   }
 }
+.rarity-tag {
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 12px;
+
+  &.common { color: #555; }
+  &.rare { color: #1e88e5; }
+  &.epic { color: #8e24aa; }
+  &.legendary { color: #f9a825; }
+}

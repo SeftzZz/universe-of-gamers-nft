@@ -42,25 +42,26 @@
                     <!-- menu -->
                     <nav id="mobile-main-nav" class="mobile-main-nav">
                         <ul id="menu-mobile-menu" class="menu">
-                            <li class="menu-item" *ngFor="let w of uniqueWallets" 
-                                [ngClass]="{ 'current-item': w.address === activeWallet }">
-                                <a class="item-menu-mobile flex-between">
-                                    <span (click)="switchWallet(w.address); closeMobileNav()">{{ shorten(w.address) }}</span>
-                                    <span class="wallet-balance">
-                                        ${{ w.usdValue | number:'1.2-2' }}
-                                    </span>
-                                    <ion-icon 
-                                        name="copy-outline"
-                                        (click)="onCopyIconClick($event, w.address)">
-                                    </ion-icon>
-                                </a>
+                            <li class="menu-item current-item" *ngIf="activeWalletData">
+                              <a class="item-menu-mobile flex-between">
+                                <span (click)="closeMobileNav()">
+                                  {{ shorten(activeWalletData.address) }}
+                                </span>
+                                <!-- <span class="wallet-balance">
+                                  ${{ activeWalletData.usdValue | number:'1.2-2' }}
+                                </span> -->
+                                <ion-icon
+                                  name="copy-outline"
+                                  (click)="onCopyIconClick($event, activeWalletData.address)">
+                                </ion-icon>
+                              </a>
                             </li>
 
-                            <li class="menu-item" *ngIf="activeWallet">
+                            <!-- <li class="menu-item" *ngIf="activeWallet">
                                 <a class="item-menu-mobile" (click)="toggleAccountsModal(); closeMobileNav()">
                                     Add Accounts
                                 </a>
-                            </li>
+                            </li> -->
 
                             <li class="menu-item" *ngIf="activeWallet">
                                 <a class="item-menu-mobile" [routerLink]="['/market-layout/setting']" (click)="closeMobileNav()">
@@ -207,7 +208,17 @@
             <!-- <ion-label>My NFT</ion-label> -->
         </ion-tab-button>
 
-        <ion-tab-button tab="creates" [routerLink]="['/market-layout/creates']" routerLinkActive="active">
+        <ion-tab-button *ngIf="profile.role == 'admin'" tab="creates" [routerLink]="['/market-layout/creates']" routerLinkActive="active">
+            <ion-icon name="duplicate-outline"></ion-icon>
+            <!-- <ion-label>Creates</ion-label> -->
+        </ion-tab-button>
+
+        <ion-tab-button *ngIf="profile.role == null" tab="gatcha" [routerLink]="['/market-layout/gatcha']" routerLinkActive="active">
+            <ion-icon name="duplicate-outline"></ion-icon>
+            <!-- <ion-label>Creates</ion-label> -->
+        </ion-tab-button>
+
+        <ion-tab-button *ngIf="profile.role == 'user'" tab="gatcha" [routerLink]="['/market-layout/gatcha']" routerLinkActive="active">
             <ion-icon name="duplicate-outline"></ion-icon>
             <!-- <ion-label>Creates</ion-label> -->
         </ion-tab-button>

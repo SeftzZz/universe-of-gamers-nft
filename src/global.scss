@@ -575,6 +575,13 @@ ion-tab-bar {
     width: 182px;
 }
 
+.wrap-box-card {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -13.67px;
+    padding-top: 10px;
+}
+
 @media (max-width: 1440px) {
     .wrap-box-card .col-item {
         width: calc(33.333% - 28.5px) !important;

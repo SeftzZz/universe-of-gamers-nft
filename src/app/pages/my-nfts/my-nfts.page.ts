@@ -5,6 +5,7 @@ import { LoadingController } from '@ionic/angular';
 import { Auth } from '../../services/auth';
 import { Market } from '../../services/market';
 import { Wallet } from '../../services/wallet';
+import { WebSocket } from '../../services/websocket';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { IonContent } from '@ionic/angular';
@@ -86,6 +87,8 @@ export class MyNftsPage implements OnInit {
   scrollIsActive = false;
   isLoading = true;
 
+  mintAddress: string | null = null;
+
   constructor(
     private market: Market,
     private wallet: Wallet,
@@ -93,6 +96,7 @@ export class MyNftsPage implements OnInit {
     private router: Router,
     private loadingCtrl: LoadingController,
     private http: HttpClient,
+    private ws: WebSocket,
   ) {}
 
   async ngOnInit() {
@@ -102,6 +106,44 @@ export class MyNftsPage implements OnInit {
     });
 
     await this.refreshAll();
+
+    this.ws.messages$.subscribe(async (msg) => {
+      if (!msg) return;
+
+      // === 🛒 BUY EVENT ===
+      if (msg.type === 'buymint-update') {
+        const soldMint = msg.mint;
+        console.log('🔥 NFT sold:', msg);
+
+        // ✅ Jika user sedang buka halaman NFT yang sama
+        if (this.mintAddress && soldMint === this.mintAddress) {
+          alert(`💰 NFT sold!\nTX: ${msg.signature}`);
+          this.router.navigate(['/market-layout/my-nfts']);
+        }
+
+        await this.refreshAll();
+      }
+
+      // === 🔁 RELIST EVENT ===
+      if (msg.type === 'relist-update') {
+        console.log('🔥 NFT relisted:', msg);
+        await this.refreshAll();
+      }
+
+      // === ❌ DELIST EVENT ===
+      if (msg.type === 'delist-update') {
+        const delistedMint = msg.nft?.mintAddress;
+        const delistedName = msg.nft?.name || 'NFT';
+        console.log('🔥 NFT delisted:', delistedMint);
+
+        if (this.mintAddress && delistedMint === this.mintAddress) {
+          alert(`🧨 ${delistedName} telah dihapus dari listing.`);
+          this.router.navigate(['/market-layout/all-collection']);
+        }
+
+        await this.refreshAll();
+      }
+    });
   }
 
   async ionViewWillEnter() {

@@ -35,7 +35,7 @@
                     <div class="col-md-6" *ngIf="metadata">
                       <div class="infor-product">
                         <div class="text">
-                          {{ metadata.symbol }}
+                          {{ tokenSymbol }}
                           <span class="icon-tick"><span class="path1"></span><span class="path2"></span></span>
                         </div>
 
@@ -80,13 +80,12 @@
 
                       <!-- Price -->
                       <div class="product-item time-sales">
-                        <h6><i class="icon-description"></i>{{ shortenAddress(mintAddress) }}</h6>
+                        <h6 *ngIf="mintAddress"><i class="icon-description"></i>{{ shortenAddress(mintAddress) }}</h6>
                         <div class="content">
                           <div class="text">Current price</div>
                           <div class="flex justify-between" style="display: flex;">
                             <p>
-                              {{ formatPriceDisplay(metadata?.price, tokenSymbol) }}
-                              {{ tokenSymbol }}
+                              {{ formatPriceDisplay(metadata?.price, tokenSymbol) }} {{ metadata?.paymentSymbol || 'SOL' }}
                             </p>
 
                             <!-- Normal (Buy) -->
@@ -182,99 +181,67 @@
       <div *ngIf="!selectedToken && !isSending && !txSig">
 
         <h2 class="modal-title">
-          Select {{ metadata?.character ? 'UOG' : 'Token' }} to Buy
+          Select {{ metadata?.character ? 'SOL' : 'Token' }} to Buy
         </h2>
 
         <!-- Jika bukan karakter → tampilkan search dan daftar token -->
-        <ng-container *ngIf="!metadata?.character; else fixedToken">
-          <form action="#" method="get" role="search" class="search-form relative" (submit)="$event.preventDefault()">
-            <input
-              type="search"
-              id="search"
-              class="search-field style-1"
-              placeholder="Search..."
-              [(ngModel)]="tokenSearch"
-              name="tokenSearch"
-            />
-            <button class="search search-submit" type="submit"><i class="icon-search"></i></button>
-          </form>
+        <form action="#" method="get" role="search" class="search-form relative" (submit)="$event.preventDefault()">
+          <input
+            type="search"
+            id="search"
+            class="search-field style-1"
+            placeholder="Search..."
+            [(ngModel)]="tokenSearch"
+            name="tokenSearch"
+          />
+          <button class="search search-submit" type="submit"><i class="icon-search"></i></button>
+        </form>
 
-          <div class="widget-table-ranking pb-20" *ngIf="filteredTokens.length > 0">
-            <div
-              class="table-ranking-content"
-              *ngFor="let token of filteredTokens"
-              (click)="buyNft(token.mint)"
-            >
-              <div class="fl-row-ranking">
-                <div class="td1">
-                  <div class="item-avatar">
-                    <img [src]="token.logoURI" alt="{{ token.symbol }}" />
-                  </div>
-                  <div class="item-name">
-                    {{ token.symbol }}
-                    <h6 class="price gem pt-10">{{ token.amount }}</h6>
-                  </div>
-                </div>
-                <div class="td5">
-                  <h6 class="price gem">{{ token.usdValue }}</h6>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ng-container>
-
-        <!-- ✅ Kalau karakter: tampilkan hanya token UOG -->
-        <ng-template #fixedToken>
-          <form
-            action="#"
-            method="get"
-            role="search"
-            class="search-form relative"
-            (submit)="$event.preventDefault()"
+        <div class="widget-table-ranking pb-20" *ngIf="filteredTokens.length > 0">
+          <div
+            class="table-ranking-content"
+            *ngFor="let token of filteredTokens"
+            (click)="buyNft(token.mint)"
           >
-            <input
-              type="search"
-              id="search"
-              class="search-field style-1"
-              placeholder="Search..."
-              [(ngModel)]="tokenSearch"
-              name="tokenSearch"
-            />
-            <button class="search search-submit" type="submit" title="Search">
-              <i class="icon-search"></i>
-            </button>
-          </form>
+            <div class="fl-row-ranking">
+              <div class="td1">
+                <div class="item-avatar">
+                  <img [src]="token.logoURI" alt="{{ token.symbol }}" />
+                </div>
 
-          <div class="widget-table-ranking pb-20" *ngIf="uogTokens.length > 0">
-            <div
-              class="table-ranking-content"
-              *ngFor="let token of uogTokens"
-              (click)="buyNft(token.mint)"
-            >
-              <div class="fl-row-ranking">
-                <div class="td1">
-                  <div class="item-avatar">
-                    <img [src]="token.logoURI || 'assets/images/box-item/rank-01.jpg'" alt="{{ token.symbol }}" />
-                  </div>
-                  <div class="item-name">
-                    {{ token.symbol }}
-                    <h6 class="price gem pt-10">{{ token.amount | number:'1.2-4' }}</h6>
-                  </div>
-                </div>
-                <div class="td5">
-                  <h6 class="price gem">
-                    ${{ token.usdValue | number:'1.2-2' }}
+                <div class="item-name">
+                  <!-- 🔹 Nama token -->
+                  <!-- {{ token.symbol }} -->
+
+                  <!-- 💰 Harga NFT (harga listing dalam token ini) -->
+                  <h6 class="price gem pt-10">
+                    {{ getPriceDisplay(token).amount | number:'1.4-4' }} {{ token.symbol }}
                   </h6>
+
+                  <!-- 👛 Tambahan: saldo pengguna -->
+                  <div class="balance-info text-sm text-gray-400 pt-1">
+                    Balance: {{ token.amount | number:'1.4-4' }} {{ token.symbol }}
+                  </div>
                 </div>
+              </div>
+
+              <!-- Kolom kanan: harga USD + tren -->
+              <div class="td5">
+                <h6 class="price gem">
+                  ${{ getPriceDisplay(token).usd | number:'1.2-2' }}
+                  <div class="td4 warning pt-10">
+                    <span [ngClass]="token.trend > 0 ? 'warning' : (token.trend < 0 ? 'danger' : '')">
+                      {{ token.trend > 0 ? '+' : ''}}{{ token.percentChange | number:'1.2-2' }}%
+                    </span>
+                    <i
+                      [ngClass]="token.trend > 0 ? 'icon-arrow-up2 warning' : (token.trend < 0 ? 'icon-arrow-down2 danger' : '')"
+                    ></i>
+                  </div>
+                </h6>
               </div>
             </div>
           </div>
-
-          <!-- Kalau tidak ada token UOG -->
-          <div class="no-result" *ngIf="uogTokens.length === 0">
-            No UOG tokens found
-          </div>
-        </ng-template>
+        </div>
 
         <div class="modal-actions">
           <button type="button" class="btn-cancel" (click)="resetSendModal()">Cancel</button>
@@ -322,12 +289,13 @@
         <!-- Input harga -->
         <div class="form-group">
           <label for="price">
-            Set Price ({{ metadata?.character ? 'UOG' : selectedToken?.symbol || 'Select Token' }})
+            Set Price ({{ metadata?.character ? 'SOL/USDC' : selectedToken?.symbol || 'Select Token' }})
           </label>
           <input
             id="price"
             type="number"
-            min="0"
+            [min]="sellPrice"
+            [value]="sellPrice"
             step="0.0001"
             [(ngModel)]="sellPrice"
             placeholder="Enter price"
@@ -336,11 +304,12 @@
         </div>
 
         <!-- Token Selector — hanya muncul jika NFT bukan karakter -->
-        <div class="form-group" *ngIf="!metadata?.character">
+        <div class="form-group">
           <label for="tokenSelect">Select Token</label>
           <select
             id="tokenSelect"
             [(ngModel)]="selectedToken"
+            (ngModelChange)="onTokenChange()"
             class="form-control"
           >
             <option [ngValue]="null" disabled selected>-- Choose Token --</option>
@@ -390,15 +359,23 @@
           <ion-icon name="checkmark-circle-outline"></ion-icon>
           <p>
             Your NFT is now on sale for
-            {{ sellPrice }}
-            {{ metadata?.character ? 'UOG' : selectedToken?.symbol }}
+            {{ listedPrice | number:'1.4-4' }}
+            {{ listedSymbol }}
+            <br />
+
+            <!-- tampilkan estimasi konversi -->
+            <small *ngIf="listedSymbol === 'USDC'">
+              (≈ {{ listedPrice * usdcToSolRate | number:'1.6-6' }} SOL)
+            </small>
+            <small *ngIf="listedSymbol === 'SOL'">
+              (≈ {{ listedPrice * solToUsdcRate | number:'1.2-2' }} USDC)
+            </small>
+
             <br />
             with {{ sellRoyalty }}% royalty
           </p>
           <div class="modal-actions">
-            <button type="button" class="btn-cancel" (click)="resetSellModal()">
-              Close
-            </button>
+            <button type="button" class="btn-cancel" (click)="resetSellModal()">Close</button>
           </div>
         </div>
       </div>

@@ -2,9 +2,6 @@
   <div class="content-tabs" style="margin-top: 10vh;">
       <div class="">
         <div class="wrapper-content-create">
-            <div class="heading-section">
-                <h2 class="tf-title pb-30">Buy Gatcha</h2>
-            </div>
             <div class="widget-tabs relative">
                 <div class="widget-content-tab">
                     <div class="widget-content-inner buy-gatcha active">
@@ -178,7 +175,7 @@
         <div *ngIf="txSig" class="success-tx" @fadeSlide>
           <h2 class="modal-title">Transaction Successful</h2>
           <ion-icon name="checkmark-circle-outline"></ion-icon>
-          <p>You sent {{ selectedToken?.amount }} {{ selectedToken?.symbol }}</p>
+          <!-- <p>You sent {{ selectedToken?.amount }} {{ selectedToken?.symbol }}</p> -->
           <a
             [href]="'https://solscan.io/tx/' + txSig + '?cluster=mainnet'"
             target="_blank"

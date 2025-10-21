@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { LoadingController } from '@ionic/angular';
 import { Auth } from '../../services/auth';
 import { Market } from '../../services/market';
+import { WebSocket } from '../../services/websocket';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { IonContent } from '@ionic/angular';
@@ -28,6 +29,8 @@ interface INftItem {
   rarity?: string;
   isSell?: boolean;
   price?: number;
+  paymentSymbol?: string;
+  tokenSymbol?: string;
   createdAt?: string | Date;
   updatedAt?: string | Date;
   mintAddress?: string;   // ✅ tambahin ini
@@ -80,12 +83,27 @@ export class AllCollectionPage implements OnInit {
     private auth: Auth,
     private router: Router,
     private loadingCtrl: LoadingController,
-    private market: Market      // ✅ inject Market
+    private market: Market,
+    private ws: WebSocket,
   ) {}
 
   async ngOnInit() {
     // await this.refreshData();
     await this.loadFavorites();
+    this.ws.messages$.subscribe(async (msg) => {
+      if (msg?.type === 'relist-update') {
+        console.log('🔥 NFT relisted:', msg);
+        // bisa update UI langsung
+        await this.market.loadNfts();
+        await this.market.loadLatestNfts();
+      }
+      if (msg?.type === 'delist-update') {
+        console.log('🔥 NFT delisted:', msg);
+        // bisa update UI langsung
+        await this.market.loadNfts();
+        await this.market.loadLatestNfts();
+      }
+    });
   }
 
   async ionViewWillEnter() {
@@ -167,7 +185,7 @@ export class AllCollectionPage implements OnInit {
     if (num == null) return '-';   // handle undefined/null
     const str = num.toString();
 
-    if (!str.includes(".")) return `${str} SOL`;
+    if (!str.includes(".")) return `${str}`;
 
     const [intPart, decPart] = str.split(".");
     let zeroCount = 0;
@@ -185,7 +203,7 @@ export class AllCollectionPage implements OnInit {
       .map((d) => subscripts[d] || d)
       .join("");
 
-    return `${intPart}.0${zeroCountStr}${rest} SOL`;
+    return `${intPart}.0${zeroCountStr}${rest}`;
   }
 
   goToNftDetail(mintAddress?: string) {
@@ -278,12 +296,6 @@ export class AllCollectionPage implements OnInit {
     if (ion && ion.scrollToTop) {
       ion.scrollToTop(500);
     }
-  }
-
-  getTokenSymbol(nft: any): string {
-    // NFT karakter → UOG, lainnya fleksibel
-    if (nft.character) return 'UOG';
-    return nft.tokenSymbol || 'SOL'; // default SOL jika tidak ada field tokenSymbol
   }
 
   formatPriceDisplay(price?: number, symbol?: string): string {

@@ -610,7 +610,7 @@
         <div *ngIf="txSig" class="success-tx" @fadeSlide>
           <h2 class="modal-title">Transaction Successful</h2>
           <ion-icon name="checkmark-circle-outline"></ion-icon>
-          <p>You sent {{ selectedToken?.amount }} {{ selectedToken?.symbol }}</p>
+          <!-- <p>You sent {{ selectedToken?.amount }} {{ selectedToken?.symbol }}</p> -->
           <a
             [href]="'https://solscan.io/tx/' + txSig + '?cluster=mainnet'"
             target="_blank"
