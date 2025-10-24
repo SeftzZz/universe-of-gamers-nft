@@ -71,7 +71,7 @@ export class MarketLayoutPage implements OnInit {
     // 🔹 listen perubahan wallets dari service
     this.walletService.getWallets().subscribe(ws => {
       this.wallets = ws || [];
-      this.loadAllWalletBalances(); // preload balance tiap wallet
+      // this.loadAllWalletBalances(); // preload balance tiap wallet
     });
 
     // 🔹 listen perubahan activeWallet dari service

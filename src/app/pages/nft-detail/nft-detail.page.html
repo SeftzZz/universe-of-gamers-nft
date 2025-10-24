@@ -219,9 +219,9 @@
                   </h6>
 
                   <!-- 👛 Tambahan: saldo pengguna -->
-                  <div class="balance-info text-sm text-gray-400 pt-1">
+                  <span class="balance-info text-sm warning pt-1">
                     Balance: {{ token.amount | number:'1.4-4' }} {{ token.symbol }}
-                  </div>
+                  </span>
                 </div>
               </div>
 
@@ -229,14 +229,6 @@
               <div class="td5">
                 <h6 class="price gem">
                   ${{ getPriceDisplay(token).usd | number:'1.2-2' }}
-                  <div class="td4 warning pt-10">
-                    <span [ngClass]="token.trend > 0 ? 'warning' : (token.trend < 0 ? 'danger' : '')">
-                      {{ token.trend > 0 ? '+' : ''}}{{ token.percentChange | number:'1.2-2' }}%
-                    </span>
-                    <i
-                      [ngClass]="token.trend > 0 ? 'icon-arrow-up2 warning' : (token.trend < 0 ? 'icon-arrow-down2 danger' : '')"
-                    ></i>
-                  </div>
                 </h6>
               </div>
             </div>
@@ -286,6 +278,22 @@
       <div *ngIf="!isListing && !txSig">
         <h2 class="modal-title">List NFT for Sale</h2>
 
+        <!-- Token Selector — hanya muncul jika NFT bukan karakter -->
+        <div class="form-group">
+          <label for="tokenSelect">Select Token</label>
+          <select
+            id="tokenSelect"
+            [(ngModel)]="selectedToken"
+            (ngModelChange)="onTokenChange()"
+            class="form-control"
+          >
+            <option [ngValue]="null" disabled selected>-- Choose Token --</option>
+            <option *ngFor="let token of filteredTokens" [ngValue]="token">
+              {{ token.symbol }} — {{ token.amount | number:'1.2-4' }}
+            </option>
+          </select>
+        </div>
+
         <!-- Input harga -->
         <div class="form-group">
           <label for="price">
@@ -301,22 +309,6 @@
             placeholder="Enter price"
             class="form-control"
           />
-        </div>
-
-        <!-- Token Selector — hanya muncul jika NFT bukan karakter -->
-        <div class="form-group">
-          <label for="tokenSelect">Select Token</label>
-          <select
-            id="tokenSelect"
-            [(ngModel)]="selectedToken"
-            (ngModelChange)="onTokenChange()"
-            class="form-control"
-          >
-            <option [ngValue]="null" disabled selected>-- Choose Token --</option>
-            <option *ngFor="let token of filteredTokens" [ngValue]="token">
-              {{ token.symbol }} — {{ token.amount | number:'1.2-4' }}
-            </option>
-          </select>
         </div>
 
         <!-- Input royalty -->

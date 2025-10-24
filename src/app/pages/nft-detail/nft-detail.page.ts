@@ -205,7 +205,7 @@ export class NftDetailPage implements OnInit {
     if (mintAddress) {
       this.mintAddress = mintAddress;
       console.log('🧩 NFT Detail page detected:', mintAddress);
-      await this.loadMetadata(mintAddress);
+      // await this.loadMetadata(mintAddress);
     } else {
       this.mintAddress = null; // bukan di halaman detail
     }

@@ -533,7 +533,7 @@
   </div>
   <!-- /#page -->
 
-  <div class="custom-modal ion-padding" *ngIf="showSendModal">
+  <div class="custom-modal" *ngIf="showSendModal">
     <div class="modal-backdrop" (click)="resetSendModal()"></div>
 
     <div class="modal-sheet" [ngClass]="{ 'slide-up': !isClosingSend, 'slide-down': isClosingSend }">
@@ -565,25 +565,32 @@
             *ngFor="let token of filteredTokens"
             (click)="confirmBuyAndMint(token)"
           >
-            <div data-wow-delay="0s" class="fl-row-ranking">
+            <div class="fl-row-ranking">
               <div class="td1">
                 <div class="item-avatar">
-                  <img [src]="token.logoURI || 'assets/images/box-item/rank-01.jpg'" alt="{{token.symbol}}">
+                  <img [src]="token.logoURI" alt="{{ token.symbol }}" />
                 </div>
+
                 <div class="item-name">
-                  {{ token.symbol }}
-                  <h6 class="price gem pt-10">{{ token.amount }}</h6>
+                  <!-- 🔹 Nama token -->
+                  <!-- {{ token.symbol }} -->
+
+                  <!-- 💰 Harga NFT (harga listing dalam token ini) -->
+                  <h6 class="price gem pt-10">
+                    {{ getPriceDisplay(token).amount | number:'1.4-4' }} {{ token.symbol }}
+                  </h6>
+
+                  <!-- 👛 Tambahan: saldo pengguna -->
+                  <span class="balance-info text-sm warning pt-1">
+                    Balance: {{ token.amount | number:'1.4-4' }} {{ token.symbol }}
+                  </span>
                 </div>
               </div>
+
+              <!-- Kolom kanan: harga USD + tren -->
               <div class="td5">
                 <h6 class="price gem">
-                  ${{ token.usdValue }}
-                  <div class="td4 warning pt-10">
-                    <span [ngClass]="token.trend > 0 ? 'warning' : (token.trend < 0 ? 'danger' : '')">
-                      {{ token.trend > 0 ? '+' : ''}}{{ token.percentChange | number:'1.2-2' }}%
-                    </span>
-                    <i [ngClass]="token.trend > 0 ? 'icon-arrow-up2 warning' : (token.trend < 0 ? 'icon-arrow-down2 danger' : '')"></i>
-                  </div>
+                  ${{ getPriceDisplay(token).usd | number:'1.2-2' }}
                 </h6>
               </div>
             </div>
@@ -609,7 +616,7 @@
 
         <div *ngIf="txSig" class="success-tx" @fadeSlide>
           <h2 class="modal-title">Transaction Successful</h2>
-          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <!-- <ion-icon name="checkmark-circle-outline"></ion-icon> -->
           <!-- <p>You sent {{ selectedToken?.amount }} {{ selectedToken?.symbol }}</p> -->
           <a
             [href]="'https://solscan.io/tx/' + txSig + '?cluster=mainnet'"

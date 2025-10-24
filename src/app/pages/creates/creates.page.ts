@@ -107,6 +107,10 @@ export class CreatesPage implements OnInit {
   ];
   uogToSolRate: number = 0; // rate 1 UOG → SOL
   solToUogRate: number = 0; // rate 1 SOL → UOG
+  usdcToSolRate: number = 0;
+  solToUsdcRate: number = 0;  // 1 SOL = ? USDC
+  listedPrice: number = 0;
+  listedSymbol: string = "SOL";
 
   gatchaForm: any = {
     packId: '',
@@ -671,20 +675,6 @@ export class CreatesPage implements OnInit {
     } 
   }
 
-  async fetchRates() {
-    try {
-      const resp: any = await this.http
-        .get("https://api.coingecko.com/api/v3/simple/price?ids=universe-of-gamers&vs_currencies=sol")
-        .toPromise();
-
-      this.uogToSolRate = resp["universe-of-gamers"].sol; // 1 UOG = X SOL
-      this.solToUogRate = 1 / this.uogToSolRate;          // 1 SOL = Y UOG
-      console.log("✅ Rates loaded:", this.uogToSolRate, "SOL per UOG");
-    } catch (err) {
-      console.error("❌ Failed to fetch Coingecko rates", err);
-    }
-  }
-
   // Dipanggil waktu user ubah priceUOG
   onPriceUOGChange() {
     if (this.uogToSolRate > 0) {
@@ -795,5 +785,54 @@ export class CreatesPage implements OnInit {
   // 🆙 Scroll to top dengan animasi halus
   scrollToTop() {
     this.ionContent.scrollToTop(500); // 500ms animasi smooth scroll
+  }
+
+  // === Fetch Coingecko Rates ===
+  async fetchRates() {
+    try {
+      const resp: any = await this.http
+        .get("https://api.coingecko.com/api/v3/simple/price?ids=solana,usd-coin&vs_currencies=usd")
+        .toPromise();
+
+      const solToUsd = resp["solana"].usd;      // contoh: 187.25 USD per SOL
+      const usdcToUsd = resp["usd-coin"].usd;   // contoh: 1.00 USD per USDC
+
+      this.solToUsdcRate = solToUsd / usdcToUsd;   // 1 SOL = ? USDC
+      this.usdcToSolRate = 1 / this.solToUsdcRate; // 1 USDC = ? SOL
+
+      console.log("💱 [fetchRates] Rates updated:");
+      console.log(`   • 1 SOL  = ${this.solToUsdcRate.toFixed(4)} USDC`);
+      console.log(`   • 1 USDC = ${this.usdcToSolRate.toFixed(6)} SOL`);
+    } catch (err) {
+      console.error("❌ Failed to fetch Coingecko rates", err);
+    }
+  }
+
+  // === Get Price Display (pakai rates di atas) ===
+  getPriceDisplay(token: any) {
+    if (!token || !this.gatchaPacks?.length) {
+      return { amount: 0, usd: 0 };
+    }
+
+    // Gunakan pack yang sedang dipilih di modal
+    const activePack = this.selectedPack || this.gatchaPacks[0];
+    if (!activePack) return { amount: 0, usd: 0 };
+
+    let amount = 0;
+    let usd = 0;
+
+    if (token.symbol === "SOL") {
+      amount = activePack.priceSOL;
+      usd = activePack.priceSOL * (this.solToUsdcRate ?? 150);
+    } else if (token.symbol === "USDC") {
+      const solToUsd = this.solToUsdcRate ?? 150;
+      amount = activePack.priceSOL * solToUsd;
+      usd = amount;
+    } else {
+      amount = activePack.priceSOL;
+      usd = activePack.priceSOL * (this.solToUsdcRate ?? 150);
+    }
+
+    return { amount, usd };
   }
 }
