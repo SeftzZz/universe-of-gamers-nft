@@ -152,10 +152,15 @@ export class NftDetailPage implements OnInit {
   scrollIsActive = false;
 
   minSellPrice: number = 0.0001;
-  usdcToSolRate: number = 0;  // 1 USDC = ? SOL
+  uogToSolRate: number = 0; // rate 1 UOG → SOL
+  uogToUsdRate: number = 0; // rate 1 UOG → USDC
+  solToUogRate: number = 0; // rate 1 SOL → UOG
+  usdcToSolRate: number = 0;
+  usdcToUogRate: number = 0;
   solToUsdcRate: number = 0;  // 1 SOL = ? USDC
   listedPrice: number = 0;
   listedSymbol: string = "SOL";
+  packPriceSOL: number = 0;
   // 🧩 Tambahkan variabel ini di dalam class NftDetailPage
   nftListingPrice: {
     amount: number;
@@ -418,16 +423,17 @@ export class NftDetailPage implements OnInit {
         .get(`${environment.apiUrl}/wallet/tokens/${this.activeWallet}`)
         .toPromise();
 
-      // ✅ Filter hanya token SOL & USDC
       const allowedMints = [
-        'So11111111111111111111111111111111111111111', // Native SOL
-        // 'So11111111111111111111111111111111111111112', // Wrapped SOL
-        'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
+        'So11111111111111111111111111111111111111111', // SOL
+        'B6VWNAqRu2tZcYeBJ1i1raw4eaVP4GrkL2YcZLshbonk', // UOG
       ];
 
-      this.tokens = (resp.tokens || []).filter((t: any) =>
-        allowedMints.includes(t.mint)
-      );
+      this.tokens = (resp.tokens || [])
+        .filter((t: any) => allowedMints.includes(t.mint))
+        .map((t: any) => ({
+          ...t,
+          selectable: t.mint === 'B6VWNAqRu2tZcYeBJ1i1raw4eaVP4GrkL2YcZLshbonk', // hanya SOL yang bisa dipilih
+        }));
 
       // Simpan hasilnya ke localStorage
       localStorage.setItem('walletTokens', JSON.stringify(this.tokens));
@@ -463,14 +469,6 @@ export class NftDetailPage implements OnInit {
     await this.updateBalance();
   }
 
-  get filteredTokens() {
-    if (!this.tokenSearch) return this.tokens;
-    return this.tokens.filter(t =>
-      (t.symbol?.toLowerCase().includes(this.tokenSearch.toLowerCase()) ||
-       t.name?.toLowerCase().includes(this.tokenSearch.toLowerCase()))
-    );
-  }
-
   selectToken(token: any) {
     this.selectedToken = token;
   }
@@ -491,33 +489,64 @@ export class NftDetailPage implements OnInit {
       this.isSending = true;
       this.txSig = null;
 
-      // 🔹 Tentukan token listing dan token pembayar
-      const listingSymbol = this.metadata?.paymentSymbol || "SOL"; // token di listing
+      // 🔹 Determine listing token and buyer token
+      const listingSymbol = this.metadata?.paymentSymbol || "SOL"; // the token used for listing
       const buyerToken = this.filteredTokens.find(t => t.mint === paymentMint);
       const buyerSymbol = buyerToken?.symbol || "SOL";
 
       let finalPrice = this.metadata?.price || 0;
 
-      // 🔄 Jika listing dalam USDC tapi bayar pakai SOL
+      // === 💱 PRICE CONVERSION MATRIX ===
+      // (listingSymbol → buyerSymbol)
+
+      // USDC → SOL
       if (listingSymbol === "USDC" && buyerSymbol === "SOL") {
         finalPrice = finalPrice * (this.usdcToSolRate || 0);
         console.log(`💱 Converted price: ${this.metadata?.price} USDC → ${finalPrice} SOL`);
       }
 
-      // 🔄 Jika listing dalam SOL tapi bayar pakai USDC
+      // SOL → USDC
       if (listingSymbol === "SOL" && buyerSymbol === "USDC") {
         finalPrice = finalPrice * (this.solToUsdcRate || 0);
         console.log(`💱 Converted price: ${this.metadata?.price} SOL → ${finalPrice} USDC`);
       }
 
-      // 🔥 Kirim ke backend
+      // UOG → USDC
+      if (listingSymbol === "UOG" && buyerSymbol === "USDC") {
+        finalPrice = finalPrice * (this.uogToUsdRate || 0);
+        console.log(`💱 Converted price: ${this.metadata?.price} UOG → ${finalPrice} USDC`);
+      }
+
+      // USDC → UOG
+      if (listingSymbol === "USDC" && buyerSymbol === "UOG") {
+        finalPrice = finalPrice * (this.usdcToUogRate || 0);
+        console.log(`💱 Converted price: ${this.metadata?.price} USDC → ${finalPrice} UOG`);
+      }
+
+      // SOL → UOG
+      if (listingSymbol === "SOL" && buyerSymbol === "UOG") {
+        const solToUsd = this.solToUsdcRate || 0;
+        const usdToUog = this.usdcToUogRate || 0;
+        finalPrice = finalPrice * solToUsd * usdToUog;
+        console.log(`💱 Converted price: ${this.metadata?.price} SOL → ${finalPrice} UOG`);
+      }
+
+      // UOG → SOL
+      if (listingSymbol === "UOG" && buyerSymbol === "SOL") {
+        const uogToUsd = this.uogToUsdRate || 0;
+        const usdToSol = this.usdcToSolRate || 0;
+        finalPrice = finalPrice * uogToUsd * usdToSol;
+        console.log(`💱 Converted price: ${this.metadata?.price} UOG → ${finalPrice} SOL`);
+      }
+
+      // === 🪙 Send to backend ===
       const buyRes: any = await this.http
         .post(
           `${environment.apiUrl}/auth/nft/${mintAddress}/buy?demo=false`,
           {
             user: this.activeWallet,
             paymentMint: paymentMint,
-            price: finalPrice, // ✅ harga sudah disesuaikan dengan token pembayar
+            price: finalPrice, // ✅ adjusted to buyer token
             name: this.metadata?.name,
             symbol: buyerSymbol,
             uri: this.metadata?.uri,
@@ -537,7 +566,7 @@ export class NftDetailPage implements OnInit {
       const toast = await this.toastCtrl.create({
         message: `NFT purchase successful! ✅`,
         duration: 2500,
-        position: 'bottom',
+        position: 'top',
         color: 'success',
         icon: 'checkmark-circle-outline',
         cssClass: 'custom-toast'
@@ -564,7 +593,7 @@ export class NftDetailPage implements OnInit {
       const toast = await this.toastCtrl.create({
         message: errorMessage,
         duration: 2500,
-        position: 'bottom',
+        position: 'top',
         color: 'danger',
         icon: 'close-circle-outline',
         cssClass: 'custom-toast'
@@ -938,43 +967,139 @@ export class NftDetailPage implements OnInit {
     return this.nftListingPrice;
   }
 
-  getPriceDisplay(token: any) {
-    if (!token || !this.nftListingPrice) {
-      return { amount: 0, usd: 0 };
+  get filteredTokens() {
+    if (!this.tokenSearch) return this.tokens;
+    return this.tokens.filter(t =>
+      (t.symbol?.toLowerCase().includes(this.tokenSearch.toLowerCase()) ||
+       t.name?.toLowerCase().includes(this.tokenSearch.toLowerCase()))
+    );
+  }
+
+  get solToken() {
+    return this.tokens.find(t => t.symbol === 'SOL');
+  }
+
+  get uogToken() {
+    return this.tokens.find(t => t.symbol === 'UOG');
+  }
+
+  get treasuryFeeUOG() {
+    const solToken = this.solToken;
+    const uogToken = this.uogToken;
+    if (!solToken || !uogToken || !this.nftListingPrice?.amount) return null;
+
+    const solUsd = solToken.priceUsd || 0;
+    const uogUsd = uogToken.priceUsd || 0;
+
+    const priceAmount = this.nftListingPrice.amount;
+    const priceSymbol = this.nftListingPrice.symbol || "UOG";
+
+    let solFee = 0;
+    let feeUsd = 0;
+    let feeUog = 0;
+
+    if (priceSymbol === "SOL") {
+      // 🔹 NFT terdaftar dalam SOL
+      solFee = priceAmount * 0.1;
+      feeUsd = solFee * solUsd;
+      feeUog = uogUsd > 0 ? feeUsd / uogUsd : 0;
+    } else if (priceSymbol === "UOG") {
+      // 🔹 NFT terdaftar dalam UOG
+      feeUog = priceAmount * 0.1;
+      feeUsd = feeUog * uogUsd;
+      solFee = solUsd > 0 ? feeUsd / solUsd : 0;
+    } else {
+      // 🔹 Default (misal USDC atau lainnya)
+      feeUsd = priceAmount * 0.1;
+      solFee = solUsd > 0 ? feeUsd / solUsd : 0;
+      feeUog = uogUsd > 0 ? feeUsd / uogUsd : 0;
     }
+
+    return { solFee, feeInUSD: feeUsd, feeInUOG: feeUog };
+  }
+
+  // === Get Price Display (pakai rates di atas) ===
+  getPriceDisplay(token: any) {
+    if (!token || !this.nftListingPrice) return { amount: 0, usd: 0, sol: 0 };
 
     const listing = this.nftListingPrice;
+    const solToken = this.tokens.find(t => t.symbol === "SOL");
+    const uogToken = this.tokens.find(t => t.symbol === "UOG");
 
-    // Jika token sama dengan token listing → tampilkan harga asli
-    if (token.symbol === listing.symbol) {
+    const solUsd = solToken?.priceUsd || 0;
+    const uogUsd = uogToken?.priceUsd || 0;
+    const listingSymbol = listing.symbol;
+
+    // 💰 Harga listing dalam USD (asli)
+    const listingUsd = listing.usdValue || 0;
+
+    // Jika token = UOG (utama)
+    if (token.symbol === "UOG") {
+      let amountUOG = 0;
+
+      if (listingSymbol === "SOL") {
+        // Listing dalam SOL → konversi ke UOG
+        const priceInUsd = listing.amount * solUsd;
+        amountUOG = uogUsd > 0 ? priceInUsd / uogUsd : 0;
+      } else if (listingSymbol === "USDC") {
+        // Listing dalam USDC → konversi ke UOG (1 USDC ≈ 1 USD)
+        amountUOG = uogUsd > 0 ? listing.amount / uogUsd : 0;
+      } else if (listingSymbol === "UOG") {
+        amountUOG = listing.amount;
+      }
+
       return {
-        amount: listing.amount,
-        usd: listing.usdValue
+        amount: amountUOG,
+        usd: amountUOG * uogUsd,
+        sol: solUsd > 0 ? (amountUOG * uogUsd) / solUsd : 0,
       };
     }
 
-    // Jika listing dalam SOL dan user memilih USDC
-    if (listing.symbol === "SOL" && token.symbol === "USDC") {
-      const rate = this.solToUsdcRate || 0; // rate real dari fetchRates
+    // Jika token = SOL
+    if (token.symbol === "SOL") {
+      let amountSOL = 0;
+
+      if (listingSymbol === "UOG") {
+        // UOG → SOL
+        const priceInUsd = listing.amount * uogUsd;
+        amountSOL = solUsd > 0 ? priceInUsd / solUsd : 0;
+      } else if (listingSymbol === "USDC") {
+        amountSOL = solUsd > 0 ? listing.amount / solUsd : 0;
+      } else {
+        amountSOL = listing.amount;
+      }
+
       return {
-        amount: listing.amount * rate,
-        usd: listing.amount * rate // USDC ≈ USD
+        amount: amountSOL,
+        usd: amountSOL * solUsd,
+        sol: amountSOL,
       };
     }
 
-    // Jika listing dalam USDC dan user memilih SOL
-    if (listing.symbol === "USDC" && token.symbol === "SOL") {
-      const rate = this.usdcToSolRate || 0; // rate real dari fetchRates
+    // Jika token = USDC
+    if (token.symbol === "USDC") {
+      let amountUSDC = 0;
+
+      if (listingSymbol === "SOL") {
+        amountUSDC = listing.amount * solUsd; // 1 USDC ≈ 1 USD
+      } else if (listingSymbol === "UOG") {
+        amountUSDC = listing.amount * uogUsd;
+      } else {
+        amountUSDC = listing.amount;
+      }
+
       return {
-        amount: listing.amount * rate,
-        usd: listing.amount // 1 USDC ≈ 1 USD
+        amount: amountUSDC,
+        usd: amountUSDC,
+        sol: solUsd > 0 ? amountUSDC / solUsd : 0,
       };
     }
 
-    // Default fallback (token lain)
+    // Default fallback
     return {
       amount: listing.amount,
-      usd: listing.usdValue
+      usd: listing.usdValue,
+      sol: listingSymbol === "SOL" ? listing.amount : 0,
     };
   }
 

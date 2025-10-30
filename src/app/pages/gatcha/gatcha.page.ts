@@ -59,6 +59,7 @@ export class GatchaPage implements OnInit {
   solToUsdcRate: number = 0;  // 1 SOL = ? USDC
   listedPrice: number = 0;
   listedSymbol: string = "SOL";
+  packPriceSOL: number = 0;
 
   constructor(
     private http: HttpClient,
@@ -96,16 +97,17 @@ export class GatchaPage implements OnInit {
         .get(`${environment.apiUrl}/wallet/tokens/${this.activeWallet}`)
         .toPromise();
 
-      // ✅ Filter hanya token SOL & USDC
       const allowedMints = [
-        'So11111111111111111111111111111111111111111', // Native SOL
-        // 'So11111111111111111111111111111111111111112', // Wrapped SOL
-        'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
+        'So11111111111111111111111111111111111111111', // SOL
+        'B6VWNAqRu2tZcYeBJ1i1raw4eaVP4GrkL2YcZLshbonk', // UOG
       ];
 
-      this.tokens = (resp.tokens || []).filter((t: any) =>
-        allowedMints.includes(t.mint)
-      );
+      this.tokens = (resp.tokens || [])
+        .filter((t: any) => allowedMints.includes(t.mint))
+        .map((t: any) => ({
+          ...t,
+          selectable: t.mint === 'So11111111111111111111111111111111111111111', // hanya SOL yang bisa dipilih
+        }));
 
       // Simpan hasilnya ke localStorage
       localStorage.setItem('walletTokens', JSON.stringify(this.tokens));
@@ -115,14 +117,6 @@ export class GatchaPage implements OnInit {
       console.error('❌ Error fetch tokens from API', err);
       this.router.navigateByUrl('/tabs/offline');
     }
-  }
-
-  get filteredTokens() {
-    if (!this.tokenSearch) return this.tokens;
-    return this.tokens.filter(t =>
-      (t.symbol?.toLowerCase().includes(this.tokenSearch.toLowerCase()) ||
-       t.name?.toLowerCase().includes(this.tokenSearch.toLowerCase()))
-    );
   }
 
   // === Character & Rune (untuk preview gambar) ===
@@ -197,6 +191,7 @@ export class GatchaPage implements OnInit {
   // === Modal Control ===
   async toggleSendModal(pack: any) {
     this.selectedPack = pack;
+    this.packPriceSOL = pack.priceSOL || 0; // ✅ <── tambahkan ini
     this.showSendModal = true;
     this.isClosingSend = false;
     await this.loadTokens();
@@ -262,6 +257,8 @@ export class GatchaPage implements OnInit {
 
     this.gatchaPacks[packIndex].finalImage = null;
     this.gatchaPacks[packIndex].isShuffling = true;
+
+    console.log(`Gatcha Pack ${packId} in 30 times and 100ms delay`);
     await this.shufflePackRewards(packId, 30, 100);
     this.gatchaPacks[packIndex].isShuffling = false;
 
@@ -270,7 +267,7 @@ export class GatchaPage implements OnInit {
         `${environment.apiUrl}/gatcha/${packId}/pull`,
         {
           user: this.activeWallet,
-          paymentMint: token.mint,   // 👈 kirim mint token yang dipilih (SOL/UOG)
+          paymentMint: token.mint,
         },
         { headers: { Authorization: `Bearer ${this.authToken}` } }
       ).toPromise();
@@ -290,7 +287,9 @@ export class GatchaPage implements OnInit {
         position: "top",
       });
       toast.present();
+      this.resetSendModal();
       await this.loadTokens();
+
     } catch (err: any) {
       console.error("❌ Error minting gatcha:", err);
       const toast = await this.toastCtrl.create({
@@ -300,6 +299,7 @@ export class GatchaPage implements OnInit {
         position: "top",
       });
       toast.present();
+      this.resetSendModal();
       await this.loadTokens();
     }
   }
@@ -325,31 +325,64 @@ export class GatchaPage implements OnInit {
     }
   }
 
+  get filteredTokens() {
+    if (!this.tokenSearch) return this.tokens;
+    return this.tokens.filter(t =>
+      (t.symbol?.toLowerCase().includes(this.tokenSearch.toLowerCase()) ||
+       t.name?.toLowerCase().includes(this.tokenSearch.toLowerCase()))
+    );
+  }
+
+  get solToken() {
+    return this.tokens.find(t => t.symbol === 'SOL');
+  }
+
+  get uogToken() {
+    return this.tokens.find(t => t.symbol === 'UOG');
+  }
+
+  get treasuryFeeUOG() {
+    const solToken = this.solToken;
+    const uogToken = this.uogToken;
+    if (!solToken || !uogToken || !this.packPriceSOL) return null;
+
+    const solUsd = solToken.priceUsd || 0;
+    const uogUsd = uogToken.priceUsd || 0;
+
+    const solFee = this.packPriceSOL * 0.1;
+    const feeUsd = solFee * solUsd;
+    const feeUog = uogUsd > 0 ? feeUsd / uogUsd : 0;
+
+    return { solFee, feeInUSD: feeUsd, feeInUOG: feeUog };
+  }
+
   // === Get Price Display (pakai rates di atas) ===
   getPriceDisplay(token: any) {
-    if (!token || !this.gatchaPacks?.length) {
-      return { amount: 0, usd: 0 };
-    }
+    if (!token || !this.selectedPack) return { amount: 0, usd: 0 };
 
-    // Gunakan pack yang sedang dipilih di modal
-    const activePack = this.selectedPack || this.gatchaPacks[0];
-    if (!activePack) return { amount: 0, usd: 0 };
+    const activePack = this.selectedPack;
+    const solToken = this.tokens.find(t => t.symbol === "SOL");
+    const solUsd = solToken?.priceUsd || 0;
+    const targetUsd = token.priceUsd || 0;
 
-    let amount = 0;
-    let usd = 0;
+    // harga pack dalam USD (berdasarkan SOL)
+    const packUsd = activePack.priceSOL * solUsd;
 
+    // jika token = SOL → langsung
     if (token.symbol === "SOL") {
-      amount = activePack.priceSOL;
-      usd = activePack.priceSOL * (this.solToUsdcRate ?? 150);
-    } else if (token.symbol === "USDC") {
-      const solToUsd = this.solToUsdcRate ?? 150;
-      amount = activePack.priceSOL * solToUsd;
-      usd = amount;
-    } else {
-      amount = activePack.priceSOL;
-      usd = activePack.priceSOL * (this.solToUsdcRate ?? 150);
+      return {
+        amount: activePack.priceSOL,
+        usd: packUsd,
+      };
     }
 
-    return { amount, usd };
+    // jika token lain → konversi ke denominasi token itu
+    const amount = targetUsd > 0 ? packUsd / targetUsd : 0;
+
+    return {
+      amount,
+      usd: packUsd,
+    };
   }
+
 }

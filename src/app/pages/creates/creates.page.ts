@@ -111,6 +111,7 @@ export class CreatesPage implements OnInit {
   solToUsdcRate: number = 0;  // 1 SOL = ? USDC
   listedPrice: number = 0;
   listedSymbol: string = "SOL";
+  packPriceSOL: number = 0;
 
   gatchaForm: any = {
     packId: '',
@@ -194,15 +195,17 @@ export class CreatesPage implements OnInit {
         .get(`${environment.apiUrl}/wallet/tokens/${this.activeWallet}`)
         .toPromise();
 
-      // ✅ Filter hanya token SOL & USDC
       const allowedMints = [
         'So11111111111111111111111111111111111111111', // SOL
-        'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
+        'B6VWNAqRu2tZcYeBJ1i1raw4eaVP4GrkL2YcZLshbonk', // UOG
       ];
 
-      this.tokens = (resp.tokens || []).filter((t: any) =>
-        allowedMints.includes(t.mint)
-      );
+      this.tokens = (resp.tokens || [])
+        .filter((t: any) => allowedMints.includes(t.mint))
+        .map((t: any) => ({
+          ...t,
+          selectable: t.mint === 'So11111111111111111111111111111111111111111', // hanya SOL yang bisa dipilih
+        }));
 
       // Simpan hasilnya ke localStorage
       localStorage.setItem('walletTokens', JSON.stringify(this.tokens));
@@ -212,14 +215,6 @@ export class CreatesPage implements OnInit {
       console.error('❌ Error fetch tokens from API', err);
       this.router.navigateByUrl('/tabs/offline');
     }
-  }
-
-  get filteredTokens() {
-    if (!this.tokenSearch) return this.tokens;
-    return this.tokens.filter(t =>
-      (t.symbol?.toLowerCase().includes(this.tokenSearch.toLowerCase()) ||
-       t.name?.toLowerCase().includes(this.tokenSearch.toLowerCase()))
-    );
   }
 
   disconnectWallet() {
@@ -808,31 +803,63 @@ export class CreatesPage implements OnInit {
     }
   }
 
+  get filteredTokens() {
+    if (!this.tokenSearch) return this.tokens;
+    return this.tokens.filter(t =>
+      (t.symbol?.toLowerCase().includes(this.tokenSearch.toLowerCase()) ||
+       t.name?.toLowerCase().includes(this.tokenSearch.toLowerCase()))
+    );
+  }
+
+  get solToken() {
+    return this.tokens.find(t => t.symbol === 'SOL');
+  }
+
+  get uogToken() {
+    return this.tokens.find(t => t.symbol === 'UOG');
+  }
+
+  get treasuryFeeUOG() {
+    const solToken = this.solToken;
+    const uogToken = this.uogToken;
+    if (!solToken || !uogToken || !this.packPriceSOL) return null;
+
+    const solUsd = solToken.priceUsd || 0;
+    const uogUsd = uogToken.priceUsd || 0;
+
+    const solFee = this.packPriceSOL * 0.1;
+    const feeUsd = solFee * solUsd;
+    const feeUog = uogUsd > 0 ? feeUsd / uogUsd : 0;
+
+    return { solFee, feeInUSD: feeUsd, feeInUOG: feeUog };
+  }
+
   // === Get Price Display (pakai rates di atas) ===
   getPriceDisplay(token: any) {
-    if (!token || !this.gatchaPacks?.length) {
-      return { amount: 0, usd: 0 };
-    }
+    if (!token || !this.selectedPack) return { amount: 0, usd: 0 };
 
-    // Gunakan pack yang sedang dipilih di modal
-    const activePack = this.selectedPack || this.gatchaPacks[0];
-    if (!activePack) return { amount: 0, usd: 0 };
+    const activePack = this.selectedPack;
+    const solToken = this.tokens.find(t => t.symbol === "SOL");
+    const solUsd = solToken?.priceUsd || 0;
+    const targetUsd = token.priceUsd || 0;
 
-    let amount = 0;
-    let usd = 0;
+    // harga pack dalam USD (berdasarkan SOL)
+    const packUsd = activePack.priceSOL * solUsd;
 
+    // jika token = SOL → langsung
     if (token.symbol === "SOL") {
-      amount = activePack.priceSOL;
-      usd = activePack.priceSOL * (this.solToUsdcRate ?? 150);
-    } else if (token.symbol === "USDC") {
-      const solToUsd = this.solToUsdcRate ?? 150;
-      amount = activePack.priceSOL * solToUsd;
-      usd = amount;
-    } else {
-      amount = activePack.priceSOL;
-      usd = activePack.priceSOL * (this.solToUsdcRate ?? 150);
+      return {
+        amount: activePack.priceSOL,
+        usd: packUsd,
+      };
     }
 
-    return { amount, usd };
+    // jika token lain → konversi ke denominasi token itu
+    const amount = targetUsd > 0 ? packUsd / targetUsd : 0;
+
+    return {
+      amount,
+      usd: packUsd,
+    };
   }
 }

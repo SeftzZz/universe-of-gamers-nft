@@ -582,6 +582,10 @@ ion-tab-bar {
     padding-top: 10px;
 }
 
+ion-spinner {
+  --color: rgb(54, 135, 252);
+}
+
 @media (max-width: 1440px) {
     .wrap-box-card .col-item {
         width: calc(33.333% - 28.5px) !important;

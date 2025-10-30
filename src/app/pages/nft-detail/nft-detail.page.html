@@ -181,7 +181,7 @@
       <div *ngIf="!selectedToken && !isSending && !txSig">
 
         <h2 class="modal-title">
-          Select {{ metadata?.character ? 'SOL' : 'Token' }} to Buy
+          Select {{ metadata?.character ? 'UOG' : 'Token' }} to Buy
         </h2>
 
         <!-- Jika bukan karakter → tampilkan search dan daftar token -->
@@ -197,11 +197,13 @@
           <button class="search search-submit" type="submit"><i class="icon-search"></i></button>
         </form>
 
+        <!-- List token -->
         <div class="widget-table-ranking pb-20" *ngIf="filteredTokens.length > 0">
           <div
             class="table-ranking-content"
             *ngFor="let token of filteredTokens"
-            (click)="buyNft(token.mint)"
+            [class.disabled]="!token.selectable"
+            (click)="token.selectable && buyNft(token)"
           >
             <div class="fl-row-ranking">
               <div class="td1">
@@ -214,7 +216,7 @@
                   <!-- {{ token.symbol }} -->
 
                   <!-- 💰 Harga NFT (harga listing dalam token ini) -->
-                  <h6 class="price gem pt-10">
+                  <h6 class="price gem">
                     {{ getPriceDisplay(token).amount | number:'1.4-4' }} {{ token.symbol }}
                   </h6>
 
@@ -225,10 +227,39 @@
                 </div>
               </div>
 
-              <!-- Kolom kanan: harga USD + tren -->
               <div class="td5">
                 <h6 class="price gem">
                   ${{ getPriceDisplay(token).usd | number:'1.2-2' }}
+                </h6>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Treasury fee info -->
+        <div class="widget-table-ranking pb-20" *ngIf="treasuryFeeUOG">
+          <div class="table-ranking-content">
+            <div class="fl-row-ranking">
+              <div class="td1">
+                <div class="item-name">
+                  <!-- 🔹 Nama token -->
+                  Treasury Fee
+
+                  <!-- 💰 Harga NFT (harga listing dalam token ini) -->
+                  <h6 class="price gem">
+                    {{ treasuryFeeUOG.feeInUOG | number:'1.2-2' }} UOG
+                  </h6>
+
+                  <!-- 👛 Tambahan: saldo pengguna -->
+                  <span class="balance-info text-sm warning pt-1">
+                    {{ treasuryFeeUOG.solFee | number:'1.6-6' }} SOL
+                  </span>
+                </div>
+              </div>
+
+              <div class="td5">
+                <h6 class="price gem">
+                  ${{ treasuryFeeUOG.feeInUSD | number:'1.2-2' }}
                 </h6>
               </div>
             </div>
@@ -288,8 +319,8 @@
             class="form-control"
           >
             <option [ngValue]="null" disabled selected>-- Choose Token --</option>
-            <option *ngFor="let token of filteredTokens" [ngValue]="token">
-              {{ token.symbol }} — {{ token.amount | number:'1.2-4' }}
+            <option *ngFor="let token of uogTokens" [ngValue]="token">
+              {{ token.name }}
             </option>
           </select>
         </div>
@@ -297,7 +328,7 @@
         <!-- Input harga -->
         <div class="form-group">
           <label for="price">
-            Set Price ({{ metadata?.character ? 'SOL/USDC' : selectedToken?.symbol || 'Select Token' }})
+            Set Price ({{ metadata?.character ? 'UOG' : selectedToken?.symbol || 'Select Token' }})
           </label>
           <input
             id="price"

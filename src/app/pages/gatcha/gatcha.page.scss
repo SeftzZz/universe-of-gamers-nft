@@ -546,6 +546,12 @@ i.danger {
     border-radius: 50%;
 }
 
+.table-ranking-content.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 @media (max-width: 991px) {
     .widget-table-ranking .table-ranking-heading, .widget-table-ranking .table-ranking-content {
         width: auto;
