@@ -869,7 +869,7 @@ export class NftDetailPage implements OnInit {
       this.metadata?.paymentSymbol ||
       this.metadata?.tokenSymbol ||
       this.metadata?.symbol ||
-      (this.metadata?.character || this.metadata?.rune ? 'SOL' : this.selectedToken?.symbol || 'SOL')
+      (this.metadata?.character || this.metadata?.rune ? 'UOG' : this.selectedToken?.symbol || 'UOG')
     );
   }
 
