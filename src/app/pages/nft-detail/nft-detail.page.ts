@@ -7,8 +7,15 @@ import { Wallet } from '../../services/wallet';
 import { Auth } from '../../services/auth';
 import { Modal } from '../../services/modal';
 import { User, UserProfile } from '../../services/user';
+import { NftService } from "src/app/services/nft.service";
 import { WebSocket } from '../../services/websocket';
 const web3 = require('@solana/web3.js');
+const { Transaction } = require("@solana/web3.js");
+
+import { Phantom } from '../../services/phantom';
+import nacl from 'tweetnacl';
+import bs58 from 'bs58';
+import { NgZone } from "@angular/core";
 
 import { Router, ActivatedRoute } from '@angular/router';
 
@@ -24,6 +31,16 @@ import {
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { IonContent } from '@ionic/angular';
+
+/**
+ * Helper log universal — tampil di console browser dan Android Logcat
+ */
+function nativeLog(tag: string, data: any) {
+  const time = new Date().toISOString();
+  const msg = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+  const prefix = Capacitor.isNativePlatform() ? '🟩' : '🟢';
+  console.log(`${prefix} [${tag}] ${time} → ${msg}`);
+}
 
 interface Collection {
   id: string;
@@ -184,6 +201,8 @@ export class NftDetailPage implements OnInit {
     private modalService: Modal,
     private userService: User,
     private ws: WebSocket,
+    private phantom: Phantom,
+    private nftService: NftService,
   ) {}
 
   async ngOnInit() {
@@ -251,6 +270,48 @@ export class NftDetailPage implements OnInit {
 
     const saved = localStorage.getItem('token');
     if (saved) this.authToken = saved;
+
+    this.nftService.nftSold$.subscribe(async (nft) => {
+      if (nft && nft.mintAddress === this.mintAddress) {
+        console.log("🔥 NFT sold update received:", nft);
+
+        this.listedPrice = nft.price;
+        this.listedSymbol = nft.symbol;
+        this.txSig = nft.txSig;
+
+        // optional: refresh metadata dari backend
+        await this.loadMetadata(this.mintAddress!);
+        await this.loadTokens();
+        await this.loadTopCreators();
+        await this.loadNftHistory();
+
+        const toast = await this.toastCtrl.create({
+          message: `✅ Your NFT has been listed successfully!`,
+          duration: 3000,
+          color: "success",
+          position: "top",
+        });
+        toast.present();
+      }
+    });
+
+    this.nftService.nftBought$.subscribe(async (nft) => {
+      if (nft && nft.nft?.mintAddress === this.mintAddress) {
+        console.log("🎉 NFT purchase event received:", nft);
+
+        await this.updateBalance();
+        await this.loadTokens();
+        await this.loadMetadata(this.mintAddress!);
+
+        const toast = await this.toastCtrl.create({
+          message: `🎉 You successfully bought this NFT for ${nft.price} ${nft.symbol}!`,
+          duration: 3000,
+          color: "success",
+          position: "top",
+        });
+        toast.present();
+      }
+    });
   }
 
   /** 🔄 Helper refresh data global */
@@ -482,7 +543,7 @@ export class NftDetailPage implements OnInit {
   }
 
   async buyNft(paymentMint: string) {
-    const mintAddress = this.route.snapshot.paramMap.get('mintAddress'); 
+    const mintAddress = this.route.snapshot.paramMap.get('mintAddress');
     if (!mintAddress) return;
 
     try {
@@ -490,119 +551,244 @@ export class NftDetailPage implements OnInit {
       this.txSig = null;
 
       // 🔹 Determine listing token and buyer token
-      const listingSymbol = this.metadata?.paymentSymbol || "SOL"; // the token used for listing
+      const listingSymbol = this.metadata?.paymentSymbol || "SOL";
       const buyerToken = this.filteredTokens.find(t => t.mint === paymentMint);
       const buyerSymbol = buyerToken?.symbol || "SOL";
 
       let finalPrice = this.metadata?.price || 0;
 
       // === 💱 PRICE CONVERSION MATRIX ===
-      // (listingSymbol → buyerSymbol)
-
-      // USDC → SOL
       if (listingSymbol === "USDC" && buyerSymbol === "SOL") {
-        finalPrice = finalPrice * (this.usdcToSolRate || 0);
-        console.log(`💱 Converted price: ${this.metadata?.price} USDC → ${finalPrice} SOL`);
+        finalPrice *= (this.usdcToSolRate || 0);
       }
-
-      // SOL → USDC
       if (listingSymbol === "SOL" && buyerSymbol === "USDC") {
-        finalPrice = finalPrice * (this.solToUsdcRate || 0);
-        console.log(`💱 Converted price: ${this.metadata?.price} SOL → ${finalPrice} USDC`);
+        finalPrice *= (this.solToUsdcRate || 0);
       }
-
-      // UOG → USDC
       if (listingSymbol === "UOG" && buyerSymbol === "USDC") {
-        finalPrice = finalPrice * (this.uogToUsdRate || 0);
-        console.log(`💱 Converted price: ${this.metadata?.price} UOG → ${finalPrice} USDC`);
+        finalPrice *= (this.uogToUsdRate || 0);
       }
-
-      // USDC → UOG
       if (listingSymbol === "USDC" && buyerSymbol === "UOG") {
-        finalPrice = finalPrice * (this.usdcToUogRate || 0);
-        console.log(`💱 Converted price: ${this.metadata?.price} USDC → ${finalPrice} UOG`);
+        finalPrice *= (this.usdcToUogRate || 0);
       }
-
-      // SOL → UOG
       if (listingSymbol === "SOL" && buyerSymbol === "UOG") {
         const solToUsd = this.solToUsdcRate || 0;
         const usdToUog = this.usdcToUogRate || 0;
-        finalPrice = finalPrice * solToUsd * usdToUog;
-        console.log(`💱 Converted price: ${this.metadata?.price} SOL → ${finalPrice} UOG`);
+        finalPrice *= solToUsd * usdToUog;
       }
-
-      // UOG → SOL
       if (listingSymbol === "UOG" && buyerSymbol === "SOL") {
         const uogToUsd = this.uogToUsdRate || 0;
         const usdToSol = this.usdcToSolRate || 0;
-        finalPrice = finalPrice * uogToUsd * usdToSol;
-        console.log(`💱 Converted price: ${this.metadata?.price} UOG → ${finalPrice} SOL`);
+        finalPrice *= uogToUsd * usdToSol;
       }
 
-      // === 🪙 Send to backend ===
-      const buyRes: any = await this.http
-        .post(
-          `${environment.apiUrl}/auth/nft/${mintAddress}/buy?demo=false`,
-          {
-            user: this.activeWallet,
-            paymentMint: paymentMint,
-            price: finalPrice, // ✅ adjusted to buyer token
-            name: this.metadata?.name,
-            symbol: buyerSymbol,
-            uri: this.metadata?.uri,
-          },
-          { headers: { Authorization: `Bearer ${this.authToken}` } }
-        )
-        .toPromise();
+      console.log(`💱 Converted ${this.metadata?.price} ${listingSymbol} → ${finalPrice} ${buyerSymbol}`);
 
-      if (!buyRes.signature) throw new Error("❌ No signature returned from backend");
-      this.txSig = buyRes.signature;
+      // 1️⃣ Request unsigned transaction dari backend
+      const resp: any = await this.http.post(
+        `${environment.apiUrl}/auth/nft/${mintAddress}/buy`,
+        {
+          paymentMint,
+          price: finalPrice,
+          name: this.metadata?.name,
+          symbol: buyerSymbol,
+          uri: this.metadata?.uri,
+        },
+        { headers: { Authorization: `Bearer ${this.authToken}` } }
+      ).toPromise();
 
-      // 🔁 Refresh data
-      await this.updateBalance();
-      await this.loadTokens();
-      await this.loadMetadata(mintAddress);
+      if (!resp?.transaction) throw new Error("❌ Backend did not return transaction data");
 
-      const toast = await this.toastCtrl.create({
-        message: `NFT purchase successful! ✅`,
-        duration: 2500,
-        position: 'top',
-        color: 'success',
-        icon: 'checkmark-circle-outline',
-        cssClass: 'custom-toast'
-      });
-      await toast.present();
+      const txBuffer = Buffer.from(resp.transaction, "base64");
+      const txBase58 = bs58.encode(txBuffer);
 
-      console.log("✅ Transaction confirmed:", buyRes.signature);
-      console.log("🧾 Payment token:", buyerSymbol, "| Price sent:", finalPrice);
+      // 2️⃣ Ambil session Phantom
+      const phantom_pubkey = localStorage.getItem("phantom_pubkey");
+      const secretKeyStored = localStorage.getItem("dappSecretKey");
+      const session = localStorage.getItem("phantomSession");
+
+      if (!phantom_pubkey || !secretKeyStored || !session) {
+        alert("⚠️ Please connect Phantom first before buying.");
+        this.isSending = false;
+        return;
+      }
+
+      // 🔐 Encrypt payload untuk deeplink Phantom
+      const phantomPubKey = bs58.decode(phantom_pubkey);
+      const secretKey = bs58.decode(secretKeyStored);
+      const sharedSecret = nacl.box.before(phantomPubKey, secretKey);
+      const nonce = nacl.randomBytes(24);
+      const nonceB58 = bs58.encode(nonce);
+
+      const payloadObj = { session, transaction: txBase58, display: "signTransaction" };
+      const payloadBytes = new TextEncoder().encode(JSON.stringify(payloadObj));
+      const encryptedPayload = nacl.box.after(payloadBytes, nonce, sharedSecret);
+      const payloadB58 = bs58.encode(encryptedPayload);
+
+      const dappPubKeyB58 = bs58.encode(this.phantom.getKeypair().publicKey);
+      const redirect = encodeURIComponent("com.universeofgamers.nft://phantom-callback");
+
+      const baseUrl =
+        `https://phantom.app/ul/v1/signTransaction?` +
+        `dapp_encryption_public_key=${dappPubKeyB58}` +
+        `&redirect_link=${redirect}` +
+        `&nonce=${nonceB58}` +
+        `&payload=${payloadB58}`;
+
+      const relay = "https://universeofgamers.io/phantom-redirect.html";
+      const appUrl = "https://universeofgamers.io";
+      const relayUrl = `${relay}?target=${encodeURIComponent(baseUrl)}&app=${encodeURIComponent(appUrl)}`;
+
+      // 3️⃣ Simpan context sebelum redirect
+      localStorage.setItem("phantomFlow", "buy");
+      localStorage.setItem("pendingMintAddress", mintAddress);
+      localStorage.setItem("pendingBuyPrice", finalPrice.toString());
+      localStorage.setItem("pendingBuySymbol", buyerSymbol);
+
+      nativeLog("PHANTOM_BUY_SIGN_URL", relayUrl);
+
+      // 4️⃣ Redirect ke Phantom
+      if (Capacitor.getPlatform() === "android" || Capacitor.getPlatform() === "ios") {
+        setTimeout(() => (window.location.href = relayUrl), 500);
+      } else {
+        window.open(baseUrl, "_blank");
+      }
 
     } catch (err: any) {
-      await this.updateBalance();
-      await this.loadTokens();
-      console.error("❌ buyNft error:", err);
-
-      let errorMessage = "Failed to buy NFT";
-      try {
-        if (err?.error?.error) errorMessage = err.error.error;
-        else if (err?.error?.message) errorMessage = err.error.message;
-        else if (typeof err.message === "string") errorMessage = err.message;
-      } catch (e) {
-        console.warn("⚠️ Could not parse backend error:", e);
-      }
-
+      console.error("❌ Error building buy transaction:", err);
       const toast = await this.toastCtrl.create({
-        message: errorMessage,
-        duration: 2500,
-        position: 'top',
-        color: 'danger',
-        icon: 'close-circle-outline',
-        cssClass: 'custom-toast'
+        message: "❌ Failed to build buy transaction.",
+        duration: 4000,
+        color: "danger",
+        position: "top"
       });
-      await toast.present();
+      toast.present();
     } finally {
       this.isSending = false;
     }
   }
+
+  // async buyNft(paymentMint: string) {
+  //   const mintAddress = this.route.snapshot.paramMap.get('mintAddress'); 
+  //   if (!mintAddress) return;
+
+  //   try {
+  //     this.isSending = true;
+  //     this.txSig = null;
+
+  //     // 🔹 Determine listing token and buyer token
+  //     const listingSymbol = this.metadata?.paymentSymbol || "SOL"; // the token used for listing
+  //     const buyerToken = this.filteredTokens.find(t => t.mint === paymentMint);
+  //     const buyerSymbol = buyerToken?.symbol || "SOL";
+
+  //     let finalPrice = this.metadata?.price || 0;
+
+  //     // === 💱 PRICE CONVERSION MATRIX ===
+  //     // (listingSymbol → buyerSymbol)
+
+  //     // USDC → SOL
+  //     if (listingSymbol === "USDC" && buyerSymbol === "SOL") {
+  //       finalPrice = finalPrice * (this.usdcToSolRate || 0);
+  //       console.log(`💱 Converted price: ${this.metadata?.price} USDC → ${finalPrice} SOL`);
+  //     }
+
+  //     // SOL → USDC
+  //     if (listingSymbol === "SOL" && buyerSymbol === "USDC") {
+  //       finalPrice = finalPrice * (this.solToUsdcRate || 0);
+  //       console.log(`💱 Converted price: ${this.metadata?.price} SOL → ${finalPrice} USDC`);
+  //     }
+
+  //     // UOG → USDC
+  //     if (listingSymbol === "UOG" && buyerSymbol === "USDC") {
+  //       finalPrice = finalPrice * (this.uogToUsdRate || 0);
+  //       console.log(`💱 Converted price: ${this.metadata?.price} UOG → ${finalPrice} USDC`);
+  //     }
+
+  //     // USDC → UOG
+  //     if (listingSymbol === "USDC" && buyerSymbol === "UOG") {
+  //       finalPrice = finalPrice * (this.usdcToUogRate || 0);
+  //       console.log(`💱 Converted price: ${this.metadata?.price} USDC → ${finalPrice} UOG`);
+  //     }
+
+  //     // SOL → UOG
+  //     if (listingSymbol === "SOL" && buyerSymbol === "UOG") {
+  //       const solToUsd = this.solToUsdcRate || 0;
+  //       const usdToUog = this.usdcToUogRate || 0;
+  //       finalPrice = finalPrice * solToUsd * usdToUog;
+  //       console.log(`💱 Converted price: ${this.metadata?.price} SOL → ${finalPrice} UOG`);
+  //     }
+
+  //     // UOG → SOL
+  //     if (listingSymbol === "UOG" && buyerSymbol === "SOL") {
+  //       const uogToUsd = this.uogToUsdRate || 0;
+  //       const usdToSol = this.usdcToSolRate || 0;
+  //       finalPrice = finalPrice * uogToUsd * usdToSol;
+  //       console.log(`💱 Converted price: ${this.metadata?.price} UOG → ${finalPrice} SOL`);
+  //     }
+
+  //     // === 🪙 Send to backend ===
+  //     const buyRes: any = await this.http
+  //       .post(
+  //         `${environment.apiUrl}/auth/nft/${mintAddress}/buy?demo=false`,
+  //         {
+  //           user: this.activeWallet,
+  //           paymentMint: paymentMint,
+  //           price: finalPrice, // ✅ adjusted to buyer token
+  //           name: this.metadata?.name,
+  //           symbol: buyerSymbol,
+  //           uri: this.metadata?.uri,
+  //         },
+  //         { headers: { Authorization: `Bearer ${this.authToken}` } }
+  //       )
+  //       .toPromise();
+
+  //     if (!buyRes.signature) throw new Error("❌ No signature returned from backend");
+  //     this.txSig = buyRes.signature;
+
+  //     // 🔁 Refresh data
+  //     await this.updateBalance();
+  //     await this.loadTokens();
+  //     await this.loadMetadata(mintAddress);
+
+  //     const toast = await this.toastCtrl.create({
+  //       message: `NFT purchase successful! ✅`,
+  //       duration: 2500,
+  //       position: 'top',
+  //       color: 'success',
+  //       icon: 'checkmark-circle-outline',
+  //       cssClass: 'custom-toast'
+  //     });
+  //     await toast.present();
+
+  //     console.log("✅ Transaction confirmed:", buyRes.signature);
+  //     console.log("🧾 Payment token:", buyerSymbol, "| Price sent:", finalPrice);
+
+  //   } catch (err: any) {
+  //     await this.updateBalance();
+  //     await this.loadTokens();
+  //     console.error("❌ buyNft error:", err);
+
+  //     let errorMessage = "Failed to buy NFT";
+  //     try {
+  //       if (err?.error?.error) errorMessage = err.error.error;
+  //       else if (err?.error?.message) errorMessage = err.error.message;
+  //       else if (typeof err.message === "string") errorMessage = err.message;
+  //     } catch (e) {
+  //       console.warn("⚠️ Could not parse backend error:", e);
+  //     }
+
+  //     const toast = await this.toastCtrl.create({
+  //       message: errorMessage,
+  //       duration: 2500,
+  //       position: 'top',
+  //       color: 'danger',
+  //       icon: 'close-circle-outline',
+  //       cssClass: 'custom-toast'
+  //     });
+  //     await toast.present();
+  //   } finally {
+  //     this.isSending = false;
+  //   }
+  // }
 
   async openSolscan() {
     const mintAddress = this.route.snapshot.paramMap.get('mintAddress'); // ✅ pakai mintAddress
@@ -763,11 +949,9 @@ export class NftDetailPage implements OnInit {
       return;
     }
 
-    // 🧩 Pastikan harga sesuai minimal (auto convert jika USDC)
+    // 🧩 Validasi harga minimal
     let effectiveMinPrice = this.minSellPrice;
-
     if (this.selectedToken?.symbol === "USDC" && this.solToUsdcRate > 0) {
-      // minSellPrice on-chain = SOL, ubah ke USDC
       effectiveMinPrice = (this.metadata?.minPrice ?? 0.0001) * this.solToUsdcRate;
     }
 
@@ -784,43 +968,213 @@ export class NftDetailPage implements OnInit {
 
     this.isListing = true;
 
-    // ✅ Tentukan simbol & mint dari token yang dipilih
-    const paymentSymbol = this.selectedToken?.symbol || "SOL";
-    const paymentMint = this.selectedToken?.mint || "";
+    try {
+      // ✅ Tentukan simbol & mint token
+      const paymentSymbol = this.selectedToken?.symbol || "SOL";
+      const paymentMint = this.selectedToken?.mint || "";
 
-    // 🚀 Kirim ke API backend (offchain save to DB)
-    this.http.post(`${environment.apiUrl}/auth/nft/${this.mintAddress}/sell`, {
-      price: this.sellPrice,
-      royalty: this.sellRoyalty,
-      paymentSymbol, // ⬅️ kirim simbol (ex: "USDC" / "SOL")
-      paymentMint    // ⬅️ kirim mint address (ex: USDC mint)
-    }).subscribe({
-      next: async (res: any) => {
-        console.log("✅ NFT listed:", res);
+      // 1️⃣ Request unsigned transaction dari backend
+      const resp: any = await this.http.post(
+        `${environment.apiUrl}/auth/nft/${this.mintAddress}/sell`,
+        {
+          price: this.sellPrice,
+          royalty: this.sellRoyalty,
+          paymentSymbol,
+          paymentMint
+        },
+        { headers: { Authorization: `Bearer ${this.authToken}` } }
+      ).toPromise();
 
-        // Gunakan harga yang user isi sebelum submit
-        this.listedPrice = this.sellPrice; // ✅ simpan harga yang baru dijual
-        this.listedSymbol = this.selectedToken?.symbol || "SOL";
+      // Konversi buffer
+      const txBuffer = Buffer.from(resp.transaction, "base64");
 
-        this.txSig = null;
-        this.isListing = false;
+      // 🔍 Deteksi platform
+      const platform = Capacitor.getPlatform();
+      const isMobile = platform === "android" || platform === "ios";
+      const provider = (window as any).solana;
 
-        console.log(`🧾 [UI] Will display: ${this.listedPrice} ${this.listedSymbol}`);
+      // ========================================
+      // 🖥️ DESKTOP FLOW (Phantom Extension)
+      // ========================================
+      if (!isMobile && provider?.isPhantom) {
+        try {
+          await provider.connect();
+          const transaction = Transaction.from(txBuffer);
 
-        if (this.mintAddress) {
-          await this.loadMetadata(this.mintAddress);
+          // Minta tanda tangan dari Phantom Extension
+          const signedTx = await provider.signTransaction(transaction);
+          const serialized = signedTx.serialize();
+          const base58SignedTx = bs58.encode(serialized); // ✅ ubah ke base58
+
+          const confirmResp: any = await this.http.post(
+            `${environment.apiUrl}/auth/nft/${this.mintAddress}/confirm`,
+            { signedTx: base58SignedTx },
+            { headers: { Authorization: `Bearer ${this.authToken}` } }
+          ).toPromise();
+
+          nativeLog("SELL_CONFIRM_DESKTOP_SUCCESS", confirmResp);
+
+          const toast = await this.toastCtrl.create({
+            message: `✅ NFT listed successfully! TX: ${confirmResp.txSignature || "Pending"}`,
+            duration: 4000,
+            color: "success",
+            position: "top"
+          });
+          toast.present();
+
+        } catch (err: any) {
+          console.error("❌ Phantom desktop sign error:", err);
+          const toast = await this.toastCtrl.create({
+            message: "❌ Failed to sign or confirm transaction via Phantom Extension.",
+            duration: 4000,
+            color: "danger",
+            position: "top"
+          });
+          toast.present();
+        } finally {
+          this.isListing = false;
         }
-
-        await this.loadTokens();
-        await this.loadTopCreators();
-        await this.loadNftHistory();
-      },
-      error: (err) => {
-        console.error("❌ Error listing NFT:", JSON.stringify(err));
-        this.isListing = false;
+        return; // Stop — desktop flow selesai di sini
       }
-    });
+
+      // ========================================
+      // 📱 MOBILE FLOW (Phantom Deeplink)
+      // ========================================
+      const phantom_pubkey = localStorage.getItem("phantom_pubkey");
+      const secretKeyStored = localStorage.getItem("dappSecretKey");
+      const session = localStorage.getItem("phantomSession");
+
+      if (!phantom_pubkey || !secretKeyStored || !session) {
+        alert("⚠️ Please connect Phantom first before listing.");
+        this.isListing = false;
+        return;
+      }
+
+      // 🔐 Enkripsi payload untuk deeplink Phantom
+      const phantomPubKey = bs58.decode(phantom_pubkey);
+      const secretKey = bs58.decode(secretKeyStored);
+      const sharedSecret = nacl.box.before(phantomPubKey, secretKey);
+      const nonce = nacl.randomBytes(24);
+      const nonceB58 = bs58.encode(nonce);
+
+      const txBase58 = bs58.encode(txBuffer);
+      const payloadObj = { session, transaction: txBase58, display: "signTransaction" };
+      const payloadBytes = new TextEncoder().encode(JSON.stringify(payloadObj));
+      const encryptedPayload = nacl.box.after(payloadBytes, nonce, sharedSecret);
+      const payloadB58 = bs58.encode(encryptedPayload);
+
+      const dappPubKeyB58 = bs58.encode(this.phantom.getKeypair().publicKey);
+      const redirect = encodeURIComponent("com.universeofgamers.nft://phantom-callback");
+
+      const baseUrl =
+        `https://phantom.app/ul/v1/signTransaction?` +
+        `dapp_encryption_public_key=${dappPubKeyB58}` +
+        `&redirect_link=${redirect}` +
+        `&nonce=${nonceB58}` +
+        `&payload=${payloadB58}`;
+
+      const relay = "https://universeofgamers.io/phantom-redirect.html";
+      const appUrl = "https://universeofgamers.io";
+      const relayUrl = `${relay}?target=${encodeURIComponent(baseUrl)}&app=${encodeURIComponent(appUrl)}`;
+
+      // Simpan context
+      localStorage.setItem("phantomFlow", "sell");
+      localStorage.setItem("pendingMintAddress", this.mintAddress!.toString());
+      localStorage.setItem("pendingSellPrice", this.sellPrice.toString());
+      localStorage.setItem("pendingSellSymbol", paymentSymbol);
+
+      nativeLog("PHANTOM_SELL_SIGN_URL", relayUrl);
+
+      // Redirect ke Phantom App
+      this.isListing = false;
+      if (isMobile) {
+        setTimeout(() => (window.location.href = relayUrl), 500);
+      } else {
+        window.open(baseUrl, "_blank");
+      }
+
+    } catch (err: any) {
+      console.error("❌ Error building sell transaction:", err);
+      this.isListing = false;
+      const toast = await this.toastCtrl.create({
+        message: "❌ Failed to build listing transaction.",
+        duration: 4000,
+        color: "danger",
+        position: "top"
+      });
+      toast.present();
+    }
   }
+
+  // async submitListing() {
+  //   if (!this.sellPrice || this.sellPrice <= 0) {
+  //     alert("Please enter a valid price");
+  //     return;
+  //   }
+
+  //   if (this.sellRoyalty < 0 || this.sellRoyalty > 100) {
+  //     alert("Royalty must be between 0 and 100%");
+  //     return;
+  //   }
+
+  //   // 🧩 Pastikan harga sesuai minimal (auto convert jika USDC)
+  //   let effectiveMinPrice = this.minSellPrice;
+
+  //   if (this.selectedToken?.symbol === "USDC" && this.solToUsdcRate > 0) {
+  //     // minSellPrice on-chain = SOL, ubah ke USDC
+  //     effectiveMinPrice = (this.metadata?.minPrice ?? 0.0001) * this.solToUsdcRate;
+  //   }
+
+  //   if (this.sellPrice < effectiveMinPrice) {
+  //     const toast = await this.toastCtrl.create({
+  //       message: `⚠️ Minimum allowed price is ${effectiveMinPrice.toFixed(4)} ${this.selectedToken?.symbol || "SOL"}`,
+  //       duration: 3000,
+  //       color: "warning",
+  //       position: "top"
+  //     });
+  //     toast.present();
+  //     return;
+  //   }
+
+  //   this.isListing = true;
+
+  //   // ✅ Tentukan simbol & mint dari token yang dipilih
+  //   const paymentSymbol = this.selectedToken?.symbol || "SOL";
+  //   const paymentMint = this.selectedToken?.mint || "";
+
+  //   // 🚀 Kirim ke API backend (offchain save to DB)
+  //   this.http.post(`${environment.apiUrl}/auth/nft/${this.mintAddress}/sell`, {
+  //     price: this.sellPrice,
+  //     royalty: this.sellRoyalty,
+  //     paymentSymbol, // ⬅️ kirim simbol (ex: "USDC" / "SOL")
+  //     paymentMint    // ⬅️ kirim mint address (ex: USDC mint)
+  //   }).subscribe({
+  //     next: async (res: any) => {
+  //       console.log("✅ NFT listed:", res);
+
+  //       // Gunakan harga yang user isi sebelum submit
+  //       this.listedPrice = this.sellPrice; // ✅ simpan harga yang baru dijual
+  //       this.listedSymbol = this.selectedToken?.symbol || "SOL";
+
+  //       this.txSig = null;
+  //       this.isListing = false;
+
+  //       console.log(`🧾 [UI] Will display: ${this.listedPrice} ${this.listedSymbol}`);
+
+  //       if (this.mintAddress) {
+  //         await this.loadMetadata(this.mintAddress);
+  //       }
+
+  //       await this.loadTokens();
+  //       await this.loadTopCreators();
+  //       await this.loadNftHistory();
+  //     },
+  //     error: (err) => {
+  //       console.error("❌ Error listing NFT:", JSON.stringify(err));
+  //       this.isListing = false;
+  //     }
+  //   });
+  // }
 
   onScroll(event: CustomEvent) {
     if (!event) return;

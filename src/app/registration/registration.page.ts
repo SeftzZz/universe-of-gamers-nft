@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Auth } from '../services/auth';
 import { ToastController, LoadingController } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { User, UserProfile } from '../services/user';
+import { User } from '../services/user';
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -17,8 +17,9 @@ export class RegistrationPage implements OnInit {
   password = '';
   confirmPassword = '';
   acceptedTerms = false;
-  showPassword: boolean = false;
-  showPasswordConfirm: boolean = false;
+  referralCode = ''; // 🧩 Tambahan field referral
+  showPassword = false;
+  showPasswordConfirm = false;
 
   private loading: HTMLIonLoadingElement | null = null;
 
@@ -64,6 +65,7 @@ export class RegistrationPage implements OnInit {
     this.password = '';
     this.confirmPassword = '';
     this.acceptedTerms = false;
+    this.referralCode = ''; // 🔄 reset juga referral code
   }
 
   togglePassword(field: 'password' | 'confirm') {
@@ -74,7 +76,7 @@ export class RegistrationPage implements OnInit {
     }
   }
 
-  onRegister(event: Event) {
+  async onRegister(event: Event) {
     event.preventDefault();
 
     if (this.password !== this.confirmPassword) {
@@ -82,13 +84,19 @@ export class RegistrationPage implements OnInit {
       return;
     }
 
-    this.presentLoading('Sign in...');
+    if (!this.acceptedTerms) {
+      this.showToast('Please accept the Terms and Privacy Policy', 'danger');
+      return;
+    }
+
+    await this.presentLoading('Creating your account...');
 
     const payload = {
-      name: this.name,
-      email: this.email,
+      name: this.name.trim(),
+      email: this.email.trim(),
       password: this.password,
       acceptedTerms: this.acceptedTerms,
+      referralCode: this.referralCode?.trim() || null, // 🧩 kirim ke backend
     };
 
     this.auth.register(payload).subscribe({
@@ -98,7 +106,7 @@ export class RegistrationPage implements OnInit {
 
         // ✅ simpan token + userId
         this.auth.setToken(res.token, res.authId);
-        
+
         const avatarUrl = res.avatar
           ? `${environment.baseUrl}${res.avatar}`
           : 'assets/images/app-logo.jpeg';
@@ -109,7 +117,7 @@ export class RegistrationPage implements OnInit {
           notifyNewItems: res.notifyNewItems || false,
           notifyEmail: res.notifyEmail || false,
           avatar: avatarUrl,
-          role: res.role
+          role: res.role,
         });
 
         // ✅ ambil walletAddress (custodial dulu, kalau tidak ada pakai external)
@@ -122,22 +130,26 @@ export class RegistrationPage implements OnInit {
 
         // ✅ simpan ke localStorage
         localStorage.setItem('userId', res.authId);
-        if (walletAddr) {
-          localStorage.setItem('walletAddress', walletAddr);
-        }
+        if (walletAddr) localStorage.setItem('walletAddress', walletAddr);
 
-        // setelah dapat response dari backend
         if (res.wallets || res.custodialWallets) {
           const allWallets = [
             ...(res.wallets || []),
-            ...(res.custodialWallets || [])
+            ...(res.custodialWallets || []),
           ];
           localStorage.setItem('wallets', JSON.stringify(allWallets));
+        }
+
+        // 🧩 Jika referralCode dikirim, simpan flag lokal
+        if (this.referralCode) {
+          localStorage.setItem('usedReferral', 'true');
+          console.log(`🎟️ Referral code ${this.referralCode} applied on register.`);
         }
 
         this.showToast('Register success 🎉', 'success');
         this.clearForm();
 
+        // redirect ke halaman utama
         setTimeout(() => {
           window.location.href = '/market-layout/all-collection';
         }, 500);
@@ -161,7 +173,6 @@ export class RegistrationPage implements OnInit {
         this.showToast('Login success 🎉', 'success');
         this.clearForm();
 
-        // ✅ Redirect ke tabs/home setelah login
         this.router.navigate(['/all-collection']);
       },
       error: (err) => {
@@ -199,6 +210,6 @@ export class RegistrationPage implements OnInit {
     this.auth.logout();
     this.showToast('Logged out', 'success');
     this.clearForm();
-    this.router.navigate(['/login']); // ✅ balik ke login
+    this.router.navigate(['/login']);
   }
 }

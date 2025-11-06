@@ -586,6 +586,20 @@ ion-spinner {
   --color: rgb(54, 135, 252);
 }
 
+.action__body h2 {
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 44px;
+    margin-bottom: 30px;
+    max-width: 330px;
+    position: relative;
+    z-index: 10;
+
+    /* 🟣 Tambahkan text shadow hitam */
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
+}
+
 @media (max-width: 1440px) {
     .wrap-box-card .col-item {
         width: calc(33.333% - 28.5px) !important;

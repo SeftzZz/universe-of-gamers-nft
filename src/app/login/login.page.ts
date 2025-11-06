@@ -59,6 +59,13 @@ export class LoginPage implements OnInit {
   private phantomFlow: 'connect' | 'signMessage' | null = null;
   private challengeNonce: string | null = null;
 
+  showReferralModal = false;
+  referralCode: string = '';
+  isClosingReferral = false;
+  private referralResolver: ((value: 'skip' | 'apply' | null) => void) | null = null;
+
+  authToken: string | null = null;
+
   constructor(
     private http: HttpClient,
     private auth: Auth,
@@ -86,103 +93,186 @@ export class LoginPage implements OnInit {
     });
   }
 
+  async ionViewWillEnter() {
+    console.log('🚫 Skip ionViewWillEnter Phantom decrypt — handled globally by AppComponent');
+  }
+
   // === Phantom Wallet connect + login ===
   async connectWallet() {
     try {
-      this.phantom.generateSession();
+      // 🧩 Cek apakah referral sudah pernah digunakan
+      const alreadyUsedReferral = localStorage.getItem('usedReferral');
+      if (!alreadyUsedReferral) {
+        const referralAction = await this.openReferralModal();
+        console.log('🎟️ Referral action:', referralAction);
+
+        if (referralAction === 'apply') {
+          localStorage.setItem('usedReferral', 'true');
+          console.log('✅ Referral marked as used locally.');
+        } else if (referralAction === 'skip') {
+          console.log('⏭️ Referral skipped by user.');
+        } else {
+          console.log('⛔ Referral modal dismissed, cancel wallet connect.');
+          return;
+        }
+      } else {
+        console.log('🎟️ Referral already used, skipping modal.');
+      }
+
+      // 🧩 Pastikan session Phantom aktif
+      try {
+        this.phantom.getPublicKeyB58();
+      } catch {
+        console.log('⚙️ No active Phantom session, generating new one...');
+        this.phantom.generateSession();
+      }
 
       const dappPubKey = this.phantom.getPublicKeyB58();
       const nonceB58 = this.phantom.getNonceB58();
 
-      const redirect = 'universeofgamers://phantom-callback';
+      console.log('🔍 [Connect] dappPubKey =', dappPubKey);
+      console.log('🔍 [Connect] nonceB58 =', nonceB58);
+
+      // Global constants
+      const PHANTOM_REDIRECT = 'com.universeofgamers.nft://phantom-callback';
       const appUrl = 'https://universeofgamers.io';
+      const relay = 'https://universeofgamers.io/phantom-redirect.html';
 
       const schemaUrl =
         `https://phantom.app/ul/v1/connect?` +
         `dapp_encryption_public_key=${dappPubKey}` +
         `&cluster=mainnet-beta` +
         `&app_url=${encodeURIComponent(appUrl)}` +
-        `&redirect_link=${redirect}` +
+        `&redirect_link=${encodeURIComponent(PHANTOM_REDIRECT)}` +
         `&nonce=${nonceB58}`;
 
-      console.log("🔗 schemaUrl:", schemaUrl);
+      const relayUrl = `${relay}?target=${encodeURIComponent(schemaUrl)}`;
 
+      // ==============================
+      // 📱 Mobile flow
+      // ==============================
       if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') {
-        // 🔑 Simpan flag bahwa ini flow connect
-        localStorage.setItem("phantomFlow", "connect");
-
+        localStorage.setItem('phantomFlow', 'connect');
         setTimeout(() => {
-          window.location.href = schemaUrl;
-          console.log('🌐 Universal link opened (mobile connect).');
+          window.location.href = relayUrl;
         }, 500);
+        return;
+      }
 
-      } else {
-        // === Desktop (extension Phantom) ===
-        console.log('🖥️ Desktop flow detected.');
-        const provider = (window as any).solana;
-        if (!provider || !provider.isPhantom) {
-          console.warn('❌ Phantom extension not found in browser.');
-          this.showToast('Phantom wallet not available', 'danger');
-          return;
-        }
+      // ==============================
+      // 💻 Desktop (Phantom extension)
+      // ==============================
+      console.log('🖥️ Desktop flow detected.');
+      const provider = (window as any).solana;
+      if (!provider || !provider.isPhantom) {
+        console.warn('❌ Phantom extension not found.');
+        this.showToast('Phantom wallet not available', 'danger');
+        return;
+      }
 
-        console.log('🔑 Requesting Phantom extension connect...');
-        const resp = await provider.connect();
-        this.userAddress = resp.publicKey.toString();
-        console.log('✅ Phantom extension connected. Address:', this.userAddress);
+      console.log('🔑 Requesting Phantom extension connect...');
+      const resp = await provider.connect();
+      this.userAddress = resp.publicKey.toString();
+      console.log('✅ Phantom connected:', this.userAddress);
 
-        if (this.userAddress) {
-          console.log('⏳ Requesting login challenge from backend...');
+      // ==========================================
+      // 🔐 Continue login with wallet
+      // ==========================================
+      console.log('⏳ Requesting login challenge from backend...');
+      const challenge: any = await this.http
+        .get(`${environment.apiUrl}/auth/wallet/challenge?address=${this.userAddress}`)
+        .toPromise();
 
-          const challenge: any = await this.http
-            .get(`${environment.apiUrl}/auth/wallet/challenge?address=${this.userAddress}`)
-            .toPromise();
+      console.log('📜 Challenge received:', challenge);
 
-          console.log('📜 Challenge received:', challenge);
+      const messageBytes = new TextEncoder().encode(challenge.message);
+      const signed = await provider.signMessage(messageBytes, 'utf8');
+      const signature = signed.signature ? bs58.encode(signed.signature) : null;
 
-          const messageBytes = new TextEncoder().encode(challenge.message);
-          const signed = await provider.signMessage(messageBytes, "utf8");
-          const signature = signed.signature ? bs58.encode(signed.signature) : null;
+      if (!signature) {
+        this.showToast('❌ Signature missing', 'danger');
+        return;
+      }
 
-          if (!signature) {
-            this.showToast('❌ Signature missing', 'danger');
-            return;
+      this.auth.loginWithWallet({
+        provider: 'phantom',
+        address: this.userAddress,
+        name: `Phantom User ${challenge.nonce}`,
+        signature,
+        nonce: challenge.nonce,
+      }).subscribe({
+        next: async (res) => {
+          this.dismissLoading();
+          console.log('✅ Wallet login success:', res);
+
+          this.auth.setToken(res.token, res.authId);
+          localStorage.setItem('userId', res.authId);
+          localStorage.setItem('walletAddress', this.userAddress);
+
+          const avatarUrl = res.avatar
+            ? `${environment.baseUrl}${res.avatar}`
+            : 'assets/images/app-logo.jpeg';
+
+          this.userService.setUser({
+            name: res.name,
+            email: res.email,
+            avatar: avatarUrl,
+            role: res.role,
+            player: res.player,
+            referral: res.referral
+          });
+
+          // ✅ Simpan wallet list
+          let walletAddr = this.userAddress;
+          if (res.custodialWallets?.length > 0) {
+            walletAddr = res.custodialWallets[0].address;
           }
 
-          this.auth.loginWithWallet({
-            provider: 'phantom',
-            address: this.userAddress,
-            name: 'Phantom User',
-            signature,
-            nonce: challenge.nonce,
-          }).subscribe({
-            next: (res) => {
-              this.dismissLoading();
-              console.log('✅ Wallet login success, backend response:', res);
+          localStorage.setItem('walletAddress', walletAddr);
+          const allWallets = [
+            ...(res.wallets || []),
+            ...(res.custodialWallets || [])
+          ];
+          localStorage.setItem('wallets', JSON.stringify(allWallets));
+          this.walletService.setWallets(allWallets);
+          this.walletService.setActiveWallet(walletAddr);
 
-              this.auth.setToken(res.token, res.authId);
-              localStorage.setItem('userId', res.authId);
-              localStorage.setItem('walletAddress', this.userAddress);
+          this.showToast('Wallet connected ✅', 'success');
 
-              if (res.wallets || res.custodialWallets) {
-                const allWallets = [
-                  ...(res.wallets),
-                  ...(res.custodialWallets)
-                ];
-                localStorage.setItem('wallets', JSON.stringify(allWallets));
+          // ==========================================
+          // 🎟️ Auto-apply referral if stored locally
+          // ==========================================
+          const pendingReferral = localStorage.getItem('pendingReferralCode');
+          if (pendingReferral) {
+            console.log(`🎯 Found pending referral: ${pendingReferral}, applying...`);
+            try {
+              const applyRes: any = await this.http.post(
+                `${environment.apiUrl}/auth/referral/apply`,
+                { code: pendingReferral, walletAddress: this.userAddress },
+                { headers: { Authorization: `Bearer ${this.authToken}` } }
+              ).toPromise();
+
+              if (applyRes?.success) {
+                console.log('✅ Referral applied successfully.');
+                this.showToast('Referral applied successfully ✅', 'success');
+                localStorage.removeItem('pendingReferralCode');
+                localStorage.removeItem('usedReferral');
+              } else {
+                console.warn('⚠️ Referral apply failed:', applyRes?.error);
               }
-
-              this.showToast('Wallet connected ✅', 'success');
-              this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
-            },
-            error: (err) => {
-              this.dismissLoading();
-              console.error('❌ Wallet login failed:', err);
-              this.showToast(err.error?.error || 'Wallet login failed', 'danger');
+            } catch (err) {
+              console.error('❌ Error applying referral:', err);
             }
-          });
+          }
+
+          this.authRedirect.redirectAfterLogin('/market-layout/my-nfts');
+        },
+        error: (err) => {
+          this.dismissLoading();
+          console.error('❌ Wallet login failed:', err);
+          this.showToast(err.error?.error || 'Wallet login failed', 'danger');
         }
-      }
+      });
     } catch (err) {
       this.dismissLoading();
       console.error('💥 Unhandled wallet connect error:', err);
@@ -280,7 +370,9 @@ export class LoginPage implements OnInit {
           notifyNewItems: res.notifyNewItems || false,
           notifyEmail: res.notifyEmail || false,
           avatar: avatarUrl,
-          role: res.role
+          role: res.role,
+          player: res.player,
+          referral: res.referral
         });
 
         // ✅ ambil walletAddress (custodial dulu, kalau tidak ada pakai external)
@@ -329,6 +421,26 @@ export class LoginPage implements OnInit {
 
   async googleLogin() {
     try {
+
+      // 🧩 Cek apakah referral sudah pernah digunakan
+      const alreadyUsedReferral = localStorage.getItem('usedReferral');
+      if (!alreadyUsedReferral) {
+        const referralAction = await this.openReferralModal();
+        console.log('🎟️ Referral action:', referralAction);
+
+        if (referralAction === 'apply') {
+          localStorage.setItem('usedReferral', 'true');
+          console.log('✅ Referral marked as used locally.');
+        } else if (referralAction === 'skip') {
+          console.log('⏭️ Referral skipped by user.');
+        } else {
+          console.log('⛔ Referral modal dismissed, cancel wallet connect.');
+          return;
+        }
+      } else {
+        console.log('🎟️ Referral already used, skipping modal.');
+      }
+
       console.log('🚀 [GoogleLogin] Starting Google login flow...');
       const startTime = performance.now();
 
@@ -354,12 +466,19 @@ export class LoginPage implements OnInit {
 
       // 3️⃣ Kirim token ke backend
       console.log('📡 [GoogleLogin] Sending Google ID token to backend...');
-      console.log('   → Payload:', {
-        idToken: idToken.substring(0, 20) + '...',
-        email: user.email,
-        name: user.name,
-        picture: user.photo,
-      });
+      console.log(
+        '📦 [Google Login Payload] ' +
+        JSON.stringify(
+          {
+            idToken: idToken ? idToken.substring(0, 20) + '...' : null,
+            email: user.email,
+            name: user.name,
+            picture: user.photo,
+          },
+          null,
+          0 // <-- tidak pakai indentasi, supaya 1 baris
+        )
+      );
 
       const resp: any = await this.http
         .post(`${environment.apiUrl}/auth/google`, {
@@ -399,7 +518,9 @@ export class LoginPage implements OnInit {
         notifyNewItems: resp.notifyNewItems || false,
         notifyEmail: resp.notifyEmail || false,
         avatar: avatarUrl,
-        role: resp.role || 'user',
+        role: resp.role,
+        player: resp.player,
+        referral: resp.referral
       });
 
       // 8️⃣ Ambil wallet (custodial dulu, lalu external)
@@ -437,6 +558,33 @@ export class LoginPage implements OnInit {
       // ✅ Feedback ke user
       this.showToast('Google Login Success ✅', 'success');
       this.clearForm?.();
+
+      // ==========================================
+      // 🎟️ Auto-apply referral if stored locally
+      // ==========================================
+      const pendingReferral = localStorage.getItem('pendingReferralCode');
+      if (pendingReferral) {
+        console.log(`🎯 Found pending referral: ${pendingReferral}, applying...`);
+        try {
+          const applyRes: any = await this.http.post(
+            `${environment.apiUrl}/auth/referral/apply`,
+            { code: pendingReferral, walletAddress: this.userAddress },
+            { headers: { Authorization: `Bearer ${this.authToken}` } }
+          ).toPromise();
+
+          if (applyRes?.success) {
+            console.log('✅ Referral applied successfully.');
+            this.showToast('Referral applied successfully ✅', 'success');
+            localStorage.removeItem('pendingReferralCode');
+            localStorage.removeItem('usedReferral');
+          } else {
+            console.warn('⚠️ Referral apply failed:', applyRes?.error);
+          }
+        } catch (err) {
+          console.error('❌ Error applying referral:', err);
+        }
+      }
+
       this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
     } catch (err: any) {
       console.error('💥 [GoogleLogin] Unhandled error:', JSON.stringify(err));
@@ -659,4 +807,87 @@ export class LoginPage implements OnInit {
     window.location.href = 'http://localhost:8100/explorer';
   }
 
+  // 🔹 Buka modal referral
+  async openReferralModal(): Promise<'skip' | 'apply' | null> {
+    return new Promise((resolve) => {
+      this.showReferralModal = true;
+      this.isClosingReferral = false;
+
+      // Simpan resolver biar bisa dipanggil di Skip/Apply
+      this.referralResolver = resolve;
+    });
+  }
+
+  // 🔹 Tutup modal referral
+  closeReferralModal() {
+    this.isClosingReferral = true;
+    setTimeout(() => (this.showReferralModal = false), 200);
+  }
+
+  // 🔹 Skip tanpa referral
+  skipReferral() {
+    if (this.referralResolver) {
+      this.referralResolver('skip');
+      this.referralResolver = null;
+    }
+    this.closeReferralModal();
+  }
+
+  // 🔹 Apply referral
+  async applyReferral(event: Event) {
+    event.preventDefault();
+
+    const code = this.referralCode?.trim();
+    if (!code) {
+      this.skipReferral();
+      return;
+    }
+
+    try {
+      // Simpan kode ke localStorage agar bisa dipakai setelah wallet connect
+      localStorage.setItem("pendingReferralCode", code);
+
+      // 🔍 Coba ambil walletAddress kalau user sudah connect
+      const walletAddress = this.userAddress || localStorage.getItem("walletAddress");
+
+      // Kalau wallet belum connect, cukup simpan dulu
+      if (!walletAddress) {
+        console.log("💾 Referral saved locally, waiting for wallet connect...");
+        this.showToast("Referral code saved! Connect your wallet to apply ✅", "success");
+
+        // Tutup modal dan lanjut ke connect wallet
+        if (this.referralResolver) {
+          this.referralResolver("apply");
+          this.referralResolver = null;
+        }
+        this.closeReferralModal();
+        return;
+      }
+
+      const pendingReferral = localStorage.getItem('pendingReferralCode');
+      // Kalau wallet sudah connect → kirim langsung ke backend
+      const res: any = await this.http.post(
+        `${environment.apiUrl}/auth/referral/apply`,
+        { code: pendingReferral, walletAddress: this.userAddress },
+        { headers: { Authorization: `Bearer ${this.authToken}` } }
+      ).toPromise();
+
+      if (res.success) {
+        this.showToast("Referral applied successfully ✅", "success");
+        // hapus localStorage karena sudah dipakai
+        localStorage.removeItem("pendingReferralCode");
+        if (this.referralResolver) {
+          this.referralResolver("apply");
+          this.referralResolver = null;
+        }
+      } else {
+        this.showToast(res.error || "Invalid referral code ❌", "danger");
+      }
+    } catch (err: any) {
+      console.error("❌ Referral apply error:", err);
+      this.showToast("Error applying referral code", "danger");
+    } finally {
+      this.closeReferralModal();
+    }
+  }
 }

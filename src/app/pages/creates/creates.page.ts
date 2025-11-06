@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -10,6 +11,24 @@ import { Auth } from '../../services/auth';
 import { MarketLayoutPage } from '../market-layout/market-layout.page';
 import { Router } from '@angular/router';
 import { IonContent } from '@ionic/angular';
+import { GatchaService } from '../../services/gatcha';
+import { WebSocket } from '../../services/websocket';
+const web3 = require('@solana/web3.js');
+const { Transaction } = require("@solana/web3.js");
+
+import { Phantom } from '../../services/phantom';
+import nacl from 'tweetnacl';
+import bs58 from 'bs58';
+import { NgZone } from "@angular/core";
+/**
+ * Helper log universal — tampil di console browser dan Android Logcat
+ */
+function nativeLog(tag: string, data: any) {
+  const time = new Date().toISOString();
+  const msg = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+  const prefix = Capacitor.isNativePlatform() ? '🟩' : '🟢';
+  console.log(`${prefix} [${tag}] ${time} → ${msg}`);
+}
 
 interface IGatchaReward {
   type: "character" | "rune";
@@ -154,7 +173,10 @@ export class CreatesPage implements OnInit {
     private toastCtrl: ToastController,   // untuk notif ===add by fpp 05/09/25===
     private nftService: NftService,
     private auth: Auth,   //inject Auth service
-    private router: Router
+    private router: Router,
+    private phantom: Phantom,
+    private gatchaService: GatchaService,
+    private ngZone: NgZone
   ) {}
 
   async ngOnInit() {
@@ -185,6 +207,35 @@ export class CreatesPage implements OnInit {
     await this.loadGatchaPacks();
     await this.fetchRates();
     this.setLatestNfts();
+
+    this.gatchaService.gatchaResult$.subscribe(nft => {
+      if (!nft) return;
+      this.ngZone.run(() => {
+        const packId = localStorage.getItem("pendingPackId");
+        const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
+
+        if (packIndex !== -1) {
+          this.gatchaPacks[packIndex].finalImage = nft.image;
+          nativeLog("🖼️ FINAL_IMAGE_UPDATED", {
+            packId,
+            finalImage: nft.image,
+          });
+        }
+      });
+    });
+
+    // 🪄 Fallback: jika event dikirim sebelum halaman aktif
+    const cached = localStorage.getItem("lastMintedNFT");
+    if (cached) {
+      const nft = JSON.parse(cached);
+      localStorage.removeItem("lastMintedNFT");
+      const packId = localStorage.getItem("pendingPackId");
+      const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
+      if (packIndex !== -1) {
+        this.gatchaPacks[packIndex].finalImage = nft.image;
+        nativeLog("🖼️ FINAL_IMAGE_RESTORED", { packId, image: nft.image });
+      }
+    }
   }
 
   // === Token ===
@@ -626,49 +677,200 @@ export class CreatesPage implements OnInit {
     const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
     if (packIndex === -1) return;
 
+    // 🎲 Animasi shuffle
     this.gatchaPacks[packIndex].finalImage = null;
     this.gatchaPacks[packIndex].isShuffling = true;
     await this.shufflePackRewards(packId, 30, 100);
     this.gatchaPacks[packIndex].isShuffling = false;
 
     try {
+      // 1️⃣ Ambil unsigned transaction dari backend
       const resp: any = await this.http.post(
         `${environment.apiUrl}/gatcha/${packId}/pull`,
-        {
-          user: this.activeWallet,
-          paymentMint: token.mint,   // 👈 kirim mint token yang dipilih (SOL/UOG)
+        { 
+          paymentMint: token.mint,
+          activeWallet: this.activeWallet,
         },
         { headers: { Authorization: `Bearer ${this.authToken}` } }
       ).toPromise();
 
-      this.mintResult = resp;
-      this.txSig = resp.signature;
+      const txBuffer = Buffer.from(resp.transaction, "base64");
 
-      this.gatchaPacks[packIndex] = {
-        ...this.gatchaPacks[packIndex],
-        finalImage: resp.nft.image,
-      };
+      // 🔍 Deteksi platform
+      const platform = Capacitor.getPlatform();
+      const isMobile = platform === "android" || platform === "ios";
+      const provider = (window as any).solana;
 
-      const toast = await this.toastCtrl.create({
-        message: `Mint success! NFT: ${resp.nft.name}`,
-        duration: 4000,
-        color: "success",
-        position: "top",
-      });
-      toast.present();
-      await this.loadTokens();
+      // ========================================
+      // 🖥️ DESKTOP FLOW (Phantom Extension)
+      // ========================================
+      if (!isMobile && provider?.isPhantom) {
+        try {
+          await provider.connect();
+          const transaction = Transaction.from(txBuffer);
+
+          // Minta tanda tangan Phantom
+          const signedTx = await provider.signTransaction(transaction);
+          const serialized = signedTx.serialize();
+          const base58SignedTx = bs58.encode(serialized); // ✅ Gunakan Base58
+
+          // Kirim ke backend untuk konfirmasi mint
+          const confirmResp: any = await this.http.post(
+            `${environment.apiUrl}/gatcha/${packId}/confirm`,
+            {
+              mintAddress: resp.mintAddress,
+              signedTx: base58SignedTx
+            },
+            { headers: { Authorization: `Bearer ${this.authToken}` } }
+          ).toPromise();
+
+          nativeLog("GATCHA_CONFIRM_DESKTOP_SUCCESS", confirmResp);
+
+          // 🎉 Notifikasi sukses
+          const nft = confirmResp.nft;
+          const toast = await this.toastCtrl.create({
+            message: `🎉 Mint success! NFT: ${nft?.name || resp.mintAddress}`,
+            duration: 4000,
+            color: "success",
+            position: "top",
+          });
+          toast.present();
+
+          // Emit event hasil mint
+          if (nft) {
+            this.gatchaService.gatchaResult$.next(nft);
+          }
+
+        } catch (err: any) {
+          console.error("❌ Phantom desktop mint error:", err);
+          const toast = await this.toastCtrl.create({
+            message: "❌ Failed to sign or confirm transaction via Phantom Extension.",
+            duration: 4000,
+            color: "danger",
+            position: "top"
+          });
+          toast.present();
+        }
+        return; // ✅ Desktop selesai
+      }
+
+      // ========================================
+      // 📱 MOBILE FLOW (Phantom Deeplink)
+      // ========================================
+      const phantom_pubkey = localStorage.getItem("phantom_pubkey");
+      const secretKeyStored = localStorage.getItem("dappSecretKey");
+      const session = localStorage.getItem("phantomSession");
+
+      if (!phantom_pubkey || !secretKeyStored || !session) {
+        alert("⚠️ Please connect Phantom first before minting.");
+        return;
+      }
+
+      // 🔐 Enkripsi payload Phantom
+      const phantomPubKey = bs58.decode(phantom_pubkey);
+      const secretKey = bs58.decode(secretKeyStored);
+      const sharedSecret = nacl.box.before(phantomPubKey, secretKey);
+      const nonce = nacl.randomBytes(24);
+      const nonceB58 = bs58.encode(nonce);
+
+      const txBase58 = bs58.encode(txBuffer);
+      const payloadObj = { session, transaction: txBase58, display: "signTransaction" };
+      const payloadBytes = new TextEncoder().encode(JSON.stringify(payloadObj));
+      const encryptedPayload = nacl.box.after(payloadBytes, nonce, sharedSecret);
+      const payloadB58 = bs58.encode(encryptedPayload);
+
+      const dappPubKeyB58 = bs58.encode(this.phantom.getKeypair().publicKey);
+      const redirect = encodeURIComponent("com.universeofgamers.nft://phantom-callback");
+
+      const baseUrl =
+        `https://phantom.app/ul/v1/signTransaction?` +
+        `dapp_encryption_public_key=${dappPubKeyB58}` +
+        `&redirect_link=${redirect}` +
+        `&nonce=${nonceB58}` +
+        `&payload=${payloadB58}`;
+
+      const relay = "https://universeofgamers.io/phantom-redirect.html";
+      const appUrl = "https://universeofgamers.io";
+      const relayUrl = `${relay}?target=${encodeURIComponent(baseUrl)}&app=${encodeURIComponent(appUrl)}`;
+
+      // Simpan context
+      localStorage.setItem("phantomFlow", "gatcha");
+      localStorage.setItem("pendingPackId", packId);
+      localStorage.setItem("pendingMintAddress", resp.mintAddress);
+
+      nativeLog("PHANTOM_GATCHA_SIGN_URL", relayUrl);
+
+      // Redirect ke Phantom
+      if (isMobile) {
+        setTimeout(() => (window.location.href = relayUrl), 500);
+      } else {
+        window.open(baseUrl, "_blank");
+      }
+
     } catch (err: any) {
       console.error("❌ Error minting gatcha:", err);
       const toast = await this.toastCtrl.create({
-        message: err.error?.error || "Mint failed",
+        message: err.error?.error || "Failed to build mint transaction",
         duration: 4000,
         color: "danger",
         position: "top",
       });
       toast.present();
-      await this.loadTokens();
-    } 
+    }
   }
+
+  // async buyAndMintPack(packId: string, token: any) {
+  //   if (!this.activeWallet) {
+  //     alert("⚠️ Please login with wallet first");
+  //     return;
+  //   }
+
+  //   const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
+  //   if (packIndex === -1) return;
+
+  //   this.gatchaPacks[packIndex].finalImage = null;
+  //   this.gatchaPacks[packIndex].isShuffling = true;
+  //   await this.shufflePackRewards(packId, 30, 100);
+  //   this.gatchaPacks[packIndex].isShuffling = false;
+
+  //   try {
+  //     const resp: any = await this.http.post(
+  //       `${environment.apiUrl}/gatcha/${packId}/pull`,
+  //       {
+  //         user: this.activeWallet,
+  //         paymentMint: token.mint,   // 👈 kirim mint token yang dipilih (SOL/UOG)
+  //       },
+  //       { headers: { Authorization: `Bearer ${this.authToken}` } }
+  //     ).toPromise();
+
+  //     this.mintResult = resp;
+  //     this.txSig = resp.signature;
+
+  //     this.gatchaPacks[packIndex] = {
+  //       ...this.gatchaPacks[packIndex],
+  //       finalImage: resp.nft.image,
+  //     };
+
+  //     const toast = await this.toastCtrl.create({
+  //       message: `Mint success! NFT: ${resp.nft.name}`,
+  //       duration: 4000,
+  //       color: "success",
+  //       position: "top",
+  //     });
+  //     toast.present();
+  //     await this.loadTokens();
+  //   } catch (err: any) {
+  //     console.error("❌ Error minting gatcha:", err);
+  //     const toast = await this.toastCtrl.create({
+  //       message: err.error?.error || "Mint failed",
+  //       duration: 4000,
+  //       color: "danger",
+  //       position: "top",
+  //     });
+  //     toast.present();
+  //     await this.loadTokens();
+  //   } 
+  // }
 
   // Dipanggil waktu user ubah priceUOG
   onPriceUOGChange() {

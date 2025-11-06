@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, firstValueFrom } from 'rxjs';
+import { Observable, firstValueFrom, BehaviorSubject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -8,7 +8,9 @@ import { environment } from 'src/environments/environment';
 })
 export class NftService {
   private apiUrl = `${environment.apiUrl}/nft`; // gunakan env, bukan hardcode
-
+  public nftSold$ = new BehaviorSubject<any>(null);
+  public nftBought$ = new BehaviorSubject<any>(null);
+  
   constructor(private http: HttpClient) {}
 
   // === REST API ===

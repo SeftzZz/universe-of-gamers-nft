@@ -79,12 +79,25 @@
                             </div>
                           </fieldset>
 
+                          <!-- 🧩 Tambahan: Referral Code -->
+                          <fieldset class="referral">
+                            <label>Referral Code (optional)</label>
+                            <input
+                              type="text"
+                              id="referralCode"
+                              placeholder="Enter referral code if you have one"
+                              name="referralCode"
+                              [(ngModel)]="referralCode"
+                            />
+                          </fieldset>
+
                           <div class="btn-submit mb-30">
                             <button class="tf-button style-1 h50 w-100" type="submit">
                               Sign up <i class="icon-arrow-up-right2"></i>
                             </button>
                           </div>
                         </form>
+
                         <div class="no-account">Already have an account?  <a [routerLink]="['/login']" class="tf-color">Log in</a></div>
                     </div>
                 </div>

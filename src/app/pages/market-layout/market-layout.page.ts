@@ -21,7 +21,7 @@ import { Clipboard } from '@capacitor/clipboard';
 export class MarketLayoutPage implements OnInit {
   wallets: any[] = [];
   activeWallet: string | null = null;
-
+  
   mobileNavActive = false;
 
   avatar: string = '';

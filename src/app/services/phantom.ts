@@ -1,4 +1,3 @@
-// phantom.service.ts
 import { Injectable } from '@angular/core';
 import nacl from 'tweetnacl';
 import bs58 from 'bs58';
@@ -8,58 +7,79 @@ export class Phantom {
   private dappKeys: nacl.BoxKeyPair | null = null;
   private nonce: Uint8Array | null = null;
 
+  constructor() {
+    this.restoreOrGenerateSession();
+  }
+
+  /** 🔄 Restore keypair & nonce dari localStorage, atau generate baru jika belum ada */
+  private restoreOrGenerateSession() {
+    try {
+      const secret = localStorage.getItem('dappSecretKey');
+      const nonceStr = localStorage.getItem('dappNonce');
+
+      if (secret) {
+        this.dappKeys = nacl.box.keyPair.fromSecretKey(bs58.decode(secret));
+        console.log('♻️ [Phantom] Restored dApp keypair from localStorage');
+      } else {
+        this.dappKeys = nacl.box.keyPair();
+        localStorage.setItem('dappSecretKey', bs58.encode(this.dappKeys.secretKey));
+        console.log('🆕 [Phantom] Generated new dApp keypair');
+      }
+
+      if (nonceStr) {
+        this.nonce = bs58.decode(nonceStr);
+      } else {
+        this.nonce = nacl.randomBytes(24);
+        localStorage.setItem('dappNonce', bs58.encode(this.nonce));
+      }
+    } catch (err) {
+      console.warn('⚠️ [Phantom] Failed to restore session, regenerating...', err);
+      this.generateSession();
+    }
+  }
+
+  /** 🔑 Generate session baru (manual reset jika diperlukan) */
   generateSession() {
     this.dappKeys = nacl.box.keyPair();
     this.nonce = nacl.randomBytes(24);
-
-    console.log("🔑 [Phantom] Session generated");
-
-    // ✅ raw array
-    console.log("   > PublicKey (raw array):", Array.from(this.dappKeys.publicKey));
-    console.log("   > Nonce (raw array):", Array.from(this.nonce));
-
-    // ✅ hex
-    console.log("   > PublicKey (hex):", Buffer.from(this.dappKeys.publicKey).toString("hex"));
-    console.log("   > Nonce (hex):", Buffer.from(this.nonce).toString("hex"));
-
-    // ✅ base58
-    console.log("   > PublicKey (b58):", bs58.encode(this.dappKeys.publicKey));
-    console.log("   > Nonce (b58):", bs58.encode(this.nonce));
-
-    console.log("   > SecretKey (len):", this.dappKeys.secretKey.length);
-
-    localStorage.setItem("dappSecretKey", bs58.encode(this.dappKeys.secretKey));
-    localStorage.setItem("dappNonce", bs58.encode(this.nonce));
-
-    console.log("   > Saving dappSecretKey and dappNonce to localStorage");
+    localStorage.setItem('dappSecretKey', bs58.encode(this.dappKeys.secretKey));
+    localStorage.setItem('dappNonce', bs58.encode(this.nonce));
+    console.log('🔑 [Phantom] Session generated & stored');
   }
 
-  getPublicKeyB58() {
+  /** 🧠 Public key (Base58) untuk dapp_encryption_public_key */
+  getPublicKeyB58(): string {
     if (!this.dappKeys) {
-      console.error("❌ [Phantom] Tried to getPublicKeyB58 but session not initialized");
-      throw new Error('Session not initialized');
+      console.warn('⚠️ [Phantom] Missing dApp keys, regenerating...');
+      this.restoreOrGenerateSession();
     }
-    const pubKeyB58 = bs58.encode(this.dappKeys.publicKey);
-    console.log("📤 [Phantom] getPublicKeyB58:", pubKeyB58);
-    return pubKeyB58;
+    return bs58.encode(this.dappKeys!.publicKey);
   }
 
-  getNonceB58() {
+  /** 🧩 Secret key Uint8Array (private) */
+  getSecretKey(): Uint8Array {
+    if (!this.dappKeys) this.restoreOrGenerateSession();
+    return this.dappKeys!.secretKey;
+  }
+
+  /** 🧩 Nonce Base58 (selalu tersedia) */
+  getNonceB58(): string {
     if (!this.nonce) {
-      console.error("❌ [Phantom] Tried to getNonceB58 but session not initialized");
-      throw new Error('Session not initialized');
+      this.nonce = nacl.randomBytes(24);
+      localStorage.setItem('dappNonce', bs58.encode(this.nonce));
     }
-    const nonceB58 = bs58.encode(this.nonce);
-    console.log("📤 [Phantom] getNonceB58:", nonceB58);
-    return nonceB58;
+    return bs58.encode(this.nonce);
   }
 
-  getSecretKey() {
-    if (!this.dappKeys) {
-      console.error("❌ [Phantom] Tried to getSecretKey but session not initialized");
-      throw new Error('Session not initialized');
-    }
-    console.log("🔐 [Phantom] getSecretKey called (not logging value for safety)");
-    return this.dappKeys.secretKey;
+  /** ⚙️ Ambil pasangan keypair penuh */
+  getKeypair(): nacl.BoxKeyPair {
+    if (!this.dappKeys) this.restoreOrGenerateSession();
+    return this.dappKeys!;
+  }
+
+  /** 🧩 Restore keypair dari secret key Uint8Array */
+  restoreKeypairFromSecret(secret: Uint8Array) {
+    this.dappKeys = nacl.box.keyPair.fromSecretKey(secret);
+    console.log('♻️ [Phantom] Keypair restored from secret');
   }
 }

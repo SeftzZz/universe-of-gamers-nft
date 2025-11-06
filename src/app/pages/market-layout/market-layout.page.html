@@ -41,41 +41,67 @@
 
                     <!-- menu -->
                     <nav id="mobile-main-nav" class="mobile-main-nav">
-                        <ul id="menu-mobile-menu" class="menu">
-                            <li class="menu-item current-item" *ngIf="activeWalletData">
-                              <a class="item-menu-mobile flex-between">
-                                <span (click)="closeMobileNav()">
-                                  {{ shorten(activeWalletData.address) }}
-                                </span>
-                                <!-- <span class="wallet-balance">
-                                  ${{ activeWalletData.usdValue | number:'1.2-2' }}
-                                </span> -->
-                                <ion-icon
-                                  name="copy-outline"
-                                  (click)="onCopyIconClick($event, activeWalletData.address)">
-                                </ion-icon>
-                              </a>
-                            </li>
+                      <ul id="menu-mobile-menu" class="menu">
 
-                            <!-- <li class="menu-item" *ngIf="activeWallet">
-                                <a class="item-menu-mobile" (click)="toggleAccountsModal(); closeMobileNav()">
-                                    Add Accounts
-                                </a>
-                            </li> -->
+                        <!-- === Wallet aktif === -->
+                        <li class="menu-item current-item" *ngIf="activeWalletData">
+                          <a class="item-menu-mobile flex-between">
+                            <span (click)="closeMobileNav()">
+                              {{ shorten(activeWalletData.address) }}
+                            </span>
+                            <ion-icon
+                              name="copy-outline"
+                              (click)="onCopyIconClick($event, activeWalletData.address)">
+                            </ion-icon>
+                          </a>
+                        </li>
 
-                            <li class="menu-item" *ngIf="activeWallet">
-                                <a class="item-menu-mobile" [routerLink]="['/market-layout/setting']" (click)="closeMobileNav()">
-                                    Settings
-                                </a>
-                            </li>
+                        <!-- Player -->
+                        <li class="menu-item" *ngIf="profile?.player">
+                          <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
+                            <span>Rank: <strong>{{ profile?.player?.rank | titlecase }}</strong></span>
+                            <span class="wallet-balance">Earning Point {{ profile?.player?.totalEarning | number:'1.2-2' }}</span>
+                          </a>
+                        </li>
 
-                              <li class="menu-item" *ngIf="activeWallet">
-                                  <a class="item-menu-mobile" (click)="logout()">
-                                      Logout
-                                  </a>
-                              </li>
-                        </ul>
+                        <!-- Referral Code -->
+                        <li class="menu-item" *ngIf="profile?.referral">
+                          <a class="item-menu-mobile flex-between"
+                             (click)="onCopyIconClick($event, profile?.referral?.code || '')">
+                            <span>Referral Code: <strong>{{ profile?.referral?.code }}</strong></span>
+                            <ion-icon name="copy-outline"></ion-icon>
+                          </a>
+                        </li>
+
+                        <!-- Referral Summary -->
+                        <li class="menu-item" *ngIf="profile?.referral">
+                          <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
+                            <span>Claimable:</span>
+                            <span class="wallet-balance">{{ profile?.referral?.totalClaimable | number:'1.2-2' }}</span>
+                          </a>
+                          <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
+                            <span>Claimed:</span>
+                            <span class="wallet-balance">{{ profile?.referral?.totalClaimed | number:'1.2-2' }}</span>
+                          </a>
+                        </li>
+
+                        <!-- === Settings === -->
+                        <li class="menu-item" *ngIf="activeWallet">
+                          <a class="item-menu-mobile" [routerLink]="['/market-layout/setting']" (click)="closeMobileNav()">
+                            Settings
+                          </a>
+                        </li>
+
+                        <!-- === Logout === -->
+                        <li class="menu-item" *ngIf="activeWallet">
+                          <a class="item-menu-mobile" (click)="logout()">
+                            Logout
+                          </a>
+                        </li>
+
+                      </ul>
                     </nav>
+
                 </div>
             </div>
         </header>

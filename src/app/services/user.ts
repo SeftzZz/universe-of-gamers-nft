@@ -6,6 +6,20 @@ export interface CustodialWallet {
   address: string;
 }
 
+export interface Player {
+  rank: string;
+  totalEarning: number;
+  lastActive: string; // bisa Date juga kalau mau dikonversi
+}
+
+export interface Referral {
+  code: string;
+  totalClaimable: number;
+  totalClaimed: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export interface UserProfile {
   name: string;
   email: string;
@@ -14,6 +28,8 @@ export interface UserProfile {
   avatar: string;
   custodialWallets: CustodialWallet[];
   role: string;
+  player?: Player;          // optional (karena bisa belum ada)
+  referral?: Referral;      // optional (jika belum punya kode)
 }
 
 @Injectable({
@@ -27,7 +43,9 @@ export class User {
     notifyEmail: false,
     avatar: '',
     custodialWallets: [],
-    role: ''
+    role: '',
+    player: undefined,
+    referral: undefined
   });
 
   private avatar$ = new BehaviorSubject<string>('assets/images/avatar/avatar-07.png');

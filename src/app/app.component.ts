@@ -1,4 +1,4 @@
-// app.component.ts
+import { Capacitor } from '@capacitor/core';
 import { Component, AfterViewInit, NgZone, OnInit } from '@angular/core';
 import { Auth } from './services/auth';
 import { App } from '@capacitor/app';
@@ -11,16 +11,26 @@ import { Phantom } from './services/phantom';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
-import { User, UserProfile } from './services/user';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-import { Capacitor } from '@capacitor/core';
+import { User } from './services/user';
 import { GoogleLoginService } from './services/google-login-service';
+import { GatchaService } from './services/gatcha';
+import { NftService } from './services/nft.service';
 import { WebSocket } from './services/websocket';
 
 declare var bootstrap: any;
 declare function btnmenu(): void;
 
-// simpan ephemeral keypair global
+/**
+ * Helper log universal — tampil di console browser dan Android Logcat
+ */
+function nativeLog(tag: string, data: any) {
+  const time = new Date().toISOString();
+  const msg = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+  const prefix = Capacitor.isNativePlatform() ? '🟩' : '🟢';
+  console.log(`${prefix} [${tag}] ${time} → ${msg}`);
+}
+
+// global keypair
 export let dappKeys: nacl.BoxKeyPair | null = null;
 
 @Component({
@@ -35,6 +45,14 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   private phantomFlow: 'connect' | 'signMessage' | null = null;
   private challengeNonce: string | null = null;
+  private lastProcessedUrl: string | null = null;
+
+  authToken: string | null = null;
+
+  gatchaPacks: any[] = [];
+  mintResult: any = null;
+  txSig: string | null = null;
+
   constructor(
     private router: Router,
     private ngZone: NgZone,
@@ -42,277 +60,518 @@ export class AppComponent implements AfterViewInit, OnInit {
     private toastCtrl: ToastController,
     private loadingCtrl: LoadingController,
     private phantom: Phantom,
-    private http: HttpClient, 
+    private http: HttpClient,
     private userService: User,
     private googleLogin: GoogleLoginService,
     private ws: WebSocket,
+    private gatchaService: GatchaService,
+    private nftService: NftService
   ) {
-    // this.listenPhantomCallback();
-
-    this.router.events
-    .pipe(filter(event => event instanceof NavigationEnd))
-    .subscribe(() => {
-      setTimeout(() => this.bindMobileNav(), 50);
+    // === Phantom resume listener ===
+    App.addListener('resume', async () => {
+      const lastUrl = localStorage.getItem('pendingPhantomUrl');
+      if (lastUrl) {
+        localStorage.removeItem('pendingPhantomUrl');
+        this.handlePhantomUrl(lastUrl);
+      }
     });
 
-    this.initStatusBar();
+    this.listenPhantomCallback();
 
-    const userId = localStorage.getItem('userId');
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe(() => setTimeout(() => this.bindMobileNav(), 50));
+
+    this.initStatusBar();
   }
 
   ngOnInit() {
-    this.googleLogin.init(); // pastikan inisialisasi dipanggil
+    this.googleLogin.init();
     this.ws.connect();
+    setTimeout(() => this.listenPhantomCallback(), 300);
   }
 
-  /**
-   * Listener untuk callback Phantom (deeplink)
-   */
+  // === 1️⃣ Listen callback from Phantom ===
   listenPhantomCallback() {
     App.addListener('appUrlOpen', async (data: any) => {
-      console.log('📥 Phantom callback raw URL:', data.url);
+      console.log('📡 [Phantom Callback Triggered]');
+      console.log(JSON.stringify(data, null, 2));
 
-      const url = new URL(data.url);
-      url.searchParams.forEach((val, key) => {
-        console.log(`🔑 Param ${key} = ${val}`);
-      });
-
-      const encryptedData = url.searchParams.get('data');
-      const nonce = url.searchParams.get('nonce');
-      const phantomPubKey = url.searchParams.get('phantom_encryption_public_key');
-      const errorCode = url.searchParams.get('errorCode');
-      const errorMessage = url.searchParams.get('errorMessage');
-
-      // 🚨 Tangani error dari Phantom
-      if (errorCode || errorMessage) {
-        console.error(`❌ Phantom error: ${errorCode} - ${errorMessage}`);
-        return;
-      }
-
-      if (!encryptedData || !nonce || !phantomPubKey) {
-        console.error('❌ Missing params in callback');
-        return;
-      }
-
-      try {
-        // ✅ Simpan phantomPubKey supaya bisa dipakai di signMessage berikutnya
-        localStorage.setItem('phantomPubKey', phantomPubKey);
-
-        // Ambil secretKey dari Phantom service / localStorage
-        let secretKey: Uint8Array | null = null;
-        try {
-          secretKey = this.phantom.getSecretKey();
-        } catch {
-          const stored = localStorage.getItem('dappSecretKey');
-          if (stored) {
-            secretKey = bs58.decode(stored);
-            console.warn('⚡ Loaded secretKey from localStorage (service was reset).');
-          }
-        }
-
-        if (!secretKey) {
-          console.error('❌ No secretKey available for decrypt');
-          return;
-        }
-
-        const sharedSecret = nacl.box.before(
-          bs58.decode(phantomPubKey),
-          secretKey
-        );
-
-        const decrypted = nacl.box.open.after(
-          bs58.decode(encryptedData),
-          bs58.decode(nonce),
-          sharedSecret
-        );
-
-        if (!decrypted) {
-          console.error('❌ Failed to decrypt Phantom payload');
-          return;
-        }
-
-        const payload = JSON.parse(new TextDecoder().decode(decrypted));
-        console.log('✅ Decrypted payload:', payload);
-
-        // === Bedakan antara CONNECT vs SIGN MESSAGE ===
-        if (payload.public_key) {
-          // === CONNECT result ===
-          this.userAddress = payload.public_key;
-          console.log('✅ Phantom mobile connected:', this.userAddress);
-
-          if (payload.session) {
-            localStorage.setItem('phantomSession', payload.session);
-            console.log('💾 Saved Phantom session:', payload.session);
-          }
-
-          // Step berikutnya: ambil challenge & sign
-          this.loginWithBackend(this.userAddress);
-
-        } else if (payload.signature) {
-          // === SIGN MESSAGE result ===
-          console.log('✍️ Phantom signature received:', payload.signature);
-
-          // Ambil nonce yg dipakai waktu generate deeplink signMessage
-          const nonceFromLocal = localStorage.getItem('lastNonce') || '';
-
-          this.finishLogin(this.userAddress, payload.signature, nonceFromLocal);
-        }
-      } catch (err) {
-        console.error('❌ Error decrypting Phantom response:', err);
+      if (data?.url?.includes('phantom-callback')) {
+        localStorage.setItem('pendingPhantomUrl', data.url);
+        this.handlePhantomUrl(data.url);
       }
     });
   }
 
-  /**
-   * Login ke backend setelah dapat public_key dari Phantom
-   */
+  // === 2️⃣ Handle returned deeplink ===
+  async handlePhantomUrl(data: any) {
+    const urlStr = typeof data === 'string' ? data : data?.url;
+    if (!urlStr || !urlStr.includes('phantom-callback')) {
+      nativeLog('PHANTOM_SKIP', data);
+      return;
+    }
+
+    // ✅ Cegah pemrosesan URL yang sama berulang kali
+    // ✅ Hindari skip callback valid
+    if (this.lastProcessedUrl && this.lastProcessedUrl === urlStr && !urlStr.includes("signature")) {
+      nativeLog('PHANTOM_DUPLICATE', '⏭️ Skipping early duplicate callback (no signature)');
+      return;
+    }
+    this.lastProcessedUrl = urlStr;
+
+    nativeLog('PHANTOM_URL_IN', urlStr);
+
+    const url = new URL(urlStr);
+    const params = url.searchParams;
+    
+    const debugParams = {
+      hasData: params.has('data'),
+      hasNonce: params.has('nonce'),
+      hasPhantomPub: params.has('phantom_encryption_public_key'),
+      rawKeys: Array.from(params.keys()),
+    };
+    nativeLog('PHANTOM_URL_DEBUG', debugParams);
+
+    const encryptedData = params.get('data');
+    const nonce = params.get('nonce');
+    const phantom_pubkey_param = params.get('phantom_encryption_public_key');
+    let phantom_pubkey = phantom_pubkey_param;
+
+    // 🧩 Fallback jika Phantom tidak kirim ulang pubkey
+    if (!phantom_pubkey) {
+      const storedPubkey = localStorage.getItem('phantom_pubkey');
+      if (storedPubkey) {
+        phantom_pubkey = storedPubkey;
+        nativeLog('PHANTOM_RECOVER_PUBKEY', {
+          reason: 'missing from callback, reused from localStorage',
+          phantom_pubkey,
+        });
+      } else {
+        nativeLog('PHANTOM_ERROR', '❌ Missing Phantom public key and no stored fallback');
+        return;
+      }
+    }
+
+    const errorCode = params.get('errorCode');
+    const errorMessage = params.get('errorMessage');
+
+    nativeLog('PHANTOM_CALLBACK', {
+      timestamp: new Date().toISOString(),
+      encrypted: !!encryptedData,
+      nonce,
+      phantom_pubkey,
+      errorCode,
+      errorMessage,
+    });
+
+    if (errorCode || errorMessage) {
+      nativeLog('PHANTOM_ERROR', { errorCode, errorMessage });
+      alert(`Phantom error: ${errorMessage || errorCode}`);
+      return;
+    }
+
+    if (!encryptedData || !nonce || !phantom_pubkey) {
+      nativeLog('PHANTOM_ERROR', '❌ Missing params in Phantom callback');
+      return;
+    }
+
+    try {
+      // === Ambil secret key ===
+      let secretKey: Uint8Array | null = null;
+      try {
+        secretKey = this.phantom.getSecretKey();
+        nativeLog('PHANTOM_SECRET', '🔐 Using in-memory secretKey');
+      } catch {
+        const stored = localStorage.getItem('dappSecretKey');
+        if (stored) {
+          secretKey = bs58.decode(stored);
+          this.phantom.restoreKeypairFromSecret(secretKey);
+          nativeLog('PHANTOM_SECRET', '⚡ Restored secretKey from localStorage');
+        }
+      }
+
+      if (!secretKey) {
+        nativeLog('PHANTOM_ERROR', '❌ No secretKey for decrypt');
+        return;
+      }
+
+      nativeLog('PHANTOM_STAGE', '🧮 Computing shared secret...');
+      const sharedSecret = nacl.box.before(bs58.decode(phantom_pubkey), secretKey);
+      nativeLog('PHANTOM_STAGE', '🔓 Decrypting payload...');
+
+      const decrypted = nacl.box.open.after(
+        bs58.decode(encryptedData),
+        bs58.decode(nonce),
+        sharedSecret
+      );
+
+      if (!decrypted) {
+        nativeLog('PHANTOM_ERROR', '❌ Failed to decrypt Phantom payload — sharedSecret mismatch');
+        return;
+      }
+
+      const payloadStr = new TextDecoder().decode(decrypted);
+      nativeLog('PHANTOM_RAW', payloadStr);
+
+      let payload: any;
+      try {
+        payload = JSON.parse(payloadStr);
+      } catch {
+        nativeLog('PHANTOM_ERROR', { invalidJSON: payloadStr });
+        return;
+      }
+
+      nativeLog('PHANTOM_PAYLOAD', payload);
+
+      // === CONNECT RESULT ===
+      if (payload.session && payload.public_key && !payload.signature) {
+        this.userAddress = payload.public_key;
+        nativeLog('PHANTOM_CONNECT', `✅ Connected: ${this.userAddress}`);
+
+        localStorage.setItem('phantom_pubkey', phantom_pubkey);
+        localStorage.setItem('phantomSession', payload.session);
+        localStorage.setItem('phantomConnectedAt', Date.now().toString());
+
+        alert(`✅ Phantom Connected!\n\nAddress:\n${this.userAddress}`);
+
+        const nonceFromLocal = localStorage.getItem('lastNonce') || '';
+        this.loginWithBackend(this.userAddress);
+
+      // === SIGN RESULT ===
+      } else if (payload.signature) {
+        nativeLog('PHANTOM_SIGN', `✍️ Signature: ${payload.signature}`);
+        const backendNonce = localStorage.getItem('backendChallengeNonce') || '';
+        this.finishLogin(this.userAddress, payload.signature, backendNonce);
+
+      // === UNKNOWN PAYLOAD ===
+      } else if (payload.transaction && localStorage.getItem("phantomFlow") === "gatcha") {
+        const signedTxBase58 = payload.transaction;
+        const packId = localStorage.getItem("pendingPackId");
+        const mintAddress = localStorage.getItem("pendingMintAddress");
+
+        nativeLog("PHANTOM_GATCHA_TX_SIGNED", { signedTxBase58, packId, mintAddress });
+
+        try {
+          const confirmResp: any = await this.http.post(
+            `${environment.apiUrl}/gatcha/${packId}/confirm`,
+            { mintAddress, signedTx: signedTxBase58 },
+            { headers: { Authorization: `Bearer ${this.authToken}` } }
+          ).toPromise();
+
+          nativeLog("GATCHA_CONFIRM_SUCCESS", confirmResp);
+
+          // ✅ Kirim event hasil gatcha ke seluruh app
+          const nft = confirmResp.nft;
+          if (nft) {
+            nativeLog("🎉 NFT_MINTED", { name: nft.name, image: nft.image });
+            localStorage.setItem("lastMintedNFT", JSON.stringify(nft));
+            this.gatchaService.gatchaResult$.next(nft);
+          }
+
+          // ✅ Notifikasi sukses
+          const toast = await this.toastCtrl.create({
+            message: `🎉 Mint success! NFT: ${nft?.name || mintAddress}`,
+            duration: 4000,
+            color: "success",
+            position: "top",
+          });
+          toast.present();
+        } catch (err: any) {
+          nativeLog("GATCHA_CONFIRM_FAIL", err.message);
+          const toast = await this.toastCtrl.create({
+            message: "❌ Failed to confirm Gatcha transaction.",
+            duration: 4000,
+            color: "danger",
+            position: "top",
+          });
+          toast.present();
+        }
+      // === SELL CONFIRM ===
+      } else if (payload.transaction && localStorage.getItem("phantomFlow") === "sell") {
+        const signedTxBase58 = payload.transaction;
+        const mintAddress = localStorage.getItem("pendingMintAddress");
+
+        nativeLog("PHANTOM_SELL_TX_SIGNED", { signedTxBase58, mintAddress });
+
+        try {
+          const confirmResp: any = await this.http.post(
+            `${environment.apiUrl}/auth/nft/${mintAddress}/confirm`,
+            { signedTx: signedTxBase58 },
+            { headers: { Authorization: `Bearer ${this.authToken}` } }
+          ).toPromise();
+
+          nativeLog("SELL_CONFIRM_SUCCESS", confirmResp);
+
+          // ✅ Emit event ke seluruh aplikasi
+          const nftUpdate = {
+            mintAddress,
+            price: localStorage.getItem("pendingSellPrice"),
+            symbol: localStorage.getItem("pendingSellSymbol"),
+            txSig: confirmResp.txSignature || null,
+          };
+          this.nftService.nftSold$.next(nftUpdate);
+
+          // ✅ Toast notifikasi
+          const toast = await this.toastCtrl.create({
+            message: `✅ NFT listed successfully at ${nftUpdate.price} ${nftUpdate.symbol}`,
+            duration: 4000,
+            color: "success",
+            position: "top",
+          });
+          toast.present();
+
+          // 🧹 Cleanup context
+          localStorage.removeItem("phantomFlow");
+          localStorage.removeItem("pendingMintAddress");
+          localStorage.removeItem("pendingSellPrice");
+          localStorage.removeItem("pendingSellSymbol");
+
+        } catch (err: any) {
+          nativeLog("SELL_CONFIRM_FAIL", err.message);
+          const toast = await this.toastCtrl.create({
+            message: "❌ Failed to confirm sell transaction.",
+            duration: 4000,
+            color: "danger",
+            position: "top",
+          });
+          toast.present();
+        }
+      } else if (payload.transaction && localStorage.getItem("phantomFlow") === "buy") {
+        const signedTxBase58 = payload.transaction;
+        const mintAddress = localStorage.getItem("pendingMintAddress");
+
+        nativeLog("PHANTOM_BUY_TX_SIGNED", { signedTxBase58, mintAddress });
+
+        try {
+          const confirmResp: any = await this.http.post(
+            `${environment.apiUrl}/auth/nft/${mintAddress}/confirm-buy`,
+            { signedTx: signedTxBase58 },
+            { headers: { Authorization: `Bearer ${this.authToken}` } }
+          ).toPromise();
+
+          nativeLog("BUY_CONFIRM_SUCCESS", confirmResp);
+
+          const nft = confirmResp.nft || { mintAddress };
+          const price = localStorage.getItem("pendingBuyPrice");
+          const symbol = localStorage.getItem("pendingBuySymbol");
+
+          // Emit event
+          this.nftService.nftBought$.next({ nft, price, symbol });
+
+          const toast = await this.toastCtrl.create({
+            message: `✅ NFT purchased successfully (${price} ${symbol})`,
+            duration: 4000,
+            color: "success",
+            position: "top",
+          });
+          toast.present();
+
+          localStorage.removeItem("phantomFlow");
+          localStorage.removeItem("pendingMintAddress");
+          localStorage.removeItem("pendingBuyPrice");
+          localStorage.removeItem("pendingBuySymbol");
+
+        } catch (err: any) {
+          nativeLog("BUY_CONFIRM_FAIL", err.message);
+          const toast = await this.toastCtrl.create({
+            message: "❌ Failed to confirm buy transaction.",
+            duration: 4000,
+            color: "danger",
+            position: "top",
+          });
+          toast.present();
+        }
+      } else {
+        nativeLog('PHANTOM_WARN', { unknownPayload: payload });
+      }
+
+      // Bersihkan cache flow
+      localStorage.removeItem("phantomFlow");
+      localStorage.removeItem("pendingMintAddress");
+      // localStorage.removeItem("pendingPackId");
+
+    } catch (err: any) {
+      nativeLog('PHANTOM_EXCEPTION', {
+        message: err?.message || 'Unknown',
+        stack: err?.stack,
+      });
+    }
+  }
+
+  // === 3️⃣ Request challenge and sign ===
   async loginWithBackend(address: string) {
-    console.log('⏳ Requesting login challenge from backend...');
+    nativeLog('PHANTOM_BACKEND', `Requesting challenge for ${address}`);
+
     const challenge: any = await this.http
       .get(`${environment.apiUrl}/auth/wallet/challenge?address=${address}`)
       .toPromise();
 
-    console.log('📜 Challenge received:', challenge);
+    nativeLog('PHANTOM_CHALLENGE', challenge);
+
+    localStorage.setItem('backendChallengeNonce', challenge.nonce);
 
     if (Capacitor.getPlatform() === 'web') {
-      // 🖥️ Desktop: sign via Phantom extension
+      // 🖥️ desktop extension flow
       const provider = (window as any).solana;
-      if (!provider || !provider.isPhantom) {
-        console.error('❌ Phantom extension not found.');
+      if (!provider?.isPhantom) {
+        nativeLog('PHANTOM_ERROR', 'Phantom extension not found');
         return;
       }
 
       const messageBytes = new TextEncoder().encode(challenge.message);
       const signed = await provider.signMessage(messageBytes, 'utf8');
-      const signature = signed.signature ? bs58.encode(signed.signature) : undefined;
-
-      if (!signature) {
-        console.error('❌ No signature returned from Phantom extension');
-        return;
-      }
-
+      const signature = signed.signature ? bs58.encode(signed.signature) : '';
       this.finishLogin(address, signature, challenge.nonce);
-
     } else {
-      // 📱 Mobile: sign via deeplink
+      // 📱 mobile deeplink sign flow
       try {
         const dappPubKey = this.phantom.getPublicKeyB58();
-        const redirect = 'universeofgamers://phantom-callback';
-
-        // ✅ ambil phantom pubkey dari connect callback
-        const phantomPubKey = localStorage.getItem('phantomPubKey');
-        if (!phantomPubKey) {
-          console.error('❌ phantomPubKey not found in localStorage (connect step missing)');
-          return;
-        }
-
-        // ✅ secret key dapp
+        const PHANTOM_REDIRECT = 'com.universeofgamers.nft://phantom-callback';
+        const phantom_pubkey = localStorage.getItem('phantom_pubkey');
         const secretKey = this.phantom.getSecretKey();
-        if (!secretKey) {
-          console.error('❌ No secretKey available for Phantom session');
-          return;
-        }
+        if (!phantom_pubkey || !secretKey) throw new Error('Missing Phantom keys');
 
-        // ✅ nonce baru khusus signMessage
         const nonceArr = nacl.randomBytes(24);
         const nonceB58 = bs58.encode(nonceArr);
+        localStorage.setItem('lastNonce', nonceB58);
 
-        // ✅ derive shared secret dari phantom pubkey
-        const sharedSecret = nacl.box.before(
-          bs58.decode(phantomPubKey),
-          secretKey
-        );
-
-        // ✅ build payload sesuai spesifikasi Phantom
         const session = localStorage.getItem('phantomSession');
-        const payloadObj = {
-          session,
-          message: challenge.message,
-          display: 'utf8',
-        };
-        const payloadBytes = new TextEncoder().encode(JSON.stringify(payloadObj));
+        if (!session) {
+          alert('Please connect Phantom first');
+          return;
+        }
 
-        const encryptedPayload = nacl.box.after(payloadBytes, nonceArr, sharedSecret);
-        const payloadB58 = bs58.encode(encryptedPayload);
+        try {
+          const sharedSecret = nacl.box.before(bs58.decode(phantom_pubkey), secretKey);
+          nativeLog('PHANTOM_STAGE', '🧮 Computing shared secret...');
+          nativeLog('PHANTOM_SHARED_SECRET', {
+            phantom_pubkey,
+            dapp_pubkey: bs58.encode(this.phantom.getKeypair().publicKey),
+            sharedSecret_b58: bs58.encode(sharedSecret.slice(0, 16)) + '...',
+          });
 
-        // ✅ signMessage deeplink
-        const signUrl =
-          `https://phantom.app/ul/v1/signMessage?` +
-          `dapp_encryption_public_key=${dappPubKey}` +
-          `&redirect_link=${redirect}` +
-          `&nonce=${nonceB58}` +
-          `&payload=${payloadB58}`;
+          // 1. Ubah pesan string menjadi Uint8Array
+          const messageBytes = new TextEncoder().encode(challenge.message);
 
-        console.log('🔗 Open signMessage URL:', signUrl);
-        window.location.href = signUrl;
+          // 2. Base58-encode array bytes pesan
+          const messageB58 = bs58.encode(messageBytes);
 
-      } catch (err) {
-        console.error('❌ Failed to open signMessage link:', err);
+          const payloadObj = {
+            session: session,
+            // Gunakan B58-encoded message di sini
+            message: messageB58, 
+            // Hapus pembersihan string: `message` di sini TIDAK boleh di-replace/trim
+            display: 'utf8', // Ini menginstruksikan Phantom untuk mendekode B58 sebagai UTF-8
+          };
+          nativeLog('PHANTOM_PAYLOAD_OBJECT', payloadObj);
+
+          const payloadBytes = new TextEncoder().encode(JSON.stringify(payloadObj));
+          nativeLog('PHANTOM_STAGE', `🧱 Encoding payload to bytes (${payloadBytes.length} bytes)`);
+
+          const encryptedPayload = nacl.box.after(payloadBytes, nonceArr, sharedSecret);
+          nativeLog('PHANTOM_STAGE', `🔐 Encrypted payload (${encryptedPayload.length} bytes)`);
+
+          const payloadB58 = bs58.encode(encryptedPayload);
+          nativeLog('PHANTOM_ENCRYPTED_B58', {
+            nonce_b58: bs58.encode(nonceArr),
+            payload_b58_preview: payloadB58.slice(0, 60) + '...',
+          });
+
+          // ===  ✅ Build sign URL
+          const baseSignUrl =
+            `https://phantom.app/ul/v1/signMessage?` +
+            `dapp_encryption_public_key=${dappPubKey}` +
+            // Tambahkan encodeURIComponent untuk redirect_link
+            `&redirect_link=${encodeURIComponent(PHANTOM_REDIRECT)}` +
+            `&nonce=${bs58.encode(nonceArr)}` +
+            `&payload=${payloadB58}`;
+
+          // ===  ✅ Tambahkan relay URL untuk bypass WebView restriction
+          const appUrl = 'https://universeofgamers.io';
+          const relay = 'https://universeofgamers.io/phantom-redirect.html';
+          const relayUrl = `${relay}?target=${encodeURIComponent(baseSignUrl)}&app=${encodeURIComponent(appUrl)}`;
+
+          nativeLog('PHANTOM_SIGN_URL', relayUrl);
+
+          // ===  ✅ Redirect ke relay untuk Android/iOS
+          if (Capacitor.getPlatform() === 'android' || Capacitor.getPlatform() === 'ios') {
+            localStorage.setItem("phantomFlow", "sign");
+            setTimeout(() => {
+              window.location.href = relayUrl;
+            }, 500);
+          } else {
+            // untuk desktop browser
+            window.open(baseSignUrl, '_blank');
+          }
+        } catch (err: any) {
+          nativeLog('PHANTOM_SIGN_ERROR', err.message);
+        }
+
+      } catch (err: any) {
+        nativeLog('PHANTOM_SIGN_ERROR', err.message);
       }
     }
   }
 
-  /**
-   * Kirim hasil login ke backend
-   */
+  // === 4️⃣ Finish login ===
   finishLogin(address: string, signature: string | null, nonce: string) {
+    nativeLog('PHANTOM_FINISH_LOGIN', {
+      address,
+      signature_preview: signature?.slice(0, 20) + '...',
+      nonce,
+    });
+
     this.auth.loginWithWallet({
       provider: 'phantom',
       address,
-      name: 'Phantom User',
-      signature: signature || "",   // ✅ fix TS error
+      name: `Phantom User ${nonce}`,
+      signature: signature || '',
       nonce,
     }).subscribe({
       next: (res) => {
-        console.log('✅ Wallet login success:', res);
+        nativeLog('PHANTOM_LOGIN_SUCCESS', res);
         this.auth.setToken(res.token, res.authId);
-
         localStorage.setItem('userId', res.authId);
         localStorage.setItem('walletAddress', address);
 
-        if (res.wallets || res.custodialWallets) {
-          const allWallets = [
-            ...(res.wallets || []),
-            ...(res.custodialWallets || [])
-          ];
-          localStorage.setItem('wallets', JSON.stringify(allWallets));
-        }
+        const avatarUrl = res.avatar
+          ? `${environment.baseUrl}${res.avatar}`
+          : 'assets/images/app-logo.jpeg';
 
-        window.location.href = '/tabs/home';
+        this.userService.setUser({
+          name: res.name,
+          email: res.email,
+          notifyNewItems: res.notifyNewItems || false,
+          notifyEmail: res.notifyEmail || false,
+          avatar: avatarUrl,
+          role: res.role
+        });
+
+        window.location.href = '/market-layout/my-nfts';
       },
-      error: (err) => {
-        console.error('❌ Wallet login failed:', err);
-      }
+      error: (err) => nativeLog('PHANTOM_LOGIN_FAIL', err),
     });
   }
 
+  // === Misc ===
   async initStatusBar() {
     try {
-      // 🔹 Tampilkan status bar
       await StatusBar.hide();
-
-      // 🔹 Atur style (DARK → teks putih, LIGHT → teks hitam)
       await StatusBar.setStyle({ style: Style.Light });
-
-      // 🔹 Bisa juga atur background warna status bar
       await StatusBar.setBackgroundColor({ color: '#ffffff' });
     } catch (err) {
-      console.warn('⚠️ StatusBar plugin error:', err);
+      nativeLog('STATUSBAR', err);
     }
   }
 
   private bindMobileNav() {
     const header = document.querySelector('#header_main');
     if (!header) return;
-
     const navWrap = header.querySelector('.mobile-nav-wrap');
-    if (!navWrap) return; // jaga2
-
     const btn = header.querySelector('.mobile-button');
     const closeBtn = header.querySelector('.mobile-nav-close');
     const overlay = header.querySelector('.overlay-mobile-nav');
 
-    // supaya tidak dobel listener
     btn?.removeEventListener('click', this.toggleNav);
     closeBtn?.removeEventListener('click', this.closeNav);
     overlay?.removeEventListener('click', this.closeNav);
@@ -323,54 +582,21 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   private toggleNav() {
-    const navWrap = document.querySelector('#header_main .mobile-nav-wrap');
-    navWrap?.classList.toggle('active');
+    document.querySelector('#header_main .mobile-nav-wrap')?.classList.toggle('active');
   }
 
   private closeNav() {
-    const navWrap = document.querySelector('#header_main .mobile-nav-wrap');
-    navWrap?.classList.remove('active');
+    document.querySelector('#header_main .mobile-nav-wrap')?.classList.remove('active');
   }
 
-  async presentLoading(message = 'Please wait...') {
-    this.loading = await this.loadingCtrl.create({
-      message,
-      spinner: 'crescent',
-      translucent: true,
-    });
-    await this.loading.present();
-  }
-
-  async dismissLoading() {
-    if (this.loading) {
-      await this.loading.dismiss();
-      this.loading = null;
-    }
-  }
-
-  // tambahkan toast ke AppComponent
-  async showToast(message: string, color: 'success' | 'danger' = 'success') {
-    const toast = await this.toastCtrl.create({
-      message,
-      duration: 2500,
-      position: 'top',
-      color,
-    });
-    await toast.present();
+  ngAfterViewInit() {
+    setTimeout(() => this.runTemplate());
+    this.bindMobileNav();
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe(() => setTimeout(() => this.runTemplate()));
   }
 
   private runTemplate() {
     (window as any).initTemplate && (window as any).initTemplate();
-  }
-
-  ngAfterViewInit() {
-    // pertama kali
-    setTimeout(() => this.runTemplate());
-    this.bindMobileNav();
-
-    // setiap route selesai
-    this.router.events
-      .pipe(filter(e => e instanceof NavigationEnd))
-      .subscribe(() => setTimeout(() => this.runTemplate()));
   }
 }

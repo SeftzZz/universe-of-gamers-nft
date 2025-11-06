@@ -169,24 +169,31 @@ export class MyNftsPage implements OnInit {
     this.isLoading = true; // 🔄 mulai loading
 
     try {
-      // Ambil wallet aktif
+      // 🔹 Ambil wallet aktif
       this.userAddress = await firstValueFrom(this.wallet.getActiveWallet());
 
-      // Ambil data dari service
-      await this.market.loadMyNfts();
-      await this.market.loadLatestNfts();
-      await this.market.loadTopCreators();
-      await this.market.loadHistory();
-      await this.market.loadUsers();
+      // 🔹 Load semua data dari service
+      await Promise.all([
+        this.market.loadMyNfts(),
+        this.market.loadLatestNfts(),
+        this.market.loadTopCreators(),
+        this.market.loadHistory(),
+        this.market.loadUsers(),
+      ]);
 
-      // Ambil hasil cache dari service
+      // 🔹 Ambil hasil cache dari service
       this.market.getMyNfts().subscribe((myNfts) => {
-        this.fetchnft = myNfts || [];
+        // Filter NFT minted saja
+        this.fetchnft = (myNfts || []).filter((nft: any) => nft.status === 'minted');
         this.filterNftsByActiveWallet();
         this.isLoading = false; // ✅ selesai loading
       });
 
-      this.market.getLatestNfts().subscribe((data) => (this.latestNfts = data));
+      this.market.getLatestNfts().subscribe((data) => {
+        // hanya tampilkan NFT yang sudah minted
+        this.latestNfts = (data || []).filter((nft: any) => nft.status === 'minted');
+      });
+
       this.market.getTopCreators().subscribe((data) => (this.topCreators = data));
       this.market.getHistory().subscribe((data) => (this.history = data));
       this.market.getUsers().subscribe((data) => (this.allUsers = data));
