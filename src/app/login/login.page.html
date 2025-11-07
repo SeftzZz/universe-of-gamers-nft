@@ -172,35 +172,5 @@
       </div>
     </div>
 
-    <!-- 🔄 Modal Referral Code -->
-    <div class="custom-modal" *ngIf="showReferralModal">
-      <div class="modal-backdrop" (click)="skipReferral()"></div>
-
-      <div
-        class="modal-sheet"
-        [ngClass]="{
-          'slide-up': !isClosingReferral,
-          'slide-down': isClosingReferral
-        }"
-      >
-        <h2 class="modal-title">Enter Referral Code</h2>
-
-        <form (submit)="applyReferral($event)">
-          <input
-            type="text"
-            [(ngModel)]="referralCode"
-            name="referralCode"
-            placeholder="Enter referral code (optional)"
-            class="search-field style-1"
-          />
-
-          <div class="modal-actions pt-20">
-            <button type="button" class="btn-cancel" (click)="skipReferral()">Skip</button>
-            <button type="submit" class="btn-send">Apply</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
   </div>
 </div>

@@ -59,11 +59,6 @@ export class LoginPage implements OnInit {
   private phantomFlow: 'connect' | 'signMessage' | null = null;
   private challengeNonce: string | null = null;
 
-  showReferralModal = false;
-  referralCode: string = '';
-  isClosingReferral = false;
-  private referralResolver: ((value: 'skip' | 'apply' | null) => void) | null = null;
-
   authToken: string | null = null;
 
   constructor(
@@ -95,30 +90,21 @@ export class LoginPage implements OnInit {
 
   async ionViewWillEnter() {
     console.log('🚫 Skip ionViewWillEnter Phantom decrypt — handled globally by AppComponent');
+
+    // ✅ Auto-connect wallet jika ada state pendingConnectRedirect
+    const pending = localStorage.getItem('pendingConnectRedirect');
+    if (pending) {
+      console.log('🔄 Detected pending wallet connect from:', pending);
+      localStorage.removeItem('pendingConnectRedirect');
+      await this.connectWallet();
+    }
   }
 
   // === Phantom Wallet connect + login ===
   async connectWallet() {
+    console.log('⚡ [Auto Connect Wallet] Starting Phantom flow...');
+
     try {
-      // 🧩 Cek apakah referral sudah pernah digunakan
-      const alreadyUsedReferral = localStorage.getItem('usedReferral');
-      if (!alreadyUsedReferral) {
-        const referralAction = await this.openReferralModal();
-        console.log('🎟️ Referral action:', referralAction);
-
-        if (referralAction === 'apply') {
-          localStorage.setItem('usedReferral', 'true');
-          console.log('✅ Referral marked as used locally.');
-        } else if (referralAction === 'skip') {
-          console.log('⏭️ Referral skipped by user.');
-        } else {
-          console.log('⛔ Referral modal dismissed, cancel wallet connect.');
-          return;
-        }
-      } else {
-        console.log('🎟️ Referral already used, skipping modal.');
-      }
-
       // 🧩 Pastikan session Phantom aktif
       try {
         this.phantom.getPublicKeyB58();
@@ -200,7 +186,7 @@ export class LoginPage implements OnInit {
         name: `Phantom User ${challenge.nonce}`,
         signature,
         nonce: challenge.nonce,
-      }).subscribe({
+      }, this.authToken || undefined).subscribe({
         next: async (res) => {
           this.dismissLoading();
           console.log('✅ Wallet login success:', res);
@@ -216,10 +202,15 @@ export class LoginPage implements OnInit {
           this.userService.setUser({
             name: res.name,
             email: res.email,
+            notifyNewItems: res.notifyNewItems || false,
+            notifyEmail: res.notifyEmail || false,
             avatar: avatarUrl,
             role: res.role,
             player: res.player,
-            referral: res.referral
+            referral: res.referral,
+            custodialWallets: res.custodialWallets,
+            wallets: res.wallets,
+            authProvider: res.authProvider || 'phantom', // ✅ tambahkan ini
           });
 
           // ✅ Simpan wallet list
@@ -239,33 +230,14 @@ export class LoginPage implements OnInit {
 
           this.showToast('Wallet connected ✅', 'success');
 
-          // ==========================================
-          // 🎟️ Auto-apply referral if stored locally
-          // ==========================================
-          const pendingReferral = localStorage.getItem('pendingReferralCode');
-          if (pendingReferral) {
-            console.log(`🎯 Found pending referral: ${pendingReferral}, applying...`);
-            try {
-              const applyRes: any = await this.http.post(
-                `${environment.apiUrl}/auth/referral/apply`,
-                { code: pendingReferral, walletAddress: this.userAddress },
-                { headers: { Authorization: `Bearer ${this.authToken}` } }
-              ).toPromise();
-
-              if (applyRes?.success) {
-                console.log('✅ Referral applied successfully.');
-                this.showToast('Referral applied successfully ✅', 'success');
-                localStorage.removeItem('pendingReferralCode');
-                localStorage.removeItem('usedReferral');
-              } else {
-                console.warn('⚠️ Referral apply failed:', applyRes?.error);
-              }
-            } catch (err) {
-              console.error('❌ Error applying referral:', err);
-            }
+           // redirect kembali ke halaman sebelumnya kalau ada
+          const pending = localStorage.getItem('pendingConnectRedirect');
+          if (pending) {
+            localStorage.removeItem('pendingConnectRedirect');
+            this.authRedirect.redirectAfterLogin(pending);
+          } else {
+            this.authRedirect.redirectAfterLogin('/market-layout/my-nfts');
           }
-
-          this.authRedirect.redirectAfterLogin('/market-layout/my-nfts');
         },
         error: (err) => {
           this.dismissLoading();
@@ -421,26 +393,6 @@ export class LoginPage implements OnInit {
 
   async googleLogin() {
     try {
-
-      // 🧩 Cek apakah referral sudah pernah digunakan
-      const alreadyUsedReferral = localStorage.getItem('usedReferral');
-      if (!alreadyUsedReferral) {
-        const referralAction = await this.openReferralModal();
-        console.log('🎟️ Referral action:', referralAction);
-
-        if (referralAction === 'apply') {
-          localStorage.setItem('usedReferral', 'true');
-          console.log('✅ Referral marked as used locally.');
-        } else if (referralAction === 'skip') {
-          console.log('⏭️ Referral skipped by user.');
-        } else {
-          console.log('⛔ Referral modal dismissed, cancel wallet connect.');
-          return;
-        }
-      } else {
-        console.log('🎟️ Referral already used, skipping modal.');
-      }
-
       console.log('🚀 [GoogleLogin] Starting Google login flow...');
       const startTime = performance.now();
 
@@ -508,7 +460,9 @@ export class LoginPage implements OnInit {
 
       // 6️⃣ Tentukan avatar user
       const avatarUrl = resp.avatar
-        ? `${environment.baseUrl}${resp.avatar}`
+        ? (resp.avatar.startsWith('http')
+            ? resp.avatar
+            : `${environment.baseUrl}${resp.avatar}`)
         : user.photo || 'assets/images/app-logo.jpeg';
 
       // 7️⃣ Set data user di service global
@@ -520,7 +474,10 @@ export class LoginPage implements OnInit {
         avatar: avatarUrl,
         role: resp.role,
         player: resp.player,
-        referral: resp.referral
+        referral: resp.referral,
+        custodialWallets: resp.custodialWallets || [],
+        wallets: resp.wallets || [],
+        authProvider: resp.authProvider || 'google', // ✅ tambahkan ini
       });
 
       // 8️⃣ Ambil wallet (custodial dulu, lalu external)
@@ -559,33 +516,9 @@ export class LoginPage implements OnInit {
       this.showToast('Google Login Success ✅', 'success');
       this.clearForm?.();
 
-      // ==========================================
-      // 🎟️ Auto-apply referral if stored locally
-      // ==========================================
-      const pendingReferral = localStorage.getItem('pendingReferralCode');
-      if (pendingReferral) {
-        console.log(`🎯 Found pending referral: ${pendingReferral}, applying...`);
-        try {
-          const applyRes: any = await this.http.post(
-            `${environment.apiUrl}/auth/referral/apply`,
-            { code: pendingReferral, walletAddress: this.userAddress },
-            { headers: { Authorization: `Bearer ${this.authToken}` } }
-          ).toPromise();
-
-          if (applyRes?.success) {
-            console.log('✅ Referral applied successfully.');
-            this.showToast('Referral applied successfully ✅', 'success');
-            localStorage.removeItem('pendingReferralCode');
-            localStorage.removeItem('usedReferral');
-          } else {
-            console.warn('⚠️ Referral apply failed:', applyRes?.error);
-          }
-        } catch (err) {
-          console.error('❌ Error applying referral:', err);
-        }
-      }
-
-      this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
+      this.userService.loadFromStorage();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      this.authRedirect.redirectAfterLogin('/market-layout/my-nfts');
     } catch (err: any) {
       console.error('💥 [GoogleLogin] Unhandled error:', JSON.stringify(err));
       const errorMsg = err?.message || err?.error || 'Unknown Google login error';
@@ -805,89 +738,5 @@ export class LoginPage implements OnInit {
 
     //redirect ke explorer
     window.location.href = 'http://localhost:8100/explorer';
-  }
-
-  // 🔹 Buka modal referral
-  async openReferralModal(): Promise<'skip' | 'apply' | null> {
-    return new Promise((resolve) => {
-      this.showReferralModal = true;
-      this.isClosingReferral = false;
-
-      // Simpan resolver biar bisa dipanggil di Skip/Apply
-      this.referralResolver = resolve;
-    });
-  }
-
-  // 🔹 Tutup modal referral
-  closeReferralModal() {
-    this.isClosingReferral = true;
-    setTimeout(() => (this.showReferralModal = false), 200);
-  }
-
-  // 🔹 Skip tanpa referral
-  skipReferral() {
-    if (this.referralResolver) {
-      this.referralResolver('skip');
-      this.referralResolver = null;
-    }
-    this.closeReferralModal();
-  }
-
-  // 🔹 Apply referral
-  async applyReferral(event: Event) {
-    event.preventDefault();
-
-    const code = this.referralCode?.trim();
-    if (!code) {
-      this.skipReferral();
-      return;
-    }
-
-    try {
-      // Simpan kode ke localStorage agar bisa dipakai setelah wallet connect
-      localStorage.setItem("pendingReferralCode", code);
-
-      // 🔍 Coba ambil walletAddress kalau user sudah connect
-      const walletAddress = this.userAddress || localStorage.getItem("walletAddress");
-
-      // Kalau wallet belum connect, cukup simpan dulu
-      if (!walletAddress) {
-        console.log("💾 Referral saved locally, waiting for wallet connect...");
-        this.showToast("Referral code saved! Connect your wallet to apply ✅", "success");
-
-        // Tutup modal dan lanjut ke connect wallet
-        if (this.referralResolver) {
-          this.referralResolver("apply");
-          this.referralResolver = null;
-        }
-        this.closeReferralModal();
-        return;
-      }
-
-      const pendingReferral = localStorage.getItem('pendingReferralCode');
-      // Kalau wallet sudah connect → kirim langsung ke backend
-      const res: any = await this.http.post(
-        `${environment.apiUrl}/auth/referral/apply`,
-        { code: pendingReferral, walletAddress: this.userAddress },
-        { headers: { Authorization: `Bearer ${this.authToken}` } }
-      ).toPromise();
-
-      if (res.success) {
-        this.showToast("Referral applied successfully ✅", "success");
-        // hapus localStorage karena sudah dipakai
-        localStorage.removeItem("pendingReferralCode");
-        if (this.referralResolver) {
-          this.referralResolver("apply");
-          this.referralResolver = null;
-        }
-      } else {
-        this.showToast(res.error || "Invalid referral code ❌", "danger");
-      }
-    } catch (err: any) {
-      console.error("❌ Referral apply error:", err);
-      this.showToast("Error applying referral code", "danger");
-    } finally {
-      this.closeReferralModal();
-    }
   }
 }

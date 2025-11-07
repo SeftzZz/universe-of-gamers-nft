@@ -151,7 +151,7 @@ export class RegistrationPage implements OnInit {
 
         // redirect ke halaman utama
         setTimeout(() => {
-          window.location.href = '/market-layout/all-collection';
+          window.location.href = '/market-layout/my-nfts';
         }, 500);
       },
       error: (err) => {

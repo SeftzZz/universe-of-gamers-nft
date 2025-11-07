@@ -77,11 +77,11 @@
                         <li class="menu-item" *ngIf="profile?.referral">
                           <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
                             <span>Claimable:</span>
-                            <span class="wallet-balance">{{ profile?.referral?.totalClaimable | number:'1.2-2' }}</span>
+                            <span class="wallet-balance">{{ profile?.referral?.totalClaimable | number:'1.4-4' }}</span>
                           </a>
                           <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
                             <span>Claimed:</span>
-                            <span class="wallet-balance">{{ profile?.referral?.totalClaimed | number:'1.2-2' }}</span>
+                            <span class="wallet-balance">{{ profile?.referral?.totalClaimed | number:'1.4-4' }}</span>
                           </a>
                         </li>
 
@@ -240,12 +240,12 @@
         </ion-tab-button>
 
         <ion-tab-button *ngIf="profile.role == null" tab="gatcha" [routerLink]="['/market-layout/gatcha']" routerLinkActive="active">
-            <ion-icon name="duplicate-outline"></ion-icon>
+            <ion-icon name="dice-outline"></ion-icon>
             <!-- <ion-label>Creates</ion-label> -->
         </ion-tab-button>
 
         <ion-tab-button *ngIf="profile.role == 'user'" tab="gatcha" [routerLink]="['/market-layout/gatcha']" routerLinkActive="active">
-            <ion-icon name="duplicate-outline"></ion-icon>
+            <ion-icon name="dice-outline"></ion-icon>
             <!-- <ion-label>Creates</ion-label> -->
         </ion-tab-button>
 

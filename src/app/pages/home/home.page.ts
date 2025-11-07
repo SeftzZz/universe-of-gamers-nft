@@ -9,6 +9,7 @@ import { ToastController } from '@ionic/angular'; // untuk notif ===add by fpp 0
 import { Auth } from '../../services/auth';
 import { MarketLayoutPage } from '../market-layout/market-layout.page';
 import { Router } from '@angular/router';
+import { User, UserProfile } from '../services/user';
 
 interface IGatchaReward {
   type: "character" | "rune";
@@ -138,7 +139,7 @@ export class HomePage implements OnInit {
       .sort((a, b) => a.sort - b.sort)
       .map(({ value }) => value);
   }
-
+  
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
@@ -146,12 +147,15 @@ export class HomePage implements OnInit {
     private toastCtrl: ToastController,   // untuk notif ===add by fpp 05/09/25===
     private nftService: NftService,
     private auth: Auth,   //inject Auth service
-    private router: Router
+    private router: Router,
+    private userService: User,
   ) {}
 
   async ngOnInit() {
+    // ======================================================
+    // 🔧 Load program & form setup
+    // ======================================================
     this.program = await this.idlService.loadProgram();
-    // sekarang this.program bisa dipakai untuk call mintAndList, buyNft, dll.
 
     this.uploadForm = this.fb.group({
       name: ['', Validators.required],
@@ -171,9 +175,7 @@ export class HomePage implements OnInit {
     }
 
     await this.loadNft();
-    // await this.loadNftDB();
-    await this.loadCharacters();   // load data karakter ===add by fpp 05/09/25===
-    // await this.loadRuneDB();
+    await this.loadCharacters();
     await this.loadGatchaPacks();
     await this.fetchRates();
     await this.onChainAll();

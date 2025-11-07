@@ -9,7 +9,7 @@ export interface CustodialWallet {
 export interface Player {
   rank: string;
   totalEarning: number;
-  lastActive: string; // bisa Date juga kalau mau dikonversi
+  lastActive: string;
 }
 
 export interface Referral {
@@ -27,9 +27,11 @@ export interface UserProfile {
   notifyEmail: boolean;
   avatar: string;
   custodialWallets: CustodialWallet[];
+  wallets?: CustodialWallet[];         // ✅ tambahkan
   role: string;
-  player?: Player;          // optional (karena bisa belum ada)
-  referral?: Referral;      // optional (jika belum punya kode)
+  authProvider?: string;                // ✅ tambahkan
+  player?: Player;
+  referral?: Referral;
 }
 
 @Injectable({
@@ -43,7 +45,9 @@ export class User {
     notifyEmail: false,
     avatar: '',
     custodialWallets: [],
+    wallets: [],                       // ✅ tambahkan default kosong
     role: '',
+    authProvider: 'unknown',            // ✅ default unknown
     player: undefined,
     referral: undefined
   });
@@ -53,6 +57,12 @@ export class User {
   setUser(profile: Partial<UserProfile>) {
     const current = this.user$.getValue();
     const updated = { ...current, ...profile };
+
+    // ✅ pastikan field penting tidak hilang
+    if (!updated.authProvider) updated.authProvider = 'unknown';
+    if (!updated.wallets) updated.wallets = [];
+    if (!updated.custodialWallets) updated.custodialWallets = [];
+
     this.user$.next(updated);
 
     // simpan ke localStorage
@@ -63,11 +73,16 @@ export class User {
     return this.user$.asObservable();
   }
 
-  // optional: load dari localStorage saat init service
+  // ✅ load dari localStorage saat init service
   loadFromStorage() {
     const stored = localStorage.getItem('userProfile');
     if (stored) {
-      this.user$.next(JSON.parse(stored));
+      const parsed = JSON.parse(stored);
+      // Tambahkan default untuk field baru
+      parsed.authProvider = parsed.authProvider || 'unknown';
+      parsed.wallets = parsed.wallets || [];
+      parsed.custodialWallets = parsed.custodialWallets || [];
+      this.user$.next(parsed);
     }
   }
 

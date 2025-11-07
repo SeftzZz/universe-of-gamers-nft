@@ -16,6 +16,7 @@ import { GoogleLoginService } from './services/google-login-service';
 import { GatchaService } from './services/gatcha';
 import { NftService } from './services/nft.service';
 import { WebSocket } from './services/websocket';
+import { Wallet } from './services/wallet';
 
 declare var bootstrap: any;
 declare function btnmenu(): void;
@@ -65,7 +66,8 @@ export class AppComponent implements AfterViewInit, OnInit {
     private googleLogin: GoogleLoginService,
     private ws: WebSocket,
     private gatchaService: GatchaService,
-    private nftService: NftService
+    private nftService: NftService,
+    private walletService: Wallet,
   ) {
     // === Phantom resume listener ===
     App.addListener('resume', async () => {
@@ -86,7 +88,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   ngOnInit() {
     this.googleLogin.init();
-    this.ws.connect();
+    // this.ws.connect();
     setTimeout(() => this.listenPhantomCallback(), 300);
   }
 
@@ -527,27 +529,54 @@ export class AppComponent implements AfterViewInit, OnInit {
       name: `Phantom User ${nonce}`,
       signature: signature || '',
       nonce,
-    }).subscribe({
-      next: (res) => {
+    }, this.authToken || undefined).subscribe({
+      next: async (res) => {
         nativeLog('PHANTOM_LOGIN_SUCCESS', res);
+
+        // === Simpan token dan ID user
         this.auth.setToken(res.token, res.authId);
         localStorage.setItem('userId', res.authId);
         localStorage.setItem('walletAddress', address);
 
+        // === Siapkan avatar
         const avatarUrl = res.avatar
           ? `${environment.baseUrl}${res.avatar}`
           : 'assets/images/app-logo.jpeg';
 
+        // === Update user global
         this.userService.setUser({
           name: res.name,
           email: res.email,
           notifyNewItems: res.notifyNewItems || false,
           notifyEmail: res.notifyEmail || false,
           avatar: avatarUrl,
-          role: res.role
+          role: res.role,
+          player: res.player,
+          referral: res.referral,
+          custodialWallets: res.custodialWallets,
+          wallets: res.wallets,
+          authProvider: res.authProvider || 'phantom', // ✅ tambahkan
         });
 
-        window.location.href = '/market-layout/my-nfts';
+        // === Simpan daftar wallet
+        const allWallets = [
+          ...(res.wallets || []),
+          ...(res.custodialWallets || []),
+        ];
+        localStorage.setItem('wallets', JSON.stringify(allWallets));
+        this.walletService.setWallets(allWallets);
+        this.walletService.setActiveWallet(address);
+
+        // === Redirect dinamis
+        const pendingRedirect = localStorage.getItem('pendingConnectRedirect');
+        if (pendingRedirect) {
+          localStorage.removeItem('pendingConnectRedirect');
+          nativeLog('🔁 Redirecting back to pending page', pendingRedirect);
+          window.location.href = pendingRedirect;
+        } else {
+          nativeLog('➡️ Default redirect to /market-layout/my-nfts', pendingRedirect);
+          window.location.href = '/market-layout/my-nfts';
+        }
       },
       error: (err) => nativeLog('PHANTOM_LOGIN_FAIL', err),
     });
@@ -598,5 +627,15 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   private runTemplate() {
     (window as any).initTemplate && (window as any).initTemplate();
+  }
+
+  async showToast(message: string, color: 'success' | 'danger' = 'success') {
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 2500,
+      position: 'top',
+      color,
+    });
+    await toast.present();
   }
 }

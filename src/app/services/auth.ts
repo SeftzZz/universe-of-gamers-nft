@@ -33,14 +33,21 @@ export class Auth {
   }
 
   // === Login / Import External Wallet ===
-  loginWithWallet(data: { 
-    provider: string; 
-    address: string; 
-    name?: string; 
-    signature: string; 
-    nonce: string; 
-  }): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/auth/wallet`, data);
+  loginWithWallet(
+    data: {
+      provider: string;
+      address: string;
+      name?: string;
+      signature: string;
+      nonce: string;
+    },
+    token?: string   // 🔹 tambahkan token opsional
+  ): Observable<any> {
+    const headers = token
+      ? { Authorization: `Bearer ${token}` }
+      : undefined;
+
+    return this.http.post(`${environment.apiUrl}/auth/wallet`, data, { headers });
   }
 
   // === Generate Custodial Wallet ===
