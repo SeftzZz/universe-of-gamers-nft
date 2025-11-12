@@ -80,9 +80,9 @@ export class GoogleLoginService {
   }
 
   private async loginWithGSI(): Promise<any> {
-    console.log('🌐 Using Google Identity Services (GSI) flow...');
+    console.log('🌐 Using Google Identity Services (GSI) flow (with FedCM-safe)...');
 
-    // Pastikan script sudah ter-load
+    // Ensure script loaded
     if (!(window as any).google?.accounts?.id) {
       console.log('⬇️ Loading GSI client...');
       await new Promise<void>((resolve) => {
@@ -93,17 +93,14 @@ export class GoogleLoginService {
       });
     }
 
-    return new Promise((resolve) => {
-      (window as any).google.accounts.id.initialize({
-        client_id: '48240276189-d0p6iafr2in7s8lpjmnm5cblh8v1k6s3.apps.googleusercontent.com',
-        callback: (response: any) => {
+    return new Promise((resolve, reject) => {
+      const clientId = '48240276189-d0p6iafr2in7s8lpjmnm5cblh8v1k6s3.apps.googleusercontent.com';
+
+      const handleResponse = (response: any) => {
+        try {
           console.log('✅ GSI login success:', response);
           const token = response.credential;
-
-          // 🧩 Decode JWT payload untuk ambil info user
           const payload = JSON.parse(atob(token.split('.')[1]));
-
-          console.log('🧩 Decoded JWT payload:', payload);
 
           resolve({
             idToken: token,
@@ -112,13 +109,40 @@ export class GoogleLoginService {
             photo: payload.picture,
             platform: 'web',
           });
-        },
+        } catch (err) {
+          reject(err);
+        }
+      };
+
+      const gsi = (window as any).google.accounts.id;
+
+      gsi.initialize({
+        client_id: clientId,
+        callback: handleResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        use_fedcm_for_prompt: true, // 👈 enable FedCM compliance
       });
 
-      (window as any).google.accounts.id.prompt((notification: any) => {
+      // ✅ render button fallback if One Tap fails
+      gsi.renderButton(
+        document.getElementById('gsi-login-button') || document.body,
+        {
+          theme: 'outline',
+          size: 'large',
+          shape: 'pill',
+          text: 'continue_with',
+        }
+      );
+
+      gsi.prompt((notification: any) => {
         console.log('🔔 GSI prompt status:', notification);
+
         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
           console.warn('⚠️ GSI prompt was skipped or not displayed.');
+          // fallback: show button explicitly if hidden
+          const btn = document.getElementById('gsi-login-button');
+          if (btn) btn.style.display = 'block';
         }
       });
     });
@@ -147,13 +171,43 @@ export class GoogleLoginService {
     };
   }
 
-  /** 🔹 Logout */
+  /** 🔹 Logout universal (aman untuk web & Android) */
   async logout() {
     try {
-      await GoogleAuth.signOut();
-      console.log('👋 [logout] User logged out from Google');
+      const platform = Capacitor.getPlatform();
+      console.log(`👋 [logout] Logging out from Google (${platform})...`);
+
+      if (platform === 'android') {
+        await GoogleAuth.signOut();
+        console.log('✅ [logout] Android Google logout success');
+      } else {
+        // 🌐 Web fallback: revoke token jika ada
+        const gsi = (window as any).google?.accounts?.id;
+        if (gsi && gsi.disableAutoSelect) {
+          gsi.disableAutoSelect(); // GSI modern logout
+          console.log('✅ [logout] GSI auto-select disabled (Web logout)');
+        } else {
+          // fallback lama: clear local session saja
+          console.log('⚠️ [logout] No GSI session found, clearing local data only.');
+        }
+      }
+
+      // Hapus data lokal app
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userProfile');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('walletAddress');
+      localStorage.removeItem('wallets');
+
+      // 🧹 Bersihkan auth info
+      localStorage.removeItem('userId');
+      localStorage.removeItem('token');
+      sessionStorage.clear();
+
+      console.log('🧹 [logout] Local data cleared');
     } catch (err) {
       console.error('❌ [logout] Google logout failed:', err);
     }
   }
+
 }

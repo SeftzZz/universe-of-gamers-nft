@@ -103,7 +103,7 @@ export class Auth {
 
     // redirect setelah 10 detik
     setTimeout(() => {
-      this.router.navigateByUrl('/explorer', { replaceUrl: true });
+      this.router.navigateByUrl('/login', { replaceUrl: true });
     }, 2100);
   }
 }

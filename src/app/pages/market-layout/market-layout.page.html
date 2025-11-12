@@ -6,218 +6,227 @@
                     <div class="col-md-12">                              
                         <div id="site-header-inner"> 
                             <div class="wrap-box flex">
-                                <div id="site-logo">
-                                    <div *ngIf="activeWallet">
-                                        <a [routerLink]="['/tabs/home']" (click)="closeMobileNav()" rel="home" class="main-logo">
-                                          <img [src]="profile.avatar" alt="avatar" style="height: 40px;border-radius: 10px;" />
-                                        </a>
-                                        <span class="wallet-address">{{ shorten(activeWallet) }}</span>
-                                    </div>
-                                    <div *ngIf="!activeWallet">
-                                        <a [routerLink]="['/login']" class="tf-button style-1">
-                                            <span>Login / Signup</span>
-                                        </a>
-                                    </div>
-                                </div><!-- logo -->
-                                <div class="mobile-button" *ngIf="activeWallet" (click)="toggleMobileNav()">
-                                    <span></span>
-                                </div><!-- /.mobile-button -->
+                               <div id="site-logo">
+                                  <div *ngIf="isUserLoggedIn">
+                                    <a [routerLink]="['/tabs/home']" (click)="closeMobileNav()" rel="home" class="main-logo">
+                                      <img [src]="profile.avatar" alt="avatar" style="height: 40px;border-radius: 10px;" />
+                                    </a>
+                                    <span class="wallet-address">
+                                      {{ activeWallet ? shorten(activeWallet) : profile?.email }}
+                                    </span>
+                                  </div>
+
+                                  <div *ngIf="!isUserLoggedIn">
+                                    <a [routerLink]="['/login']" class="tf-button style-1">
+                                      <span>Login / Signup</span>
+                                    </a>
+                                  </div>
+                                </div>
+
+                                <div class="mobile-button" *ngIf="isUserLoggedIn" (click)="toggleMobileNav()">
+                                  <span></span>
+                                </div>
                             </div> 
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="mobile-nav-wrap" [class.active]="mobileNavActive">
-                <div class="overlay-mobile-nav" (click)="closeMobileNav()"></div>
-                <div class="inner-mobile-nav">
-                    <a [routerLink]="['/tabs/home']" (click)="closeMobileNav()" rel="home" class="main-logo">
-                        <img [src]="profile.avatar" alt="avatar" style="width: 30%;border-radius: 10px;" />
-                    </a>
+            <div class="mobile-nav-wrap" [class.active]="mobileNavActive" *ngIf="isUserLoggedIn">
+              <div class="overlay-mobile-nav" (click)="closeMobileNav()"></div>
+              <div class="inner-mobile-nav">
+                <a [routerLink]="['/tabs/home']" (click)="closeMobileNav()" rel="home" class="main-logo">
+                  <img [src]="profile.avatar" alt="avatar" style="width: 30%;border-radius: 10px;" />
+                </a>
 
-                    <!-- tombol close -->
-                    <div class="mobile-nav-close" (click)="closeMobileNav()">
-                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="white" x="0px" y="0px" width="20px" height="20px" viewBox="0 0 122.878 122.88" enable-background="new 0 0 122.878 122.88" xml:space="preserve"><g><path d="M1.426,8.313c-1.901-1.901-1.901-4.984,0-6.886c1.901-1.902,4.984-1.902,6.886,0l53.127,53.127l53.127-53.127 c1.901-1.902,4.984-1.902,6.887,0c1.901,1.901,1.901,4.985,0,6.886L68.324,61.439l53.128,53.128c1.901,1.901,1.901,4.984,0,6.886 c-1.902,1.902-4.985,1.902-6.887,0L61.438,68.326L8.312,121.453c-1.901,1.902-4.984,1.902-6.886,0 c-1.901-1.901-1.901-4.984,0-6.886l53.127-53.128L1.426,8.313L1.426,8.313z"/></g></svg>
-                    </div>
-
-                    <!-- menu -->
-                    <nav id="mobile-main-nav" class="mobile-main-nav">
-                      <ul id="menu-mobile-menu" class="menu">
-
-                        <!-- === Wallet aktif === -->
-                        <li class="menu-item current-item" *ngIf="activeWalletData">
-                          <a class="item-menu-mobile flex-between">
-                            <span (click)="closeMobileNav()">
-                              {{ shorten(activeWalletData.address) }}
-                            </span>
-                            <ion-icon
-                              name="copy-outline"
-                              (click)="onCopyIconClick($event, activeWalletData.address)">
-                            </ion-icon>
-                          </a>
-                        </li>
-
-                        <!-- Player -->
-                        <li class="menu-item" *ngIf="profile?.player">
-                          <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
-                            <span>Rank: <strong>{{ profile?.player?.rank | titlecase }}</strong></span>
-                            <span class="wallet-balance">Earning Point {{ profile?.player?.totalEarning | number:'1.2-2' }}</span>
-                          </a>
-                        </li>
-
-                        <!-- Referral Code -->
-                        <li class="menu-item" *ngIf="profile?.referral">
-                          <a class="item-menu-mobile flex-between"
-                             (click)="onCopyIconClick($event, profile?.referral?.code || '')">
-                            <span>Referral Code: <strong>{{ profile?.referral?.code }}</strong></span>
-                            <ion-icon name="copy-outline"></ion-icon>
-                          </a>
-                        </li>
-
-                        <!-- Referral Summary -->
-                        <li class="menu-item" *ngIf="profile?.referral">
-                          <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
-                            <span>Claimable:</span>
-                            <span class="wallet-balance">{{ profile?.referral?.totalClaimable | number:'1.4-4' }}</span>
-                          </a>
-                          <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
-                            <span>Claimed:</span>
-                            <span class="wallet-balance">{{ profile?.referral?.totalClaimed | number:'1.4-4' }}</span>
-                          </a>
-                        </li>
-
-                        <!-- === Settings === -->
-                        <li class="menu-item" *ngIf="activeWallet">
-                          <a class="item-menu-mobile" [routerLink]="['/market-layout/setting']" (click)="closeMobileNav()">
-                            Settings
-                          </a>
-                        </li>
-
-                        <!-- === Logout === -->
-                        <li class="menu-item" *ngIf="activeWallet">
-                          <a class="item-menu-mobile" (click)="logout()">
-                            Logout
-                          </a>
-                        </li>
-
-                      </ul>
-                    </nav>
-
+                <!-- tombol close -->
+                <div class="mobile-nav-close" (click)="closeMobileNav()">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="white" width="20px" height="20px" viewBox="0 0 122.878 122.88">
+                    <path d="M1.426,8.313c-1.901-1.901-1.901-4.984,0-6.886c1.901-1.902,4.984-1.902,6.886,0l53.127,53.127l53.127-53.127
+                      c1.901-1.902,4.984-1.902,6.887,0c1.901,1.901,1.901,4.985,0,6.886L68.324,61.439l53.128,53.128c1.901,1.901,1.901,4.984,0,6.886
+                      c-1.902,1.902-4.985,1.902-6.887,0L61.438,68.326L8.312,121.453c-1.901,1.902-4.984,1.902-6.886,0
+                      c-1.901-1.901-1.901-4.984,0-6.886l53.127-53.128L1.426,8.313L1.426,8.313z"/>
+                  </svg>
                 </div>
+
+                <!-- menu -->
+                <nav id="mobile-main-nav" class="mobile-main-nav">
+                  <ul id="menu-mobile-menu" class="menu">
+
+                    <!-- Wallet aktif -->
+                    <li class="menu-item current-item" *ngIf="activeWalletData">
+                      <a class="item-menu-mobile flex-between">
+                        <span (click)="closeMobileNav()">
+                          {{ shorten(activeWalletData.address) }}
+                        </span>
+                        <ion-icon
+                          name="copy-outline"
+                          (click)="onCopyIconClick($event, activeWalletData.address)">
+                        </ion-icon>
+                      </a>
+                    </li>
+
+                    <!-- Player -->
+                    <li class="menu-item" *ngIf="profile?.player">
+                      <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
+                        <span>Rank: <strong>{{ profile?.player?.rank | titlecase }}</strong></span>
+                        <span class="wallet-balance">
+                          Earning Point {{ profile?.player?.totalEarning | number:'1.2-2' }}
+                        </span>
+                      </a>
+                    </li>
+
+                    <!-- Referral Code -->
+                    <li class="menu-item" *ngIf="profile?.referral">
+                      <a class="item-menu-mobile flex-between"
+                         (click)="onCopyIconClick($event, profile?.referral?.code || '')">
+                        <span>Referral Code: <strong>{{ profile?.referral?.code }}</strong></span>
+                        <ion-icon name="copy-outline"></ion-icon>
+                      </a>
+                    </li>
+
+                    <!-- Referral Summary -->
+                    <li class="menu-item" *ngIf="profile?.referral">
+                      <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
+                        <span>Claimable:</span>
+                        <span class="wallet-balance">{{ profile?.referral?.totalClaimable | number:'1.4-4' }}</span>
+                      </a>
+                      <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
+                        <span>Claimed:</span>
+                        <span class="wallet-balance">{{ profile?.referral?.totalClaimed | number:'1.4-4' }}</span>
+                      </a>
+
+                      <div class="flex-between mt-2">
+                        <button
+                          class="btn-claim"
+                          [disabled]="isClaiming || (profile?.referral?.totalClaimable ?? 0) < 0.06"
+                          (click)="claimReferral()">
+                          {{ isClaiming ? 'Processing...' : 'Claim Reward' }}
+                        </button>
+                      </div>
+                    </li>
+
+                    <!-- Settings -->
+                    <li class="menu-item" *ngIf="isUserLoggedIn">
+                      <a class="item-menu-mobile" [routerLink]="['/market-layout/setting']" (click)="closeMobileNav()">
+                        Settings
+                      </a>
+                    </li>
+
+                    <!-- Withdraw -->
+                    <li class="menu-item" *ngIf="profile.role == 'admin' || profile.role == 'signer1' || profile.role == 'signer2'">
+                      <a class="item-menu-mobile" (click)="closeMobileNav(); openWithdrawModal()">
+                        Withdraw
+                      </a>
+                    </li>
+
+                    <!-- Logout -->
+                    <li class="menu-item" *ngIf="isUserLoggedIn">
+                      <a class="item-menu-mobile" (click)="logout()">
+                        Logout
+                      </a>
+                    </li>
+
+                  </ul>
+                </nav>
+              </div>
             </div>
+
         </header>
 
-        <!-- Modal Accounts -->
-        <div class="custom-modal" *ngIf="showAccountsModal">
-            <div class="modal-backdrop" (click)="resetAccountsModal()"></div>
-            <div class="modal-sheet" [ngClass]="{ 'slide-up': !isClosingAccounts, 'slide-down': isClosingAccounts }">
+        <!-- Modal Withdraw -->
+        <div class="custom-modal" *ngIf="showWithdrawModal">
+          <div class="modal-backdrop" (click)="resetWithdrawModal()"></div>
+          <div
+            class="modal-sheet"
+            [ngClass]="{ 'slide-up': !isClosingWithdraw, 'slide-down': isClosingWithdraw }"
+          >
+            <h2 class="modal-title">Withdraw Treasury</h2>
 
-              <!-- Step 1: Pilihan utama -->
-              <div *ngIf="!selectedAccountAction">
-                <h2 class="modal-title">Add Account</h2>
+            <!-- Treasury fee info -->
+            <div class="widget-table-ranking pb-20">
+              <div class="table-ranking-content">
+                <div class="fl-row-ranking">
+                  <div class="td1">
+                    <div class="item-name">
+                      <!-- 🔹 Nama token -->
+                      Treasury Balance
 
-                <div class="widget-table-ranking pb-20">
+                      <!-- 💰 Harga NFT (harga listing dalam token ini) -->
+                      <h6 class="price gem">
+                        {{ treasuryBalance?.sol | number: '1.4-4' }} SOL
+                      </h6>
 
-                  <!-- Create Account -->
-                  <div class="table-ranking-content" (click)="selectAccountAction('create')">
-                    <div class="fl-row-ranking">
-                      <div class="td1">
-                        <div class="item-avatar">
-                          <ion-icon name="add-circle-outline"></ion-icon>
-                        </div>
-                        <div class="item-name">
-                          Create New Account
-                          <p class="price gem pt-10">Add a new custodial account</p>
-                        </div>
-                      </div>
+                      <!-- 👛 Tambahan: saldo pengguna -->
+                      <span class="warning pt-1">
+                        ${{ treasuryBalance?.usdValue | number: '1.2-2' }}
+                      </span>
                     </div>
                   </div>
-
-                  <!-- Import Recovery Phrase -->
-                  <div class="table-ranking-content" (click)="selectAccountAction('phrase')">
-                    <div class="fl-row-ranking">
-                      <div class="td1">
-                        <div class="item-avatar">
-                          <ion-icon name="document-text-outline"></ion-icon>
-                        </div>
-                        <div class="item-name">
-                          Import Recovery Phrase
-                          <p class="price gem pt-10">Import from seed phrase</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Import Private Key -->
-                  <div class="table-ranking-content" (click)="selectAccountAction('private')">
-                    <div class="fl-row-ranking">
-                      <div class="td1">
-                        <div class="item-avatar">
-                          <ion-icon name="key-outline"></ion-icon>
-                        </div>
-                        <div class="item-name">
-                          Import Private Key
-                          <p class="price gem pt-10">Import a single-chain account</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-
-                <div class="modal-actions">
-                  <button type="button" class="btn-cancel" (click)="resetAccountsModal()">Cancel</button>
                 </div>
               </div>
-
-              <!-- Step 2a: Create Account -->
-              <div *ngIf="selectedAccountAction === 'create'">
-                <h2 class="modal-title">Create New Account</h2>
-                <p>This will generate a new custodial wallet linked to your user ID.</p>
-
-                <div class="modal-actions">
-                  <button class="btn-cancel" (click)="selectedAccountAction = null">Back</button>
-                  <button class="btn-send" (click)="addCustodialAccount()">Create</button>
-                </div>
-              </div>
-
-              <!-- Step 2b: Import Phrase -->
-              <div *ngIf="selectedAccountAction === 'phrase'">
-                <h2 class="modal-title">Import Recovery Phrase</h2>
-                <form (submit)="importRecoveryPhrase($event)">
-                  <textarea
-                    [(ngModel)]="recoveryPhrase"
-                    name="recoveryPhrase"
-                    placeholder="Enter your 12/24-word phrase"
-                    class="search-field style-1"
-                    rows="3"
-                    required>
-                  </textarea>
-                  <div class="modal-actions pt-20">
-                    <button class="btn-cancel" (click)="selectedAccountAction = null">Back</button>
-                    <button type="submit" class="btn-send">Import</button>
-                  </div>
-                </form>
-              </div>
-
-              <!-- Step 2c: Import Private Key -->
-              <div *ngIf="selectedAccountAction === 'private'">
-                <h2 class="modal-title">Import Private Key</h2>
-                <form (submit)="importPrivateKey($event)">
-                  <input
-                    type="text"
-                    [(ngModel)]="privateKey"
-                    name="privateKey"
-                    placeholder="Enter your private key"
-                    class="search-field style-1"
-                    required>
-                  <div class="modal-actions pt-20">
-                    <button class="btn-cancel" (click)="selectedAccountAction = null">Back</button>
-                    <button type="submit" class="btn-send">Import</button>
-                  </div>
-                </form>
-              </div>
-
             </div>
+
+            <form (submit)="submitWithdraw()">
+              <!-- =========================================
+                   👑 ADMIN ONLY — tampilkan input nominal
+              ==========================================-->
+              <ng-container *ngIf="withdrawStage === 'admin'; else signerStage">
+                <input
+                  type="number"
+                  [(ngModel)]="withdrawAmount"
+                  name="withdrawAmount"
+                  placeholder="Enter amount (SOL)"
+                  class="search-field style-1"
+                  min="0"
+                  step="0.0001"
+                  required
+                />
+              </ng-container>
+
+              <!-- =========================================
+                   ✍️ SIGNER1 & SIGNER2 — hanya tampil tombol
+              ==========================================-->
+              <ng-template #signerStage>
+                <div class="text-center pt-10 pb-20">
+                  <h5 *ngIf="withdrawStage === 'signer1'">
+                    ✍️ Please sign the transaction 
+                    <span class="warning">
+                      {{ amountWithdraw }} SOL 
+                    </span> as <b>Signer 1</b>.
+                  </h5>
+                  <h5 *ngIf="withdrawStage === 'signer2'">
+                    ✅ Sign and broadcast 
+                    <span class="warning">
+                      {{ amountWithdraw }} SOL 
+                    </span> as <b>Signer 2</b>.
+                  </h5>
+                  <p class="text-sm gray pt-5">
+                    You don’t need to input any amount — just sign the pending transaction.
+                  </p>
+                </div>
+              </ng-template>
+
+              <!-- =========================================
+                   🔘 Tombol Aksi
+              ==========================================-->
+              <div class="modal-actions pt-20">
+                <button type="button" class="btn-cancel" (click)="resetWithdrawModal()">Cancel</button>
+
+                <button type="submit" class="btn-send">
+                  {{
+                    withdrawStage === 'admin'
+                      ? 'Withdraw'
+                      : withdrawStage === 'signer1'
+                      ? 'Sign Transaction'
+                      : withdrawStage === 'signer2'
+                      ? 'Confirm & Broadcast'
+                      : 'Processing...'
+                  }}
+                </button>
+              </div>
+            </form>
+
+          </div>
         </div>
     </div>
 </div>
@@ -234,7 +243,7 @@
             <!-- <ion-label>My NFT</ion-label> -->
         </ion-tab-button>
 
-        <ion-tab-button *ngIf="profile.role == 'admin'" tab="creates" [routerLink]="['/market-layout/creates']" routerLinkActive="active">
+        <ion-tab-button *ngIf="profile.role == 'admin' || profile.role == 'signer1' || profile.role == 'signer2'" tab="creates" [routerLink]="['/market-layout/creates']" routerLinkActive="active">
             <ion-icon name="duplicate-outline"></ion-icon>
             <!-- <ion-label>Creates</ion-label> -->
         </ion-tab-button>

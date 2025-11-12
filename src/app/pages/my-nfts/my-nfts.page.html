@@ -351,11 +351,30 @@
               ? 'Get started today by entering just a few details'
               : isWalletReferral
               ? 'Complete your wallet profile'
+              : isLocalReferral
+              ? 'Connect your Wallet'
               : 'Enter Referral Code'
           }}
         </h2>
 
-        <form (submit)="applyReferral($event)">
+        <!-- Buttons -->
+        <div class="modal-actions pt-20" *ngIf="isLocalReferral">
+          <button type="button" class="btn-cancel" (click)="skipReferral()">Skip</button>
+
+          <!-- Local Mode -->
+          <button
+            type="button"
+            class="btn-send"
+            [disabled]="isSaving"
+            (click)="saveAndConnectWallet()"
+          >
+            <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+            <span *ngIf="!isSaving">Save & Connect Wallet</span>
+          </button>
+        </div>
+
+        <!-- 🟡 GOOGLE / WALLET / DEFAULT MODE -->
+        <form *ngIf="!isLocalReferral" (submit)="applyReferral($event)">
           <!-- Email -->
           <fieldset class="email" *ngIf="isWalletReferral">
             <label>Email *</label>
@@ -375,7 +394,7 @@
               [type]="showPassword ? 'text' : 'password'"
               name="password"
               [(ngModel)]="password"
-              placeholder="Min. 8 character"
+              placeholder="Min. 8 characters"
               required
             />
             <i
@@ -395,6 +414,7 @@
             />
           </fieldset>
 
+          <!-- Buttons -->
           <div class="modal-actions pt-20">
             <button type="button" class="btn-cancel" (click)="skipReferral()">Skip</button>
 
@@ -407,15 +427,13 @@
               type="button"
               class="btn-send"
               [disabled]="isSaving"
-              (click)="saveAndConnectWallet()">
+              (click)="saveAndConnectWallet()"
+            >
               <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
               <span *ngIf="!isSaving">Save & Connect Wallet</span>
             </button>
-
           </div>
         </form>
-
       </div>
     </div>
-
 </ion-content>

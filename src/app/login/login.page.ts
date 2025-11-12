@@ -61,6 +61,15 @@ export class LoginPage implements OnInit {
 
   authToken: string | null = null;
 
+  showReferralModal = false;
+  referralCode: string = '';
+  isClosingReferral = false;
+  isLocalReferral = false
+  isGoogleReferral = false;
+  isWalletReferral = false;
+  private referralResolver: ((value: 'skip' | 'apply' | null) => void) | null = null;
+  isSaving = false;
+
   constructor(
     private http: HttpClient,
     private auth: Auth,
@@ -89,14 +98,51 @@ export class LoginPage implements OnInit {
   }
 
   async ionViewWillEnter() {
-    console.log('🚫 Skip ionViewWillEnter Phantom decrypt — handled globally by AppComponent');
+    console.log('🚀 [LoginPage] Entering login view...');
 
-    // ✅ Auto-connect wallet jika ada state pendingConnectRedirect
-    const pending = localStorage.getItem('pendingConnectRedirect');
-    if (pending) {
-      console.log('🔄 Detected pending wallet connect from:', pending);
-      localStorage.removeItem('pendingConnectRedirect');
-      await this.connectWallet();
+    try {
+      // ⚙️ Pastikan session Phantom siap
+      let pubKeyB58: string | null = null;
+      let nonceB58: string | null = null;
+
+      try {
+        pubKeyB58 = this.phantom.getPublicKeyB58();
+        nonceB58 = this.phantom.getNonceB58();
+        console.log('🔑 Existing Phantom session detected:');
+      } catch {
+        console.log('⚙️ No active Phantom session, generating new one...');
+        this.phantom.generateSession();
+        pubKeyB58 = this.phantom.getPublicKeyB58();
+        nonceB58 = this.phantom.getNonceB58();
+        console.log('🆕 New Phantom session generated:');
+      }
+
+      console.log('   📜 Public Key (DApp):', pubKeyB58);
+      console.log('   🔒 Nonce:', nonceB58);
+
+      // 💾 Simpan secara manual ke localStorage biar muncul tanpa refresh
+      if (pubKeyB58 && nonceB58) {
+        localStorage.setItem('phantom_pubkey', pubKeyB58);
+        localStorage.setItem('phantom_nonce', nonceB58);
+        console.log('💾 Phantom session synced to localStorage immediately.');
+      }
+
+      // ✅ Cek apakah ada redirect connect dari referral modal
+      const pending = localStorage.getItem('pendingConnectRedirect');
+      if (pending) {
+        console.log('🔄 [Auto-Connect Trigger] Detected pending redirect from:', pending);
+        localStorage.removeItem('pendingConnectRedirect');
+
+        setTimeout(async () => {
+          console.log('⚡ Auto-connecting wallet after referral save...');
+          await this.connectWallet();
+        }, 600);
+      } else {
+        console.log('✅ No pending wallet connect detected.');
+      }
+
+    } catch (err) {
+      console.error('💥 [LoginPage] ionViewWillEnter error:', err);
     }
   }
 
@@ -153,6 +199,9 @@ export class LoginPage implements OnInit {
       if (!provider || !provider.isPhantom) {
         console.warn('❌ Phantom extension not found.');
         this.showToast('Phantom wallet not available', 'danger');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1000);
         return;
       }
 
@@ -230,19 +279,40 @@ export class LoginPage implements OnInit {
 
           this.showToast('Wallet connected ✅', 'success');
 
-           // redirect kembali ke halaman sebelumnya kalau ada
-          const pending = localStorage.getItem('pendingConnectRedirect');
-          if (pending) {
-            localStorage.removeItem('pendingConnectRedirect');
-            this.authRedirect.redirectAfterLogin(pending);
-          } else {
-            this.authRedirect.redirectAfterLogin('/market-layout/my-nfts');
+          // ✅ Cek profil user sebelum redirect
+          const isComplete = await this.checkProfileCompleteness();
+          if (isComplete) {
+            const pending = localStorage.getItem('pendingConnectRedirect');
+            if (pending) {
+              localStorage.removeItem('pendingConnectRedirect');
+              this.authRedirect.redirectAfterLogin(pending);
+            } else {
+              this.authRedirect.redirectAfterLogin('/market-layout/my-nfts');
+            }
           }
         },
         error: (err) => {
           this.dismissLoading();
           console.error('❌ Wallet login failed:', err);
-          this.showToast(err.error?.error || 'Wallet login failed', 'danger');
+
+          const errorMsg = err?.error?.error || 'Wallet login failed';
+
+          // 🧹 Wallet sudah terhubung ke akun lain → reset sesi
+          if (errorMsg === 'This wallet address is already linked to another account.') {
+            console.warn('⚠️ Wallet linked to another account — clearing local session...');
+
+            this.showToast('⚠️ Wallet already linked to another account. Please login with that account.', 'danger');
+
+            // Redirect ke login pakai fungsi yang ada
+            setTimeout(() => {
+              this.logout();
+            }, 1000);
+
+            return;
+          }
+
+          // 🔹 Error umum
+          this.showToast(errorMsg, 'danger');
         }
       });
     } catch (err) {
@@ -282,7 +352,7 @@ export class LoginPage implements OnInit {
   async showToast(message: string, color: 'success' | 'danger' = 'success') {
     const toast = await this.toastCtrl.create({
       message,
-      duration: 2500,
+      duration: 3000,
       position: 'top',
       color,
     });
@@ -327,8 +397,8 @@ export class LoginPage implements OnInit {
     const payload = { email: this.email, password: this.password };
 
     this.auth.login(payload).subscribe({
-      next: (res) => {
-        console.log(res)
+      next: async (res) => {
+        console.log('🔑 Login Response:', res);
         this.dismissLoading();
         this.auth.setToken(res.token, res.authId);
 
@@ -336,6 +406,7 @@ export class LoginPage implements OnInit {
           ? `${environment.baseUrl}${res.avatar}`
           : 'assets/images/app-logo.jpeg';
 
+        // 🧩 Simpan user profile ke service
         this.userService.setUser({
           name: res.name,
           email: res.email,
@@ -343,42 +414,68 @@ export class LoginPage implements OnInit {
           notifyEmail: res.notifyEmail || false,
           avatar: avatarUrl,
           role: res.role,
+          authProvider: res.authProvider,
           player: res.player,
-          referral: res.referral
+          referral: res.referral,
         });
 
-        // ✅ ambil walletAddress (custodial dulu, kalau tidak ada pakai external)
-        let walletAddr = null;
-        if (res.custodialWallets?.length > 0) {
-          walletAddr = res.custodialWallets[0].address;
-        } else if (res.wallets?.length > 0) {
-          walletAddr = res.wallets[0].address;
-        }
-
-        // ✅ simpan ke localStorage
+        // =====================================================
+        // 🔹 Simpan userId selalu
+        // =====================================================
         localStorage.setItem('userId', res.authId);
-        if (walletAddr) {
-          localStorage.setItem('walletAddress', walletAddr);
-        }
 
-        // setelah dapat response dari backend
-        if (res.wallets || res.custodialWallets) {
+        // =====================================================
+        // 🔹 Hanya set wallet jika benar-benar ada
+        // =====================================================
+        const hasWallets =
+          Array.isArray(res.wallets) && res.wallets.length > 0;
+        const hasCustodial =
+          Array.isArray(res.custodialWallets) && res.custodialWallets.length > 0;
+
+        if (hasWallets || hasCustodial) {
+          // ✅ Gabungkan semua wallet
           const allWallets = [
             ...(res.wallets || []),
-            ...(res.custodialWallets || [])
+            ...(res.custodialWallets || []),
           ];
+
+          // Ambil alamat wallet pertama
+          const walletAddr = hasCustodial
+            ? res.custodialWallets[0].address
+            : res.wallets[0].address;
+
+          // Simpan ke localStorage
+          localStorage.setItem('walletAddress', walletAddr);
           localStorage.setItem('wallets', JSON.stringify(allWallets));
-          // 🟢 Trigger BehaviorSubject agar UI langsung update
+
+          // Update ke service
           this.walletService.setWallets(allWallets);
+          this.ngZone.run(() => {
+            this.walletService.setActiveWallet(walletAddr);
+          });
+
+          console.log('✅ Wallet data saved:', walletAddr);
+        } else {
+          // 🚫 Tidak ada wallet — hapus data lama
+          localStorage.removeItem('walletAddress');
+          localStorage.removeItem('wallets');
+          this.walletService.setWallets([]);
+          this.walletService.setActiveWallet('');
+
+          console.log('⚠️ No wallet found — skipping wallet save.');
         }
 
-        this.ngZone.run(() => {
-          this.walletService.setActiveWallet(walletAddr);
-        });
-              
+        // =====================================================
+        // 🔹 Final: notifikasi dan redirect
+        // =====================================================
         this.showToast('Login success', 'success');
         this.clearForm();
-        this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
+
+        // ✅ Tambahkan pengecekan profil sebelum redirect
+        const isComplete = await this.checkProfileCompleteness();
+        if (isComplete) {
+          this.authRedirect.redirectAfterLogin('/market-layout/my-nfts');
+        }
       },
       error: (err) => {
         this.dismissLoading();
@@ -518,7 +615,12 @@ export class LoginPage implements OnInit {
 
       this.userService.loadFromStorage();
       await new Promise((resolve) => setTimeout(resolve, 300));
-      this.authRedirect.redirectAfterLogin('/market-layout/my-nfts');
+      // ✅ Cek profil user setelah login Google
+      window.location.href = '/login';
+      // const isComplete = await this.checkProfileCompleteness();
+      // if (isComplete) {
+      //   window.location.href = '/market-layout/my-nfts';
+      // }
     } catch (err: any) {
       console.error('💥 [GoogleLogin] Unhandled error:', JSON.stringify(err));
       const errorMsg = err?.message || err?.error || 'Unknown Google login error';
@@ -635,7 +737,7 @@ export class LoginPage implements OnInit {
       if (resp.authId) localStorage.setItem('userId', resp.authId);
       if (resp.token) this.auth.setToken(resp.token, resp.authId);
 
-      this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
+      this.authRedirect.redirectAfterLogin('/market-layout/my-nfts');
 
     } catch (err) {
       console.error("❌ Import phrase error", err);
@@ -680,7 +782,7 @@ export class LoginPage implements OnInit {
       if (resp.authId) localStorage.setItem('userId', resp.authId);
       if (resp.token) this.auth.setToken(resp.token, resp.authId);
 
-      this.authRedirect.redirectAfterLogin('/market-layout/all-collection');
+      this.authRedirect.redirectAfterLogin('/market-layout/my-nfts');
 
     } catch (err) {
       console.error("❌ Import private key error", err);
@@ -730,13 +832,287 @@ export class LoginPage implements OnInit {
 
   // === Logout user ===
   logout() {
-    this.auth.logout(); // hapus token, authId, userId (sudah ada di Auth service)
-    localStorage.removeItem('walletAddress');
-    localStorage.removeItem('wallets');
+    try {
+      // Jalankan dalam Angular zone agar UI ikut update
+      this.ngZone.run(async () => {
 
-    this.showToast('You have been logged out', 'success');
+        // 🧹 Bersihkan wallet
+        this.walletService.setActiveWallet(''); // <-- pastikan BehaviorSubject dikosongkan
+        this.walletService.setWallets([]);        // opsional
+        localStorage.removeItem('walletAddress');
+        localStorage.removeItem('wallets');
 
-    //redirect ke explorer
-    window.location.href = 'http://localhost:8100/explorer';
+        // 🧹 Bersihkan auth info
+        localStorage.removeItem('userId');
+        localStorage.removeItem('token');
+        localStorage.removeItem('dappSecretKey');
+        localStorage.removeItem('dappNonce');
+
+        this.activeWallet = null; // update lokal
+        this.profile = {} as any;
+        await this.google.logout();
+        this.disconnectWallet();
+        // 🚀 Redirect ke halaman umum (tanpa guard)
+        this.router.navigate(['/login']);
+      });
+    } catch (err) {
+      console.error('❌ Logout error:', err);
+    }
+  }
+
+  // 🔹 Buka modal referral
+  openReferralModal(mode: 'local' | 'google' | 'wallet' = 'local'): Promise<'skip' | 'apply' | null> {
+    return new Promise((resolve) => {
+      this.showReferralModal = true;
+      this.isClosingReferral = false;
+      this.isLocalReferral = (mode === 'local');
+      this.isGoogleReferral = (mode === 'google');
+      this.isWalletReferral = (mode === 'wallet'); // 👈 tambahkan ini
+      this.referralResolver = resolve;
+    });
+  }
+
+  // 🔹 Tutup modal referral
+  closeReferralModal() {
+    this.isClosingReferral = true;
+    setTimeout(() => (this.showReferralModal = false), 200);
+  }
+
+  // 🔹 Skip tanpa referral
+  skipReferral() {
+    if (this.referralResolver) {
+      this.referralResolver('skip');
+      this.referralResolver = null;
+    }
+    this.closeReferralModal();
+  }
+
+  // 🔹 Apply referral + update user profile
+  async applyReferral(event: Event) {
+    event.preventDefault();
+
+    const code = this.referralCode?.trim();
+    const email = this.email?.trim();
+    const password = this.password?.trim();
+
+    if (!email || !password) {
+      this.showToast("Email and password required ❌", "danger");
+      return;
+    }
+
+    try {
+      if (code) localStorage.setItem("pendingReferralCode", code);
+
+      const walletAddress = this.userAddress || localStorage.getItem("walletAddress");
+
+      const body = { email, password, code: code || null, walletAddress };
+
+      const res: any = await this.http
+        .post(`${environment.apiUrl}/auth/referral/apply-and-update`, body, {
+          headers: { Authorization: `Bearer ${this.authToken}` },
+        })
+        .toPromise();
+
+      if (res?.success) {
+        this.showToast("Profile updated successfully ✅", "success");
+
+        this.userService.setUser({
+          email: res.email ?? email,
+          referral: res.referral ?? { code, isActive: true },
+        });
+
+        localStorage.removeItem("pendingReferralCode");
+
+        if (this.referralResolver) {
+          this.referralResolver("apply");
+          this.referralResolver = null;
+        }
+
+        this.closeReferralModal(); // ✅ hanya kalau sukses
+      } else {
+        console.warn("⚠️ Referral apply failed:", res?.error);
+        this.showToast(res?.error || "Profile update failed ❌", "danger");
+
+        // ❌ Jangan tutup modal, biarkan user memperbaiki input
+        this.isClosingReferral = false;
+        this.showReferralModal = true;
+      }
+
+    } catch (err: any) {
+      console.error("❌ Referral apply error:", err);
+      const backendMsg =
+        err?.error?.error ||
+        err?.error?.message ||
+        "Unknown error updating referral/profile ❌";
+
+      this.showToast(backendMsg, "danger");
+
+      this.isClosingReferral = false;
+      this.showReferralModal = true; // ❌ jangan ditutup
+    }
+  }
+
+  async saveAndConnectWallet() {
+    this.isSaving = true;
+
+    const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    const token = localStorage.getItem('authToken');
+    const provider = userProfile.authProvider || 'unknown';
+
+    try {
+      // =============================
+      // 🔍 VALIDASI BERDASARKAN PROVIDER
+      // =============================
+      if (provider === 'wallet') {
+        if (!this.email || !this.password) {
+          this.showToast('Please fill in your email and password before connecting wallet.', 'danger');
+          this.isSaving = false;
+          return;
+        }
+      } else if (provider === 'google') {
+        if (!this.password) {
+          this.showToast('Please fill in your password before connecting wallet.', 'danger');
+          this.isSaving = false;
+          return;
+        }
+      } else if (provider === 'local') {
+        // Local user sudah punya email & password → langsung lanjut connect
+        this.showToast('Connecting your wallet...', 'success');
+      } else {
+        this.showToast('Unknown login provider.', 'danger');
+        this.isSaving = false;
+        return;
+      }
+
+      this.showToast('Saving your account details...', 'success');
+
+      // =============================
+      // 🧩 Buat payload sesuai provider
+      // =============================
+      const userId = localStorage.getItem('userId');
+      const payload: any = {
+        userId,
+        code: this.referralCode || null,
+      };
+
+      if (provider === 'wallet') {
+        payload.email = this.email;
+        payload.password = this.password;
+      } else if (provider === 'google') {
+        payload.email = userProfile.email;
+        payload.password = this.password;
+      } else if (provider === 'local') {
+        payload.email = userProfile.email;
+        payload.password = userProfile.password || ''; // tidak dikirim ulang sebenarnya
+      }
+
+      // =============================
+      // 🔄 Kirim ke backend
+      // =============================
+      const resp: any = await this.http.post(
+        `${environment.apiUrl}/auth/referral/apply-and-update`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      ).toPromise();
+
+      console.log('✅ User info updated:', resp);
+
+      // =============================
+      // 💾 Update localStorage
+      // =============================
+      const updatedProfile = {
+        ...userProfile,
+        email: resp.email || userProfile.email,
+        referral: resp.referral || {
+          code: this.referralCode,
+          isActive: true,
+          totalClaimable: 0,
+          totalClaimed: 0,
+        },
+        wallets: resp.wallets || userProfile.wallets || [],
+        authProvider: provider,
+      };
+
+      localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+      this.userService.setUser(updatedProfile);
+
+      this.showToast('Account updated successfully. Connecting wallet...', 'success');
+
+      // 🔐 Tutup modal & redirect
+      this.closeReferralModal();
+      localStorage.setItem('pendingConnectRedirect', this.router.url);
+      this.router.navigate(['/login'], { queryParams: { forceLogin: true } });
+
+      // 🔄 Refresh halaman setelah 1 detik untuk sync penuh
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+
+    } catch (err) {
+      console.error('❌ Error saving user before connect wallet:', err);
+      this.showToast('Failed to save user info. Please try again.', 'danger');
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
+  // === Helper: Periksa kelengkapan profil user ===
+  async checkProfileCompleteness() {
+    // Sinkronkan user dari service/localStorage
+    this.userService.getUser();
+    this.userService.loadFromStorage();
+    await new Promise((r) => setTimeout(r, 300));
+
+    const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    console.log('👤 [Profile Check Ready]:', userProfile);
+
+    const provider = userProfile.authProvider || 'unknown';
+    const hasWallet =
+      (userProfile.wallets && userProfile.wallets.length > 0) ||
+      (userProfile.custodialWallets && userProfile.custodialWallets.length > 0);
+    const hasEmail = !!(userProfile.email && userProfile.email.trim() !== '');
+    const hasReferral = !!(userProfile.referral && userProfile.referral.code);
+    const usedReferralCode = !!userProfile.usedReferralCode;
+
+    console.log('🔎 [Profile Flags]', {
+      provider,
+      hasWallet,
+      hasEmail,
+      hasReferral,
+      usedReferralCode,
+    });
+
+    // Tampilkan modal setup/referral kalau belum lengkap
+    if (
+      (provider === 'wallet' && !hasEmail) ||
+      (provider === 'google' && !hasWallet) ||
+      (provider === 'local' && (usedReferralCode || hasReferral) && !hasWallet) ||
+      (!hasEmail || !hasReferral)
+    ) {
+      console.warn('⚠️ Showing setup/referral modal for provider:', provider);
+      const mode =
+        provider === 'google'
+          ? 'google'
+          : provider === 'wallet'
+          ? 'wallet'
+          : provider === 'local'
+          ? 'local'
+          : undefined;
+
+      if (mode) {
+        setTimeout(() => this.openReferralModal(mode), 400);
+      }
+      return false; // ❌ Tidak lengkap
+    }
+
+    console.log('✅ Profil user valid:', {
+      provider,
+      email: userProfile.email,
+      referral: userProfile.referral?.code,
+    });
+
+    return true; // ✅ Lengkap
   }
 }

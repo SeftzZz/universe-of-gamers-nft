@@ -471,6 +471,22 @@ i.danger {
   transform: scale(1);
 }
 
+.btn-claim {
+  background: linear-gradient(90deg, #524afc, #1ac4fc);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-claim:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (max-width: 991px) {
     .widget-table-ranking .table-ranking-heading, .widget-table-ranking .table-ranking-content {
         width: auto;

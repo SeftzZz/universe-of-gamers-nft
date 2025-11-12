@@ -26,7 +26,7 @@ export class LoginGuard implements CanActivate {
         // 🎯 Tentukan halaman redirect berdasarkan provider
         let target = '/market-layout/my-nfts';
         if (provider === 'google') {
-          target = '/market-layout/all-collection';
+          target = '/market-layout/my-nfts';
         } else if (provider === 'wallet') {
           target = '/market-layout/my-nfts';
         }

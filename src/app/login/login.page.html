@@ -57,20 +57,14 @@
                 </a>
                 <a href="#" class="login-other-item" (click)="connectWallet(); $event.preventDefault();">
                   <img src="assets/images/box-icon/wallet-05.png" alt="" style="height: 25px;" />
-                  <span *ngIf="!userAddress">Log in with Phantom</span>
+                  <span *ngIf="!userAddress">Connect with Phantom</span>
                   <span *ngIf="userAddress">Wallet: {{ shorten(userAddress) }}</span>
                 </a>
-                <div *ngIf="userAddress" class="wallet-info mt-3" style="width: 100%;">
-                  <button (click)="disconnectWallet()" class="tf-button style-2 h40 mt-2" style="width: 100%;">
-                    Disconnect Wallet
-                  </button>
-                </div>
-                <!-- <a class="login-other-item" (click)="toggleAccountsModal();">
-                  <div class="item-avatar">
-                    <ion-icon name="download-outline"></ion-icon>
-                  </div>
-                  <span *ngIf="!userAddress">Import Wallet</span>
-                </a> -->
+              </div>
+              <div class="login-other">
+                <a class="login-other-item tf-button style-1 h50 w-100" *ngIf="userAddress" (click)="disconnectWallet()">
+                  Disconnect Wallet
+                </a>
               </div>
 
               <div class="no-account">
@@ -169,6 +163,106 @@
           </form>
         </div>
 
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="custom-modal" *ngIf="showReferralModal">
+      <div class="modal-backdrop" (click)="skipReferral()"></div>
+
+      <div
+        class="modal-sheet"
+        [ngClass]="{ 'slide-up': !isClosingReferral, 'slide-down': isClosingReferral }"
+      >
+        <h2 class="modal-title">
+          {{
+            isGoogleReferral
+              ? 'Get started today by entering just a few details'
+              : isWalletReferral
+              ? 'Complete your wallet profile'
+              : isLocalReferral
+              ? 'Connect your Wallet'
+              : 'Enter Referral Code'
+          }}
+        </h2>
+
+        <!-- Buttons -->
+        <div class="modal-actions pt-20" *ngIf="isLocalReferral">
+          <button type="button" class="btn-cancel" (click)="skipReferral()">Skip</button>
+
+          <!-- Local Mode -->
+          <button
+            type="button"
+            class="btn-send"
+            [disabled]="isSaving"
+            (click)="saveAndConnectWallet()"
+          >
+            <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+            <span *ngIf="!isSaving">Save & Connect Wallet</span>
+          </button>
+        </div>
+
+        <!-- 🟡 GOOGLE / WALLET / DEFAULT MODE -->
+        <form *ngIf="!isLocalReferral" (submit)="applyReferral($event)">
+          <!-- Email -->
+          <fieldset class="email" *ngIf="isWalletReferral">
+            <label>Email *</label>
+            <input
+              type="email"
+              name="email"
+              [(ngModel)]="email"
+              placeholder="mail@website.com"
+              required
+            />
+          </fieldset>
+
+          <!-- Password -->
+          <fieldset class="password" *ngIf="isGoogleReferral || isWalletReferral">
+            <label>Password *</label>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              name="password"
+              [(ngModel)]="password"
+              placeholder="Min. 8 characters"
+              required
+            />
+            <i
+              class="{{ showPassword ? 'icon-hide' : 'icon-show' }} password-addon"
+              (click)="togglePassword()"
+            ></i>
+          </fieldset>
+
+          <!-- Referral Code -->
+          <fieldset class="referral">
+            <label>Referral Code (optional)</label>
+            <input
+              type="text"
+              name="referralCode"
+              [(ngModel)]="referralCode"
+              placeholder="Enter referral code (optional)"
+            />
+          </fieldset>
+
+          <!-- Buttons -->
+          <div class="modal-actions pt-20">
+            <button type="button" class="btn-cancel" (click)="skipReferral()">Skip</button>
+
+            <!-- Default or Wallet mode -->
+            <button *ngIf="!isGoogleReferral" type="submit" class="btn-send">Apply</button>
+
+            <!-- Google Mode -->
+            <button
+              *ngIf="isGoogleReferral"
+              type="button"
+              class="btn-send"
+              [disabled]="isSaving"
+              (click)="saveAndConnectWallet()"
+            >
+              <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+              <span *ngIf="!isSaving">Save & Connect Wallet</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 

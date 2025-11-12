@@ -137,22 +137,29 @@ export class SettingPage implements OnInit {
         .put(`${environment.apiUrl}/auth/user/${userId}/profile`, payload)
         .toPromise();
 
-      this.showToast('✅ Profile updated!');
+      // ✅ Update sukses
+      this.showToast('✅ Profile updated successfully');
 
-      // kalau ada update name/email sukses, sinkronkan ke service juga
+      // Sinkronkan perubahan ke userService
       this.userService.setUser({
-        name: res.name ?? this.name,
-        email: res.email ?? this.email,
+        name: res.user?.name ?? this.name,
+        email: res.user?.email ?? this.email,
       });
 
     } catch (err: any) {
       console.error('❌ Profile update failed:', err);
 
-      let msg = '❌ Failed to update profile';
-      if (err.error?.error?.includes('duplicate key error')) {
-        msg = '❌ Email already in use';
+      // 🔹 Deteksi pesan error dari backend
+      let msg =
+        err?.error?.error ||
+        err?.error?.message ||
+        '❌ Failed to update profile. Please try again.';
+
+      if (msg.includes('duplicate key error')) {
+        msg = '❌ Email already in use.';
       }
 
+      // 🔹 Tampilkan pesan error asli dari backend
       this.showToast(msg);
     }
   }

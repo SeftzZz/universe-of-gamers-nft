@@ -261,11 +261,31 @@ export class GatchaPage implements OnInit {
     this.isSending = true;
 
     try {
+      // === 1️⃣ Mulai suara looping ===
+      const startAudio = new Audio(`${environment.baseUrl}/uploads/sound_effects/start.m4a`);
+      startAudio.volume = 0.7;
+      startAudio.loop = true;
+
+      await startAudio.play();
+      console.log("🔊 Gatcha start sound (looping)...");
+
+      // === 2️⃣ Jalankan proses utama ===
       if (this.selectedPack?._id) {
         await this.buyAndMintPack(this.selectedPack._id, token);
       }
+
+      // === 3️⃣ Hentikan loop setelah selesai ===
+      startAudio.pause();
+      startAudio.currentTime = 0; // reset posisi
+      console.log("🛑 Stop looping sound.");
+
+      // === 4️⃣ Putar efek akhir ===
+      const endAudio = new Audio(`${environment.baseUrl}/uploads/sound_effects/end.m4a`);
+      endAudio.volume = 0.7;
+      await endAudio.play();
+      console.log("🎉 Playing gatcha end sound...");
     } catch (err) {
-      console.error("❌ Error confirmBuyAndMint", err);
+      console.error("❌ Error in confirmBuyAndMint:", err);
     } finally {
       this.isSending = false;
     }
@@ -309,41 +329,64 @@ export class GatchaPage implements OnInit {
     // 🎲 Animasi shuffle
     this.gatchaPacks[packIndex].finalImage = null;
     this.gatchaPacks[packIndex].isShuffling = true;
-    await this.shufflePackRewards(packId, 30, 100);
+    await this.shufflePackRewards(packId, 10, 16);
     this.gatchaPacks[packIndex].isShuffling = false;
 
     try {
       // 1️⃣ Ambil unsigned transaction dari backend
       const resp: any = await this.http.post(
         `${environment.apiUrl}/gatcha/${packId}/pull`,
-        { 
+        {
           paymentMint: token.mint,
           activeWallet: this.activeWallet,
         },
         { headers: { Authorization: `Bearer ${this.authToken}` } }
       ).toPromise();
 
+      console.log("🧾 [DEBUG] Response dari backend:", resp);
+
       const txBuffer = Buffer.from(resp.transaction, "base64");
+      console.log("📦 [DEBUG] txBuffer length:", txBuffer.length);
 
       // 🔍 Deteksi platform
       const platform = Capacitor.getPlatform();
       const isMobile = platform === "android" || platform === "ios";
       const provider = (window as any).solana;
+      console.log("💻 [DEBUG] Platform:", platform, "| isMobile:", isMobile, "| Phantom detected:", !!provider?.isPhantom);
 
       // ========================================
       // 🖥️ DESKTOP FLOW (Phantom Extension)
       // ========================================
       if (!isMobile && provider?.isPhantom) {
         try {
+          console.log("🔌 Connecting Phantom...");
           await provider.connect();
+
+          console.log("🔑 Connected wallet:", provider.publicKey?.toBase58());
           const transaction = Transaction.from(txBuffer);
 
-          // Minta tanda tangan Phantom
+          console.log("📋 [TX INFO]");
+          console.log("Fee payer:", transaction.feePayer?.toBase58());
+          console.log("Instructions count:", transaction.instructions.length);
+          console.log("Signatures:", transaction.signatures.map((s: any) => ({
+            pubkey: s.publicKey?.toBase58(),
+            signed: !!s.signature,
+          })));
+
+          // 🧩 Validasi TX sebelum sign
+          if (!transaction.feePayer) throw new Error("Transaction missing feePayer");
+          if (!transaction.recentBlockhash) throw new Error("Transaction missing recentBlockhash");
+
+          console.log("✍️ [Phantom] Signing transaction...");
           const signedTx = await provider.signTransaction(transaction);
+          console.log("✅ Phantom sign success:", signedTx.signatures.length, "signatures total");
+
           const serialized = signedTx.serialize();
-          const base58SignedTx = bs58.encode(serialized); // ✅ Gunakan Base58
+          const base58SignedTx = bs58.encode(serialized);
+          console.log("📨 [DEBUG] Signed TX serialized:", serialized.length, "bytes");
 
           // Kirim ke backend untuk konfirmasi mint
+          console.log("🚀 Sending signed TX to backend for confirmation...");
           const confirmResp: any = await this.http.post(
             `${environment.apiUrl}/gatcha/${packId}/confirm`,
             {
@@ -354,6 +397,7 @@ export class GatchaPage implements OnInit {
           ).toPromise();
 
           nativeLog("GATCHA_CONFIRM_DESKTOP_SUCCESS", confirmResp);
+          console.log("🎉 [BACKEND CONFIRM SUCCESS]", confirmResp);
 
           // 🎉 Notifikasi sukses
           const nft = confirmResp.nft;
@@ -371,7 +415,14 @@ export class GatchaPage implements OnInit {
           }
 
         } catch (err: any) {
-          console.error("❌ Phantom desktop mint error:", err);
+          console.error("❌ [PHANTOM DESKTOP ERROR]", err);
+          console.error("🔍 [PHANTOM DEBUG MESSAGE]", err?.message, err?.stack || "no stack");
+          console.error("🧠 Possible causes:");
+          console.error(" - Transaction has 2+ signers (Phantom only supports 1)");
+          console.error(" - createAccount for mint not presigned");
+          console.error(" - Missing feePayer or recentBlockhash");
+          console.error(" - Phantom extension blocked malformed TX");
+
           const toast = await this.toastCtrl.create({
             message: "❌ Failed to sign or confirm transaction via Phantom Extension.",
             duration: 4000,
@@ -394,6 +445,12 @@ export class GatchaPage implements OnInit {
         alert("⚠️ Please connect Phantom first before minting.");
         return;
       }
+
+      console.log("📱 [DEBUG] Phantom session keys loaded:", {
+        phantom_pubkey,
+        hasSecret: !!secretKeyStored,
+        hasSession: !!session,
+      });
 
       // 🔐 Enkripsi payload Phantom
       const phantomPubKey = bs58.decode(phantom_pubkey);
@@ -431,13 +488,15 @@ export class GatchaPage implements OnInit {
 
       // Redirect ke Phantom
       if (isMobile) {
+        console.log("📲 Redirecting to Phantom deeplink...");
         setTimeout(() => (window.location.href = relayUrl), 500);
       } else {
+        console.log("🖥️ Opening Phantom web link...");
         window.open(baseUrl, "_blank");
       }
 
     } catch (err: any) {
-      console.error("❌ Error minting gatcha:", err);
+      console.error("❌ [FATAL] Error minting gatcha:", err);
       const toast = await this.toastCtrl.create({
         message: err.error?.error || "Failed to build mint transaction",
         duration: 4000,

@@ -118,6 +118,9 @@ export class RegistrationPage implements OnInit {
           notifyEmail: res.notifyEmail || false,
           avatar: avatarUrl,
           role: res.role,
+          authProvider: res.authProvider,
+          player: res.player,
+          referral: res.referral
         });
 
         // ✅ ambil walletAddress (custodial dulu, kalau tidak ada pakai external)
@@ -173,7 +176,7 @@ export class RegistrationPage implements OnInit {
         this.showToast('Login success 🎉', 'success');
         this.clearForm();
 
-        this.router.navigate(['/all-collection']);
+        this.router.navigate(['/my-nfts']);
       },
       error: (err) => {
         this.dismissLoading();

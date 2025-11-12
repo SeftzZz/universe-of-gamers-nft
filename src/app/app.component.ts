@@ -383,6 +383,49 @@ export class AppComponent implements AfterViewInit, OnInit {
           });
           toast.present();
         }
+      } else if (payload.transaction && localStorage.getItem("phantomFlow") === "withdraw") {
+        const signedTxBase58 = payload.transaction;
+        const txId = localStorage.getItem("pendingWithdrawTxId");
+
+        nativeLog("PHANTOM_WITHDRAW_TX_SIGNED", signedTxBase58);
+
+        try {
+          const confirmResp: any = await this.http.post(
+            `${environment.apiUrl}/withdraw/confirm`,
+            { txId, signedTx: signedTxBase58 },
+            { headers: { Authorization: `Bearer ${this.authToken}` } }
+          ).toPromise();
+
+          nativeLog("WITHDRAW_CONFIRM_SUCCESS", confirmResp);
+
+          const amount = localStorage.getItem("pendingWithdrawAmount") || "unknown";
+
+          const toast = await this.toastCtrl.create({
+            message: `✅ Withdraw successful! ${amount} SOL sent.`,
+            duration: 4000,
+            color: "success",
+            position: "top",
+          });
+          toast.present();
+
+          // buka link explorer
+          if (confirmResp.explorer) {
+            window.open(confirmResp.explorer, "_blank");
+          }
+
+          // bersihkan localStorage context
+          localStorage.removeItem("phantomFlow");
+          localStorage.removeItem("pendingWithdrawAmount");
+        } catch (err: any) {
+          nativeLog("WITHDRAW_CONFIRM_FAIL", err.message);
+          const toast = await this.toastCtrl.create({
+            message: "❌ Failed to confirm withdraw transaction.",
+            duration: 4000,
+            color: "danger",
+            position: "top",
+          });
+          toast.present();
+        }
       } else {
         nativeLog('PHANTOM_WARN', { unknownPayload: payload });
       }
@@ -523,27 +566,37 @@ export class AppComponent implements AfterViewInit, OnInit {
       nonce,
     });
 
-    this.auth.loginWithWallet({
-      provider: 'phantom',
-      address,
-      name: `Phantom User ${nonce}`,
-      signature: signature || '',
-      nonce,
-    }, this.authToken || undefined).subscribe({
+    this.auth.loginWithWallet(
+      {
+        provider: 'phantom',
+        address,
+        name: `Phantom User ${nonce}`,
+        signature: signature || '',
+        nonce,
+      },
+      this.authToken || undefined // dikirim kalau user sudah login
+    ).subscribe({
       next: async (res) => {
-        nativeLog('PHANTOM_LOGIN_SUCCESS', res);
+        nativeLog('✅ [PHANTOM_LOGIN_SUCCESS]', res);
 
-        // === Simpan token dan ID user
-        this.auth.setToken(res.token, res.authId);
-        localStorage.setItem('userId', res.authId);
-        localStorage.setItem('walletAddress', address);
+        // =====================================================
+        // 🔐 Simpan token & ID user
+        // =====================================================
+        if (res.token && res.authId) {
+          this.auth.setToken(res.token, res.authId);
+          localStorage.setItem('userId', res.authId);
+        }
 
-        // === Siapkan avatar
+        // =====================================================
+        // 🧩 Siapkan avatar
+        // =====================================================
         const avatarUrl = res.avatar
           ? `${environment.baseUrl}${res.avatar}`
           : 'assets/images/app-logo.jpeg';
 
-        // === Update user global
+        // =====================================================
+        // 👤 Update user global ke service
+        // =====================================================
         this.userService.setUser({
           name: res.name,
           email: res.email,
@@ -553,32 +606,62 @@ export class AppComponent implements AfterViewInit, OnInit {
           role: res.role,
           player: res.player,
           referral: res.referral,
-          custodialWallets: res.custodialWallets,
-          wallets: res.wallets,
-          authProvider: res.authProvider || 'phantom', // ✅ tambahkan
+          custodialWallets: res.custodialWallets || [],
+          wallets: res.wallets || [],
+          authProvider: res.authProvider || 'wallet', // sesuai backend
         });
 
-        // === Simpan daftar wallet
+        // =====================================================
+        // 💾 Simpan wallet list
+        // =====================================================
         const allWallets = [
           ...(res.wallets || []),
           ...(res.custodialWallets || []),
         ];
-        localStorage.setItem('wallets', JSON.stringify(allWallets));
-        this.walletService.setWallets(allWallets);
-        this.walletService.setActiveWallet(address);
 
-        // === Redirect dinamis
+        localStorage.setItem('wallets', JSON.stringify(allWallets));
+
+        // tentukan wallet aktif
+        let walletAddr =
+          res.wallets?.[0]?.address ||
+          res.custodialWallets?.[0]?.address ||
+          address;
+
+        localStorage.setItem('walletAddress', walletAddr);
+        this.walletService.setWallets(allWallets);
+        this.walletService.setActiveWallet(walletAddr);
+
+        // =====================================================
+        // 🧭 Redirect dinamis (pending redirect / default)
+        // =====================================================
         const pendingRedirect = localStorage.getItem('pendingConnectRedirect');
         if (pendingRedirect) {
           localStorage.removeItem('pendingConnectRedirect');
-          nativeLog('🔁 Redirecting back to pending page', pendingRedirect);
+          nativeLog('🔁 Redirecting to pending page:', pendingRedirect);
           window.location.href = pendingRedirect;
         } else {
-          nativeLog('➡️ Default redirect to /market-layout/my-nfts', pendingRedirect);
+          nativeLog('➡️ Redirecting to /market-layout/my-nfts', '');
           window.location.href = '/market-layout/my-nfts';
         }
       },
-      error: (err) => nativeLog('PHANTOM_LOGIN_FAIL', err),
+
+      error: (err) => {
+        // this.dismissLoading?.(); // jika ada spinner, pastikan dimatikan
+        console.error('❌ [PHANTOM_LOGIN_FAIL]', err);
+
+        // 🔹 Deteksi error spesifik dari backend
+        let message = 'Wallet login failed';
+        if (err.error?.error?.includes('linked to another account')) {
+          message = 'This wallet is already linked to another account ❌';
+        } else if (err.error?.error?.includes('Invalid signature')) {
+          message = 'Invalid signature, please re-connect wallet ❌';
+        } else if (err.error?.error?.includes('Invalid or expired nonce')) {
+          message = 'Session expired, please try again ❌';
+        }
+
+        this.showToast(message, 'danger');
+        nativeLog('⚠️ Wallet login failed:', message);
+      },
     });
   }
 

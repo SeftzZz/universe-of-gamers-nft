@@ -47,7 +47,7 @@ export class User {
     custodialWallets: [],
     wallets: [],                       // ✅ tambahkan default kosong
     role: '',
-    authProvider: 'unknown',            // ✅ default unknown
+    authProvider: '',            // ✅ default unknown
     player: undefined,
     referral: undefined
   });
@@ -59,7 +59,7 @@ export class User {
     const updated = { ...current, ...profile };
 
     // ✅ pastikan field penting tidak hilang
-    if (!updated.authProvider) updated.authProvider = 'unknown';
+    // if (!updated.authProvider) updated.authProvider = 'unknown';
     if (!updated.wallets) updated.wallets = [];
     if (!updated.custodialWallets) updated.custodialWallets = [];
 
@@ -79,7 +79,7 @@ export class User {
     if (stored) {
       const parsed = JSON.parse(stored);
       // Tambahkan default untuk field baru
-      parsed.authProvider = parsed.authProvider || 'unknown';
+      parsed.authProvider = parsed.authProvider;
       parsed.wallets = parsed.wallets || [];
       parsed.custodialWallets = parsed.custodialWallets || [];
       this.user$.next(parsed);
