@@ -16,9 +16,12 @@
                     <li class="item-title">
                         <span class="inner">Create Gatcha</span>
                     </li>
-                    <li class="item-title" (click)="loadGatchaPacks()">
-                        <span class="inner">Buy Gatcha</span>
+                    <li class="item-title">
+                      <span class="inner">Create Tournament</span>
                     </li>
+                    <!-- <li class="item-title" (click)="loadGatchaPacks()">
+                        <span class="inner">Buy Gatcha</span>
+                    </li> -->
                 </ul>
                 <div class="widget-content-tab">
                     <div class="widget-content-inner submit active">
@@ -438,6 +441,155 @@
                               </div>
                             </form>
                         </div>
+                    </div>
+                    <div class="widget-content-inner create">
+                      <div class="wrap-content w-full">
+                        <form id="tournament-form" class="comment-form" (ngSubmit)="submitTournament()" novalidate>
+
+                          <!-- 🎯 BASIC INFO -->
+                          <fieldset>
+                            <label>Tournament Name *</label>
+                            <input type="text"
+                                   [(ngModel)]="tournamentData.name"
+                                   name="tournamentName"
+                                   placeholder="e.g., Clash of Champions"
+                                   required />
+                          </fieldset>
+
+                          <fieldset>
+                            <label>Description</label>
+                            <textarea [(ngModel)]="tournamentData.description"
+                                      name="tournamentDesc"
+                                      rows="2"></textarea>
+                          </fieldset>
+
+                          <fieldset>
+                            <label>Banner Image URL *</label>
+                            <input type="url"
+                                   [(ngModel)]="tournamentData.image"
+                                   name="tournamentImage"
+                                   placeholder="https://..."
+                                   required />
+                          </fieldset>
+
+                          <div class="divider"></div>
+
+                          <!-- 💰 PRICE -->
+                          <h4>Tournament Entry Fee</h4>
+                          <div class="flex gap30">
+                            <fieldset>
+                              <label>Price (UOG)</label>
+                              <input type="number"
+                                     step="0.1"
+                                     [(ngModel)]="tournamentData.priceUOG"
+                                     name="tournamentPriceUOG"
+                                     (ngModelChange)="onPriceUOGChange()" />
+                            </fieldset>
+
+                            <fieldset>
+                              <label>Price (SOL)</label>
+                              <input type="number"
+                                     step="0.0001"
+                                     [(ngModel)]="tournamentData.priceSOL"
+                                     name="tournamentPriceSOL"
+                                     (ngModelChange)="onPriceSOLChange()" />
+                            </fieldset>
+                          </div>
+
+                          <div class="divider"></div>
+
+                          <!-- 🏆 PHASES -->
+                          <h4>Phases</h4>
+                          <p style="margin-top:20px;color:#888;">Tournament automatically includes 3 phases: 8 Besar → 4 Besar → Final</p>
+
+                          <div class="flex gap30">
+                            <fieldset>
+                              <label>Phase 1</label>
+                              <input type="text" value="8 Besar" disabled />
+                            </fieldset>
+                            <fieldset>
+                              <label>Phase 2</label>
+                              <input type="text" value="4 Besar" disabled />
+                            </fieldset>
+                            <fieldset>
+                              <label>Final</label>
+                              <input type="text" value="Final" disabled />
+                            </fieldset>
+                          </div>
+
+                          <div class="divider"></div>
+
+                          <!-- 👥 PARTICIPANT SETTINGS -->
+                          <h4>Participants</h4>
+                          <div class="flex gap30">
+                            <fieldset>
+                              <label>Max Participants</label>
+                              <input type="number"
+                                     [(ngModel)]="tournamentData.maxParticipants"
+                                     name="tournamentMaxParticipants"
+                                     placeholder="e.g., 8"
+                                     required />
+                            </fieldset>
+
+                            <fieldset>
+                              <label>Min Level Requirement</label>
+                              <input type="number"
+                                     [(ngModel)]="tournamentData.minLevel"
+                                     name="tournamentMinLevel"
+                                     placeholder="1" />
+                            </fieldset>
+                          </div>
+
+                          <div class="divider"></div>
+
+                          <!-- 📅 DATE SETTINGS -->
+                          <h4>Schedule</h4>
+                          <div class="flex gap30">
+                            <fieldset>
+                              <label>Start Date *</label>
+                              <input type="datetime-local"
+                                     [(ngModel)]="tournamentData.startDate"
+                                     name="tournamentStartDate"
+                                     required>
+                            </fieldset>
+                            <fieldset>
+                              <label>End Date *</label>
+                              <input type="datetime-local"
+                                     [(ngModel)]="tournamentData.endDate"
+                                     name="tournamentEndDate"
+                                     required>
+                            </fieldset>
+                          </div>
+
+                          <div class="divider"></div>
+
+                          <!-- 🎁 REWARD POOL -->
+                          <h4>Reward Pool</h4>
+                          <fieldset>
+                            <label>Total Reward (UOG)</label>
+                            <input type="number"
+                                   step="0.1"
+                                   [(ngModel)]="tournamentData.totalRewardUOG"
+                                   name="tournamentRewardUOG"
+                                   placeholder="e.g., 500" />
+                          </fieldset>
+
+                          <fieldset>
+                            <label>Reward Breakdown</label>
+                            <textarea [(ngModel)]="tournamentData.rewardBreakdown"
+                                      name="tournamentRewardBreakdown"
+                                      rows="3"
+                                      placeholder="1st: 70%, 2nd: 20%, 3rd: 10%">
+                            </textarea>
+                          </fieldset>
+
+                          <div class="btn-submit flex gap30 justify-center">
+                            <button class="tf-button style-1 w-100" type="submit">
+                              Create Tournament <i class="icon-arrow-up-right2"></i>
+                            </button>
+                          </div>
+                        </form>
+                      </div>
                     </div>
                     <div class="widget-content-inner buy-gatcha">
                         <div class="wrap-content w-full">

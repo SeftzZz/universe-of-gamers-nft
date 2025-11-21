@@ -600,6 +600,12 @@ ion-spinner {
     text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
 }
 
+.table-ranking-content .fl-row-ranking h6 {
+    font-size: 16px;
+    color: #fff;
+    line-height: 20px;
+}
+
 @media (max-width: 1440px) {
     .wrap-box-card .col-item {
         width: calc(33.333% - 28.5px) !important;

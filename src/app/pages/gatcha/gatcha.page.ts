@@ -89,10 +89,77 @@ export class GatchaPage implements OnInit {
     private router: Router,
     private phantom: Phantom,
     private gatchaService: GatchaService,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private ws: WebSocket,
   ) {}
 
   async ngOnInit() {
+    this.program = await this.idlService.loadProgram();
+
+    this.walletService.getActiveWallet().subscribe(async (addr) => {
+      if (addr) {
+        this.activeWallet = addr;
+        await this.loadTokens();
+      }
+    });
+
+    const saved = localStorage.getItem('token');
+    if (saved) this.authToken = saved;
+
+    await this.loadCharacters();
+    await this.loadRunes();
+    await this.loadGatchaPacks();   // << initial load
+    await this.fetchRates();
+
+    // === 🧩 Tambahkan WebSocket listener untuk realtime Gatcha Pack update ===
+    this.ws.messages$.subscribe(async (msg) => {
+      if (!msg) return;
+
+      // Realtime update untuk pack (dari server broadcast)
+      if (msg?.type === 'gatcha_packs_update') {
+        console.log('⚡ Realtime gatcha packs update:', msg);
+
+        // Reload pack dari server
+        await this.loadGatchaPacks();
+      }
+    });
+    // ==========================================================================
+
+
+    // 🔥 Gatcha Result listener
+    this.gatchaService.gatchaResult$.subscribe(nft => {
+      if (!nft) return;
+      this.ngZone.run(() => {
+        const packId = localStorage.getItem("pendingPackId");
+        const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
+
+        if (packIndex !== -1) {
+          this.gatchaPacks[packIndex].finalImage = nft.image;
+          nativeLog("🖼️ FINAL_IMAGE_UPDATED", {
+            packId,
+            finalImage: nft.image,
+          });
+        }
+      });
+    });
+
+    // 🔄 Restore fallback event
+    const cached = localStorage.getItem("lastMintedNFT");
+    if (cached) {
+      const nft = JSON.parse(cached);
+      localStorage.removeItem("lastMintedNFT");
+      const packId = localStorage.getItem("pendingPackId");
+      const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
+      if (packIndex !== -1) {
+        this.gatchaPacks[packIndex].finalImage = nft.image;
+        nativeLog("🖼️ FINAL_IMAGE_RESTORED", { packId, image: nft.image });
+      }
+    }
+  }
+
+  async ionViewWillEnter() {
+    console.log('🚀 [LoginPage] Entering login view...');
+
     this.program = await this.idlService.loadProgram();
 
     this.walletService.getActiveWallet().subscribe(async (addr) => {
@@ -226,6 +293,10 @@ export class GatchaPage implements OnInit {
       console.error("❌ Error loading gatcha packs:", err);
       this.gatchaPacks = [];
     }
+  }
+
+  private updateGatchaPacksRealtime(packs: IGatchaPack[]) {
+    this.gatchaPacks = packs; // langsung assign tanpa getRandomImages()
   }
 
   private getRandomImages(pool: { image: string }[], max: number): string[] {

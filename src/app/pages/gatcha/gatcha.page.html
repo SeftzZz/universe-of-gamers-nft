@@ -8,7 +8,7 @@
                         <div class="wrap-content w-full">
                             <div class="inner-content">
                                 <div class="heading-section">
-                                    <h2 class="tf-title pb-20">Buy Gatcha</h2>
+                                    <h2 class="tf-title pb-20">Buy Gacha</h2>
                                 </div>
                                 <div class="top-collections style-bottom mb-40">
                                     <div class="featured pt-10 swiper-container carousel3-type1" data-swiper='{
@@ -61,20 +61,22 @@
                                                 <div class="bottom-right">
                                                   <!-- <div class="shop"> 
                                                     <div class="icon">
-                                                      <img src="assets/images/box-icon/coin-00.png" alt="">
+                                                      <img src="assets/images/box-icon/coin-04.png" alt="">
                                                     </div>
-                                                    <p>{{ pack.priceUOG }}</p>
+                                                    <p style="text-decoration: line-through;opacity: 0.5;">{{ pack.priceUOG }}</p>
                                                   </div> -->
                                                   <div class="shop" style="margin-right: 0px;border-right: 0px;"> 
                                                     <div class="icon">
                                                       <img src="assets/images/box-icon/coin-04.png" alt="">
                                                     </div>
-                                                    <p>{{ pack.priceSOL }}</p>
+                                                    <p style="text-decoration: line-through;opacity: 0.5;font-size: 12px;padding-bottom: 5px;">{{ pack.priceUOG }}</p>
+                                                    <p style="font-size: 24px;padding-bottom: 5px;">{{ pack.priceSOL }}</p>
+                                                    <!-- <p style="opacity: 0.5;font-size: 12px;">Untill December 2025</p> -->
                                                   </div>
                                                 </div>
                                               </div>
                                               <!-- Tombol Buy & Mint -->
-                                              <div class="btn-submit flex gap30 justify-center mt-3">
+                                              <div class="btn-submit flex gap30 justify-center mt-3" style="text-align: -webkit-center;">
                                                 <button class="tf-button style-1 h40" (click)="toggleSendModal(pack)" style="color: #161616;">
                                                   Buy & Mint <i class="icon-arrow-up-right2"></i>
                                                 </button>

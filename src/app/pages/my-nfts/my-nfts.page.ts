@@ -108,6 +108,8 @@ export class MyNftsPage implements OnInit {
 
   balance: number | null = null;
 
+  prizePool: any = null;
+
   constructor(
     private market: Market,
     private wallet: Wallet,
@@ -205,8 +207,8 @@ export class MyNftsPage implements OnInit {
           const delistedName = msg.nft?.name || 'NFT';
           console.log('🔥 NFT delisted:', delistedMint);
           if (this.mintAddress && delistedMint === this.mintAddress) {
-            alert(`🧨 ${delistedName} telah dihapus dari listing.`);
-            this.router.navigate(['/market-layout/all-collection']);
+            alert(`🧨 ${delistedName} is delist from market.`);
+            this.router.navigate(['/market-layout/my-nfts']);
           }
           await this.refreshAll();
           break;
@@ -305,6 +307,20 @@ export class MyNftsPage implements OnInit {
             this.router.navigate(['/market-layout/all-collection']);
           }
           await this.refreshAll();
+          break;
+
+        /* ======================================
+           🟣 PRIZEPOOL REALTIME UPDATE
+           ====================================== */
+        case 'prizepool_update':
+          console.log("⚡ PRIZEPOOL realtime update:", msg);
+
+          // Merge, jangan overwrite total
+          this.prizePool = {
+            ...this.prizePool,
+            ...msg.data
+          };
+
           break;
       }
     });
@@ -431,6 +447,7 @@ export class MyNftsPage implements OnInit {
         this.market.loadTopCreators(),
         this.market.loadHistory(),
         this.market.loadUsers(),
+        this.market.loadPrizePool()
       ]);
 
       // 🔹 Ambil hasil cache dari service
@@ -449,6 +466,7 @@ export class MyNftsPage implements OnInit {
       this.market.getTopCreators().subscribe((data) => (this.topCreators = data));
       this.market.getHistory().subscribe((data) => (this.history = data));
       this.market.getUsers().subscribe((data) => (this.allUsers = data));
+      this.market.getPrizePool().subscribe(pool => {this.prizePool = pool});
 
       this.loadFavorites();
     } catch (err) {

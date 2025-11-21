@@ -667,129 +667,6 @@ export class NftDetailPage implements OnInit {
     }
   }
 
-  // async buyNft(paymentMint: string) {
-  //   const mintAddress = this.route.snapshot.paramMap.get('mintAddress'); 
-  //   if (!mintAddress) return;
-
-  //   try {
-  //     this.isSending = true;
-  //     this.txSig = null;
-
-  //     // 🔹 Determine listing token and buyer token
-  //     const listingSymbol = this.metadata?.paymentSymbol || "SOL"; // the token used for listing
-  //     const buyerToken = this.filteredTokens.find(t => t.mint === paymentMint);
-  //     const buyerSymbol = buyerToken?.symbol || "SOL";
-
-  //     let finalPrice = this.metadata?.price || 0;
-
-  //     // === 💱 PRICE CONVERSION MATRIX ===
-  //     // (listingSymbol → buyerSymbol)
-
-  //     // USDC → SOL
-  //     if (listingSymbol === "USDC" && buyerSymbol === "SOL") {
-  //       finalPrice = finalPrice * (this.usdcToSolRate || 0);
-  //       console.log(`💱 Converted price: ${this.metadata?.price} USDC → ${finalPrice} SOL`);
-  //     }
-
-  //     // SOL → USDC
-  //     if (listingSymbol === "SOL" && buyerSymbol === "USDC") {
-  //       finalPrice = finalPrice * (this.solToUsdcRate || 0);
-  //       console.log(`💱 Converted price: ${this.metadata?.price} SOL → ${finalPrice} USDC`);
-  //     }
-
-  //     // UOG → USDC
-  //     if (listingSymbol === "UOG" && buyerSymbol === "USDC") {
-  //       finalPrice = finalPrice * (this.uogToUsdRate || 0);
-  //       console.log(`💱 Converted price: ${this.metadata?.price} UOG → ${finalPrice} USDC`);
-  //     }
-
-  //     // USDC → UOG
-  //     if (listingSymbol === "USDC" && buyerSymbol === "UOG") {
-  //       finalPrice = finalPrice * (this.usdcToUogRate || 0);
-  //       console.log(`💱 Converted price: ${this.metadata?.price} USDC → ${finalPrice} UOG`);
-  //     }
-
-  //     // SOL → UOG
-  //     if (listingSymbol === "SOL" && buyerSymbol === "UOG") {
-  //       const solToUsd = this.solToUsdcRate || 0;
-  //       const usdToUog = this.usdcToUogRate || 0;
-  //       finalPrice = finalPrice * solToUsd * usdToUog;
-  //       console.log(`💱 Converted price: ${this.metadata?.price} SOL → ${finalPrice} UOG`);
-  //     }
-
-  //     // UOG → SOL
-  //     if (listingSymbol === "UOG" && buyerSymbol === "SOL") {
-  //       const uogToUsd = this.uogToUsdRate || 0;
-  //       const usdToSol = this.usdcToSolRate || 0;
-  //       finalPrice = finalPrice * uogToUsd * usdToSol;
-  //       console.log(`💱 Converted price: ${this.metadata?.price} UOG → ${finalPrice} SOL`);
-  //     }
-
-  //     // === 🪙 Send to backend ===
-  //     const buyRes: any = await this.http
-  //       .post(
-  //         `${environment.apiUrl}/auth/nft/${mintAddress}/buy?demo=false`,
-  //         {
-  //           user: this.activeWallet,
-  //           paymentMint: paymentMint,
-  //           price: finalPrice, // ✅ adjusted to buyer token
-  //           name: this.metadata?.name,
-  //           symbol: buyerSymbol,
-  //           uri: this.metadata?.uri,
-  //         },
-  //         { headers: { Authorization: `Bearer ${this.authToken}` } }
-  //       )
-  //       .toPromise();
-
-  //     if (!buyRes.signature) throw new Error("❌ No signature returned from backend");
-  //     this.txSig = buyRes.signature;
-
-  //     // 🔁 Refresh data
-  //     await this.updateBalance();
-  //     await this.loadTokens();
-  //     await this.loadMetadata(mintAddress);
-
-  //     const toast = await this.toastCtrl.create({
-  //       message: `NFT purchase successful! ✅`,
-  //       duration: 2500,
-  //       position: 'top',
-  //       color: 'success',
-  //       icon: 'checkmark-circle-outline',
-  //       cssClass: 'custom-toast'
-  //     });
-  //     await toast.present();
-
-  //     console.log("✅ Transaction confirmed:", buyRes.signature);
-  //     console.log("🧾 Payment token:", buyerSymbol, "| Price sent:", finalPrice);
-
-  //   } catch (err: any) {
-  //     await this.updateBalance();
-  //     await this.loadTokens();
-  //     console.error("❌ buyNft error:", err);
-
-  //     let errorMessage = "Failed to buy NFT";
-  //     try {
-  //       if (err?.error?.error) errorMessage = err.error.error;
-  //       else if (err?.error?.message) errorMessage = err.error.message;
-  //       else if (typeof err.message === "string") errorMessage = err.message;
-  //     } catch (e) {
-  //       console.warn("⚠️ Could not parse backend error:", e);
-  //     }
-
-  //     const toast = await this.toastCtrl.create({
-  //       message: errorMessage,
-  //       duration: 2500,
-  //       position: 'top',
-  //       color: 'danger',
-  //       icon: 'close-circle-outline',
-  //       cssClass: 'custom-toast'
-  //     });
-  //     await toast.present();
-  //   } finally {
-  //     this.isSending = false;
-  //   }
-  // }
-
   async openSolscan() {
     const mintAddress = this.route.snapshot.paramMap.get('mintAddress'); // ✅ pakai mintAddress
     const solscanUrl = `https://solscan.io/token/${mintAddress}?cluster=mainnet-beta`;
@@ -1106,76 +983,6 @@ export class NftDetailPage implements OnInit {
     }
   }
 
-  // async submitListing() {
-  //   if (!this.sellPrice || this.sellPrice <= 0) {
-  //     alert("Please enter a valid price");
-  //     return;
-  //   }
-
-  //   if (this.sellRoyalty < 0 || this.sellRoyalty > 100) {
-  //     alert("Royalty must be between 0 and 100%");
-  //     return;
-  //   }
-
-  //   // 🧩 Pastikan harga sesuai minimal (auto convert jika USDC)
-  //   let effectiveMinPrice = this.minSellPrice;
-
-  //   if (this.selectedToken?.symbol === "USDC" && this.solToUsdcRate > 0) {
-  //     // minSellPrice on-chain = SOL, ubah ke USDC
-  //     effectiveMinPrice = (this.metadata?.minPrice ?? 0.0001) * this.solToUsdcRate;
-  //   }
-
-  //   if (this.sellPrice < effectiveMinPrice) {
-  //     const toast = await this.toastCtrl.create({
-  //       message: `⚠️ Minimum allowed price is ${effectiveMinPrice.toFixed(4)} ${this.selectedToken?.symbol || "SOL"}`,
-  //       duration: 3000,
-  //       color: "warning",
-  //       position: "top"
-  //     });
-  //     toast.present();
-  //     return;
-  //   }
-
-  //   this.isListing = true;
-
-  //   // ✅ Tentukan simbol & mint dari token yang dipilih
-  //   const paymentSymbol = this.selectedToken?.symbol || "SOL";
-  //   const paymentMint = this.selectedToken?.mint || "";
-
-  //   // 🚀 Kirim ke API backend (offchain save to DB)
-  //   this.http.post(`${environment.apiUrl}/auth/nft/${this.mintAddress}/sell`, {
-  //     price: this.sellPrice,
-  //     royalty: this.sellRoyalty,
-  //     paymentSymbol, // ⬅️ kirim simbol (ex: "USDC" / "SOL")
-  //     paymentMint    // ⬅️ kirim mint address (ex: USDC mint)
-  //   }).subscribe({
-  //     next: async (res: any) => {
-  //       console.log("✅ NFT listed:", res);
-
-  //       // Gunakan harga yang user isi sebelum submit
-  //       this.listedPrice = this.sellPrice; // ✅ simpan harga yang baru dijual
-  //       this.listedSymbol = this.selectedToken?.symbol || "SOL";
-
-  //       this.txSig = null;
-  //       this.isListing = false;
-
-  //       console.log(`🧾 [UI] Will display: ${this.listedPrice} ${this.listedSymbol}`);
-
-  //       if (this.mintAddress) {
-  //         await this.loadMetadata(this.mintAddress);
-  //       }
-
-  //       await this.loadTokens();
-  //       await this.loadTopCreators();
-  //       await this.loadNftHistory();
-  //     },
-  //     error: (err) => {
-  //       console.error("❌ Error listing NFT:", JSON.stringify(err));
-  //       this.isListing = false;
-  //     }
-  //   });
-  // }
-
   onScroll(event: CustomEvent) {
     if (!event) return;
 
@@ -1238,11 +1045,11 @@ export class NftDetailPage implements OnInit {
   async fetchRates() {
     try {
       const resp: any = await this.http
-        .get("https://api.coingecko.com/api/v3/simple/price?ids=solana,usd-coin&vs_currencies=usd")
+        .get<any>(`${environment.apiUrl}/nft/rates`)
         .toPromise();
 
-      const solToUsd = resp["solana"].usd;      // e.g. 187.25 USD per SOL
-      const usdcToUsd = resp["usd-coin"].usd;   // e.g. 1.00 USD per USDC
+      const solToUsd = resp["solToUsd"];      // e.g. 187.25 USD per SOL
+      const usdcToUsd = resp["usdcToUsd"];   // e.g. 1.00 USD per USDC
 
       this.solToUsdcRate = solToUsd / usdcToUsd;   // 1 SOL = ? USDC
       this.usdcToSolRate = 1 / this.solToUsdcRate; // 1 USDC = ? SOL
@@ -1456,5 +1263,198 @@ export class NftDetailPage implements OnInit {
       sol: listingSymbol === "SOL" ? listing.amount : 0,
     };
   }
+
+  // async buyNft(paymentMint: string) {
+  //   const mintAddress = this.route.snapshot.paramMap.get('mintAddress'); 
+  //   if (!mintAddress) return;
+
+  //   try {
+  //     this.isSending = true;
+  //     this.txSig = null;
+
+  //     // 🔹 Determine listing token and buyer token
+  //     const listingSymbol = this.metadata?.paymentSymbol || "SOL"; // the token used for listing
+  //     const buyerToken = this.filteredTokens.find(t => t.mint === paymentMint);
+  //     const buyerSymbol = buyerToken?.symbol || "SOL";
+
+  //     let finalPrice = this.metadata?.price || 0;
+
+  //     // === 💱 PRICE CONVERSION MATRIX ===
+  //     // (listingSymbol → buyerSymbol)
+
+  //     // USDC → SOL
+  //     if (listingSymbol === "USDC" && buyerSymbol === "SOL") {
+  //       finalPrice = finalPrice * (this.usdcToSolRate || 0);
+  //       console.log(`💱 Converted price: ${this.metadata?.price} USDC → ${finalPrice} SOL`);
+  //     }
+
+  //     // SOL → USDC
+  //     if (listingSymbol === "SOL" && buyerSymbol === "USDC") {
+  //       finalPrice = finalPrice * (this.solToUsdcRate || 0);
+  //       console.log(`💱 Converted price: ${this.metadata?.price} SOL → ${finalPrice} USDC`);
+  //     }
+
+  //     // UOG → USDC
+  //     if (listingSymbol === "UOG" && buyerSymbol === "USDC") {
+  //       finalPrice = finalPrice * (this.uogToUsdRate || 0);
+  //       console.log(`💱 Converted price: ${this.metadata?.price} UOG → ${finalPrice} USDC`);
+  //     }
+
+  //     // USDC → UOG
+  //     if (listingSymbol === "USDC" && buyerSymbol === "UOG") {
+  //       finalPrice = finalPrice * (this.usdcToUogRate || 0);
+  //       console.log(`💱 Converted price: ${this.metadata?.price} USDC → ${finalPrice} UOG`);
+  //     }
+
+  //     // SOL → UOG
+  //     if (listingSymbol === "SOL" && buyerSymbol === "UOG") {
+  //       const solToUsd = this.solToUsdcRate || 0;
+  //       const usdToUog = this.usdcToUogRate || 0;
+  //       finalPrice = finalPrice * solToUsd * usdToUog;
+  //       console.log(`💱 Converted price: ${this.metadata?.price} SOL → ${finalPrice} UOG`);
+  //     }
+
+  //     // UOG → SOL
+  //     if (listingSymbol === "UOG" && buyerSymbol === "SOL") {
+  //       const uogToUsd = this.uogToUsdRate || 0;
+  //       const usdToSol = this.usdcToSolRate || 0;
+  //       finalPrice = finalPrice * uogToUsd * usdToSol;
+  //       console.log(`💱 Converted price: ${this.metadata?.price} UOG → ${finalPrice} SOL`);
+  //     }
+
+  //     // === 🪙 Send to backend ===
+  //     const buyRes: any = await this.http
+  //       .post(
+  //         `${environment.apiUrl}/auth/nft/${mintAddress}/buy?demo=false`,
+  //         {
+  //           user: this.activeWallet,
+  //           paymentMint: paymentMint,
+  //           price: finalPrice, // ✅ adjusted to buyer token
+  //           name: this.metadata?.name,
+  //           symbol: buyerSymbol,
+  //           uri: this.metadata?.uri,
+  //         },
+  //         { headers: { Authorization: `Bearer ${this.authToken}` } }
+  //       )
+  //       .toPromise();
+
+  //     if (!buyRes.signature) throw new Error("❌ No signature returned from backend");
+  //     this.txSig = buyRes.signature;
+
+  //     // 🔁 Refresh data
+  //     await this.updateBalance();
+  //     await this.loadTokens();
+  //     await this.loadMetadata(mintAddress);
+
+  //     const toast = await this.toastCtrl.create({
+  //       message: `NFT purchase successful! ✅`,
+  //       duration: 2500,
+  //       position: 'top',
+  //       color: 'success',
+  //       icon: 'checkmark-circle-outline',
+  //       cssClass: 'custom-toast'
+  //     });
+  //     await toast.present();
+
+  //     console.log("✅ Transaction confirmed:", buyRes.signature);
+  //     console.log("🧾 Payment token:", buyerSymbol, "| Price sent:", finalPrice);
+
+  //   } catch (err: any) {
+  //     await this.updateBalance();
+  //     await this.loadTokens();
+  //     console.error("❌ buyNft error:", err);
+
+  //     let errorMessage = "Failed to buy NFT";
+  //     try {
+  //       if (err?.error?.error) errorMessage = err.error.error;
+  //       else if (err?.error?.message) errorMessage = err.error.message;
+  //       else if (typeof err.message === "string") errorMessage = err.message;
+  //     } catch (e) {
+  //       console.warn("⚠️ Could not parse backend error:", e);
+  //     }
+
+  //     const toast = await this.toastCtrl.create({
+  //       message: errorMessage,
+  //       duration: 2500,
+  //       position: 'top',
+  //       color: 'danger',
+  //       icon: 'close-circle-outline',
+  //       cssClass: 'custom-toast'
+  //     });
+  //     await toast.present();
+  //   } finally {
+  //     this.isSending = false;
+  //   }
+  // }
+
+  // async submitListing() {
+  //   if (!this.sellPrice || this.sellPrice <= 0) {
+  //     alert("Please enter a valid price");
+  //     return;
+  //   }
+
+  //   if (this.sellRoyalty < 0 || this.sellRoyalty > 100) {
+  //     alert("Royalty must be between 0 and 100%");
+  //     return;
+  //   }
+
+  //   // 🧩 Pastikan harga sesuai minimal (auto convert jika USDC)
+  //   let effectiveMinPrice = this.minSellPrice;
+
+  //   if (this.selectedToken?.symbol === "USDC" && this.solToUsdcRate > 0) {
+  //     // minSellPrice on-chain = SOL, ubah ke USDC
+  //     effectiveMinPrice = (this.metadata?.minPrice ?? 0.0001) * this.solToUsdcRate;
+  //   }
+
+  //   if (this.sellPrice < effectiveMinPrice) {
+  //     const toast = await this.toastCtrl.create({
+  //       message: `⚠️ Minimum allowed price is ${effectiveMinPrice.toFixed(4)} ${this.selectedToken?.symbol || "SOL"}`,
+  //       duration: 3000,
+  //       color: "warning",
+  //       position: "top"
+  //     });
+  //     toast.present();
+  //     return;
+  //   }
+
+  //   this.isListing = true;
+
+  //   // ✅ Tentukan simbol & mint dari token yang dipilih
+  //   const paymentSymbol = this.selectedToken?.symbol || "SOL";
+  //   const paymentMint = this.selectedToken?.mint || "";
+
+  //   // 🚀 Kirim ke API backend (offchain save to DB)
+  //   this.http.post(`${environment.apiUrl}/auth/nft/${this.mintAddress}/sell`, {
+  //     price: this.sellPrice,
+  //     royalty: this.sellRoyalty,
+  //     paymentSymbol, // ⬅️ kirim simbol (ex: "USDC" / "SOL")
+  //     paymentMint    // ⬅️ kirim mint address (ex: USDC mint)
+  //   }).subscribe({
+  //     next: async (res: any) => {
+  //       console.log("✅ NFT listed:", res);
+
+  //       // Gunakan harga yang user isi sebelum submit
+  //       this.listedPrice = this.sellPrice; // ✅ simpan harga yang baru dijual
+  //       this.listedSymbol = this.selectedToken?.symbol || "SOL";
+
+  //       this.txSig = null;
+  //       this.isListing = false;
+
+  //       console.log(`🧾 [UI] Will display: ${this.listedPrice} ${this.listedSymbol}`);
+
+  //       if (this.mintAddress) {
+  //         await this.loadMetadata(this.mintAddress);
+  //       }
+
+  //       await this.loadTokens();
+  //       await this.loadTopCreators();
+  //       await this.loadNftHistory();
+  //     },
+  //     error: (err) => {
+  //       console.error("❌ Error listing NFT:", JSON.stringify(err));
+  //       this.isListing = false;
+  //     }
+  //   });
+  // }
 
 }

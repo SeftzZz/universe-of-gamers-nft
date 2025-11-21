@@ -57,7 +57,7 @@
                 </a>
                 <a href="#" class="login-other-item" (click)="connectWallet(); $event.preventDefault();">
                   <img src="assets/images/box-icon/wallet-05.png" alt="" style="height: 25px;" />
-                  <span *ngIf="!userAddress">Connect with Phantom</span>
+                  <span *ngIf="!userAddress">Sign up with Phantom</span>
                   <span *ngIf="userAddress">Wallet: {{ shorten(userAddress) }}</span>
                 </a>
               </div>
@@ -71,6 +71,11 @@
                 Don't have an account?
                 <a (click)="onRegister()" class="tf-color">Sign up</a>
               </div>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="heading-section-1">
+              <p class="tf-title pt-40">Build 1411250500</p>
             </div>
           </div>
         </div>
@@ -174,23 +179,31 @@
         class="modal-sheet"
         [ngClass]="{ 'slide-up': !isClosingReferral, 'slide-down': isClosingReferral }"
       >
+
+        <!-- ========================================================= -->
+        <!-- 🔥 TITLE -->
+        <!-- ========================================================= -->
         <h2 class="modal-title">
           {{
-            isGoogleReferral
+            isConnectWalletMode
+              ? 'Connect your Wallet'
+              : isGoogleReferral
               ? 'Get started today by entering just a few details'
               : isWalletReferral
               ? 'Complete your wallet profile'
               : isLocalReferral
-              ? 'Connect your Wallet'
+              ? 'Finish your setup'
               : 'Enter Referral Code'
           }}
         </h2>
 
-        <!-- Buttons -->
-        <div class="modal-actions pt-20" *ngIf="isLocalReferral">
+        <!-- ========================================================= -->
+        <!-- 🔥 STEP 1 — UNIVERSAL MODE: CONNECT WALLET -->
+        <!--      (Selalu tampil ketika mode wallet-connect) -->
+        <!-- ========================================================= -->
+        <div class="modal-actions pt-20" *ngIf="isConnectWalletMode">
           <button type="button" class="btn-cancel" (click)="skipReferral()">Skip</button>
 
-          <!-- Local Mode -->
           <button
             type="button"
             class="btn-send"
@@ -202,9 +215,12 @@
           </button>
         </div>
 
-        <!-- 🟡 GOOGLE / WALLET / DEFAULT MODE -->
-        <form *ngIf="!isLocalReferral" (submit)="applyReferral($event)">
-          <!-- Email -->
+        <!-- ========================================================= -->
+        <!-- 🔵 STEP 2 — EMAIL + PASSWORD + REFERRAL SETUP -->
+        <!-- ========================================================= -->
+        <form *ngIf="!isConnectWalletMode" (submit)="applyReferral($event)">
+
+          <!-- EMAIL (WALLET PROVIDER ONLY) -->
           <fieldset class="email" *ngIf="isWalletReferral">
             <label>Email *</label>
             <input
@@ -216,7 +232,7 @@
             />
           </fieldset>
 
-          <!-- Password -->
+          <!-- PASSWORD (GOOGLE OR WALLET PROVIDER) -->
           <fieldset class="password" *ngIf="isGoogleReferral || isWalletReferral">
             <label>Password *</label>
             <input
@@ -232,7 +248,7 @@
             ></i>
           </fieldset>
 
-          <!-- Referral Code -->
+          <!-- REFERRAL (OPTIONAL FOR ALL PROVIDERS) -->
           <fieldset class="referral">
             <label>Referral Code (optional)</label>
             <input
@@ -243,26 +259,15 @@
             />
           </fieldset>
 
-          <!-- Buttons -->
+          <!-- ACTION BUTTONS -->
           <div class="modal-actions pt-20">
             <button type="button" class="btn-cancel" (click)="skipReferral()">Skip</button>
 
-            <!-- Default or Wallet mode -->
-            <button *ngIf="!isGoogleReferral" type="submit" class="btn-send">Apply</button>
-
-            <!-- Google Mode -->
-            <button
-              *ngIf="isGoogleReferral"
-              type="button"
-              class="btn-send"
-              [disabled]="isSaving"
-              (click)="saveAndConnectWallet()"
-            >
-              <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
-              <span *ngIf="!isSaving">Save & Connect Wallet</span>
-            </button>
+            <!-- Semua provider tetap ke applyReferral() -->
+            <button type="submit" class="btn-send">Apply</button>
           </div>
         </form>
+
       </div>
     </div>
 

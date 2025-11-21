@@ -80,6 +80,15 @@ export class MarketLayoutPage implements OnInit {
   balance: number | null = null;
   userAddress: string | null = null;
 
+  showPrizepoolModal = false;
+  isClosingPrizepool = false;
+  isDistributing = false;
+  distributionSuccess = false;
+  prizepoolFinal = 0;
+  eligiblePlayers = 0;
+  playerSearch = "";
+  distributionList: any[] = [];
+
   constructor(
     private http: HttpClient,
     private auth: Auth,
@@ -854,4 +863,87 @@ export class MarketLayoutPage implements OnInit {
     );
   }
 
+  get filteredPlayers() {
+    return this.distributionList.filter((p) =>
+      p.username.toLowerCase().includes(this.playerSearch.toLowerCase())
+    );
+  }
+
+  /** Open modal */
+  async openPrizepoolModal() {
+    this.showPrizepoolModal = true;
+    this.isClosingPrizepool = false;
+
+    await this.loadPrizepoolStats();
+    await this.loadDistributionSimulation();
+  }
+
+  /** Close modal */
+  closePrizepoolModal() {
+    this.isClosingPrizepool = true;
+    setTimeout(() => {
+      this.showPrizepoolModal = false;
+      this.distributionSuccess = false;
+      this.isDistributing = false;
+      this.playerSearch = "";
+    }, 250);
+  }
+
+  /** Load main stats */
+  async loadPrizepoolStats() {
+    try {
+      const resp: any = await this.http
+        .get(`${environment.apiUrl}/prizepool/status`)
+        .toPromise();
+
+      this.treasuryBalance.sol = resp.balance_SOL;
+      this.treasuryBalance.usdValue = resp.value_usd;
+      this.prizepoolFinal = resp.balance_SOL;
+    } catch (err) {
+      console.error("loadPrizepoolStats Error:", err);
+    }
+  }
+
+  /** Load simulation */
+  async loadDistributionSimulation() {
+    try {
+      const resp: any = await this.http
+        .get(`${environment.apiUrl}/prizepool/distribute/simulate`)
+        .toPromise();
+
+      this.distributionList = resp.distribution;
+      this.eligiblePlayers = resp.total_players;
+      this.prizepoolFinal = resp.prizepool_total;
+    } catch (err) {
+      console.error("loadDistributionSimulation Error:", err);
+    }
+  }
+
+  /** Submit Distribution (Simulation Only) */
+  async submitPrizepool() {
+    this.isDistributing = true;
+
+    try {
+      const resp: any = await this.http
+        .post(`${environment.apiUrl}/prizepool/distribute`, {})
+        .toPromise();
+
+      console.log("📌 Distribution simulation result:", resp);
+
+      this.isDistributing = false;
+      this.distributionSuccess = true;
+
+    } catch (err: any) {
+      this.isDistributing = false;
+      console.error("Prizepool distribution failed:", err);
+
+      const toast = await this.toastCtrl.create({
+        message: err?.error?.error || "Distribution failed.",
+        duration: 3000,
+        color: "danger",
+        position: "top",
+      });
+      toast.present();
+    }
+  }
 }

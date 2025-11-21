@@ -1,11 +1,14 @@
-<ion-content class="ion-padding" (ionScroll)="onScroll($event)" scrollEvents="true">
+<ion-content class="ion-padding" (ionScroll)="onScroll($event)" scrollEvents="true" [fullscreen]="true">
     <div class="wrapper-content">
         <div class="inner-content" style="margin-top: 10vh;">
-            <div class="action__body w-full mb-40">
+            <div class="action__body w-full mb-40" *ngIf="prizePool as pool">
                 <div class="tf-tsparticles">
                     <div id="tsparticles3" data-color="#161616" data-line="#000"></div>
                 </div>
-                <h2>Discover, create and sell your own NFT</h2>
+                <h2 style="line-height: 20px;">Pool Prize</h2>
+                <h2 style="line-height: 20px;">${{ pool.value_usd | number:'1.0-2' }}</h2>
+                <h2 style="line-height: 20px;">{{ pool.balance_SOL | number:'1.0-2' }} SOL</h2>
+                <!-- <h3>Transactions {{ pool.total_transactions }}</h3> -->
                 <div class="bg-home7">
                     <div class="swiper-container autoslider3reverse" data-swiper='{
                     "loop":true,
@@ -25,7 +28,7 @@
                                 <img src="assets/images/item-background/bg-action-1.png" alt="">
                             </div>
                             <div class="swiper-slide">
-                                <img src="assets/images/item-background/bg-action-1.png" alt="">
+                                <img src="assets/images/item-background/bg-action-2.png" alt="">
                             </div>
                         </div>
                     </div>
@@ -45,10 +48,10 @@
                 }'>
                         <div class="swiper-wrapper">
                             <div class="swiper-slide">
-                                <img src="assets/images/item-background/bg-action-1.png" alt="">
+                                <img src="assets/images/item-background/bg-action-3.png" alt="">
                             </div>
                             <div class="swiper-slide">
-                                <img src="assets/images/item-background/bg-action-1.png" alt="">
+                                <img src="assets/images/item-background/bg-action-4.png" alt="">
                             </div>
                         </div>
                     </div>
@@ -70,7 +73,7 @@
                                 <img src="assets/images/item-background/bg-action-1.png" alt="">
                             </div>
                             <div class="swiper-slide">
-                                <img src="assets/images/item-background/bg-action-1.png" alt="">
+                                <img src="assets/images/item-background/bg-action-2.png" alt="">
                             </div>
                         </div>
                     </div>

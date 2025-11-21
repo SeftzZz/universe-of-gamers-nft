@@ -13,6 +13,7 @@ export class Market {
   private history$ = new BehaviorSubject<any[]>([]);
   private myHistory$ = new BehaviorSubject<any[]>([]);
   private users$ = new BehaviorSubject<any[]>([]);
+  private prizePool$ = new BehaviorSubject<any>(null);
 
   constructor(private http: HttpClient) {}
 
@@ -132,6 +133,21 @@ export class Market {
     }
   }
 
+  async loadPrizePool(): Promise<any> {
+    try {
+      const data: any = await firstValueFrom(
+        this.http.get(`${environment.apiUrl}/prizepool/status`)
+      );
+
+      this.prizePool$.next(data || null);
+      return data || null;
+    } catch (err) {
+      console.error('Error loadPrizePool:', err);
+      this.prizePool$.next(null);
+      return null;
+    }
+  }
+
   // === OBSERVABLES ===
   getNfts() {
     return this.nfts$.asObservable();
@@ -159,5 +175,9 @@ export class Market {
 
   getUsers() {
     return this.users$.asObservable();
+  }
+
+  getPrizePool() {
+    return this.prizePool$.asObservable();
   }
 }

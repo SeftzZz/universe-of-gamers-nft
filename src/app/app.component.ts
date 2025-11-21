@@ -88,8 +88,21 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   ngOnInit() {
     this.googleLogin.init();
-    // this.ws.connect();
+    this.ws.connect();
+    this.checkPhantomWebBridge();
     setTimeout(() => this.listenPhantomCallback(), 300);
+  }
+
+  private checkPhantomWebBridge() {
+    // hanya web, bukan native
+    if (Capacitor.getPlatform() !== 'web') return;
+
+    // jika phantom-web-bridge menyimpan data
+    const pending = localStorage.getItem("pendingPhantomUrl");
+    if (pending) {
+      // alert(pending);
+      this.handlePhantomUrl(pending);
+    }
   }
 
   // === 1️⃣ Listen callback from Phantom ===
@@ -107,8 +120,24 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   // === 2️⃣ Handle returned deeplink ===
   async handlePhantomUrl(data: any) {
-    const urlStr = typeof data === 'string' ? data : data?.url;
+    const alertText = `[1] handlePhantomUrl CALLED\n${data}`;
+    try { await navigator.clipboard.writeText(alertText); } catch {}
+    // alert(alertText + "\n\n(copied)");
+
+    let urlStr = typeof data === 'string' ? data : data?.url;
+
+    // 🟣 FIX: Rebuild Phantom callback URL (bridge → phantom-callback://)
+    if (urlStr.includes("phantom-web-bridge.html")) {
+        const qs = urlStr.split("?")[1] || "";
+        urlStr = "phantom-callback://callback?" + qs;
+
+        // alert("[BRIDGE FIX]\nRebuilt callback:\n" + urlStr);
+    }
+
+    // alert(`[2] urlStr = ${urlStr}`);
+
     if (!urlStr || !urlStr.includes('phantom-callback')) {
+      // alert(`[2a] SKIP — bukan phantom-callback`);
       nativeLog('PHANTOM_SKIP', data);
       return;
     }
@@ -361,7 +390,7 @@ export class AppComponent implements AfterViewInit, OnInit {
           this.nftService.nftBought$.next({ nft, price, symbol });
 
           const toast = await this.toastCtrl.create({
-            message: `✅ NFT purchased successfully (${price} ${symbol})`,
+            message: `NFT purchased successfully (${nft.name})`,
             duration: 4000,
             color: "success",
             position: "top",
@@ -454,6 +483,69 @@ export class AppComponent implements AfterViewInit, OnInit {
     nativeLog('PHANTOM_CHALLENGE', challenge);
 
     localStorage.setItem('backendChallengeNonce', challenge.nonce);
+
+    const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+
+    if (Capacitor.getPlatform() === 'web' && isMobile) {
+
+      const webBridge = 'https://marketplace.universeofgamers.io/phantom-web-bridge.html';
+
+      // --- RELOAD DATA YANG SUDAH ADA SETELAH CONNECT ---
+      const session = localStorage.getItem('phantomSession');
+      const phantomPubKey = localStorage.getItem('phantom_pubkey');
+      const secretKeyStored = this.phantom.getSecretKey(); // in-memory keypair
+
+      if (!session || !phantomPubKey || !secretKeyStored) {
+        alert('❌ Missing Phantom session data. Please connect wallet first.');
+        return;
+      }
+
+      // --- DECODE: phantom public key + secret key ---
+      const secretKey = secretKeyStored;
+      const phantomPubKeyBytes = bs58.decode(phantomPubKey);
+
+      // --- NONCE (HARUS BARU SETIAP SIGN) ---
+      const nonceArr = nacl.randomBytes(24);
+      const nonceB58 = bs58.encode(nonceArr);
+
+      // --- DAPP PUBLIC KEY UNTUK ENKRIPSI ---
+      const dappPubKey = this.phantom.getPublicKeyB58();
+
+      // --- COMPUTE SHARED SECRET ---
+      const sharedSecret = nacl.box.before(phantomPubKeyBytes, secretKey);
+
+      // --- ENCODE PESAN ---
+      const messageBytes = new TextEncoder().encode(challenge.message);
+      const messageB58 = bs58.encode(messageBytes);
+
+      // --- PAYLOAD untuk Phantom ---
+      const payloadObj = {
+        session: session,
+        message: messageB58,
+        display: 'utf8'
+      };
+
+      const payloadBytes = new TextEncoder().encode(JSON.stringify(payloadObj));
+      const encryptedPayload = nacl.box.after(payloadBytes, nonceArr, sharedSecret);
+      const payloadB58 = bs58.encode(encryptedPayload);
+
+      // === SIGN URL (MOBILE WEB) ===
+      const signUrl =
+        `https://phantom.app/ul/v1/signMessage?` +
+        `dapp_encryption_public_key=${dappPubKey}` +
+        `&redirect_link=${encodeURIComponent(webBridge)}` +
+        `&nonce=${nonceB58}` +
+        `&payload=${payloadB58}`;
+
+      // === OPEN VIA SAME DOMAIN BRIDGE (NO NEW TAB) ===
+      const openUrl = `${webBridge}?target=${encodeURIComponent(signUrl)}`;
+
+      console.log("🌐 Launching Phantom SIGN (mobile web):", openUrl);
+
+      localStorage.setItem('phantomFlow', 'sign-web');
+      window.location.href = openUrl;
+      return;
+    }
 
     if (Capacitor.getPlatform() === 'web') {
       // 🖥️ desktop extension flow
@@ -647,16 +739,16 @@ export class AppComponent implements AfterViewInit, OnInit {
 
       error: (err) => {
         // this.dismissLoading?.(); // jika ada spinner, pastikan dimatikan
-        console.error('❌ [PHANTOM_LOGIN_FAIL]', err);
+        console.error('❌ [PHANTOM_LOGIN_FAIL]', err.error?.error);
 
         // 🔹 Deteksi error spesifik dari backend
         let message = 'Wallet login failed';
-        if (err.error?.error?.includes('linked to another account')) {
-          message = 'This wallet is already linked to another account ❌';
+        if (err.error?.error?.includes('address is already linked')) {
+          message = 'This wallet address is already linked, required email and password.';
         } else if (err.error?.error?.includes('Invalid signature')) {
-          message = 'Invalid signature, please re-connect wallet ❌';
+          message = 'Invalid signature, please re-connect wallet';
         } else if (err.error?.error?.includes('Invalid or expired nonce')) {
-          message = 'Session expired, please try again ❌';
+          message = 'Session expired, please try again';
         }
 
         this.showToast(message, 'danger');
@@ -670,7 +762,8 @@ export class AppComponent implements AfterViewInit, OnInit {
     try {
       await StatusBar.hide();
       await StatusBar.setStyle({ style: Style.Light });
-      await StatusBar.setBackgroundColor({ color: '#ffffff' });
+      await StatusBar.setBackgroundColor({ color: '#121212' });
+      await StatusBar.setOverlaysWebView({ overlay: false });
     } catch (err) {
       nativeLog('STATUSBAR', err);
     }

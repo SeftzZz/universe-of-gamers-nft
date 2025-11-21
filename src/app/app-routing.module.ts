@@ -25,6 +25,10 @@ const routes: Routes = [
     loadChildren: () =>
       import('./pages/market-layout/market-layout.module').then(m => m.MarketLayoutPageModule)
   },
+  {
+    path: 'auth/callback',
+    loadChildren: () => import('./callback/callback.module').then( m => m.CallbackPageModule)
+  },
   // ✅ Default redirect
   {
     path: '',
@@ -36,6 +40,7 @@ const routes: Routes = [
     path: '**',
     redirectTo: 'market-layout'
   },
+
 ];
 
 @NgModule({

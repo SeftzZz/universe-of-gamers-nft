@@ -166,6 +166,20 @@ export class CreatesPage implements OnInit {
   @ViewChild(IonContent, { static: false }) ionContent!: IonContent;
   scrollIsActive = false;
 
+  tournamentData = {
+    name: "",
+    description: "",
+    image: "",
+    priceUOG: 0,
+    priceSOL: 0,
+    maxParticipants: 8,
+    minLevel: 1,
+    startDate: "",
+    endDate: "",
+    totalRewardUOG: 0,
+    rewardBreakdown: "",
+  };
+
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
@@ -819,58 +833,31 @@ export class CreatesPage implements OnInit {
     }
   }
 
-  // async buyAndMintPack(packId: string, token: any) {
-  //   if (!this.activeWallet) {
-  //     alert("⚠️ Please login with wallet first");
-  //     return;
-  //   }
+  async submitTournament() {
+    try {
+      const resp = await this.http.post(
+        `${environment.apiUrl}/tournament/create-pack`,
+        this.tournamentData
+      ).toPromise();
 
-  //   const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
-  //   if (packIndex === -1) return;
-
-  //   this.gatchaPacks[packIndex].finalImage = null;
-  //   this.gatchaPacks[packIndex].isShuffling = true;
-  //   await this.shufflePackRewards(packId, 30, 100);
-  //   this.gatchaPacks[packIndex].isShuffling = false;
-
-  //   try {
-  //     const resp: any = await this.http.post(
-  //       `${environment.apiUrl}/gatcha/${packId}/pull`,
-  //       {
-  //         user: this.activeWallet,
-  //         paymentMint: token.mint,   // 👈 kirim mint token yang dipilih (SOL/UOG)
-  //       },
-  //       { headers: { Authorization: `Bearer ${this.authToken}` } }
-  //     ).toPromise();
-
-  //     this.mintResult = resp;
-  //     this.txSig = resp.signature;
-
-  //     this.gatchaPacks[packIndex] = {
-  //       ...this.gatchaPacks[packIndex],
-  //       finalImage: resp.nft.image,
-  //     };
-
-  //     const toast = await this.toastCtrl.create({
-  //       message: `Mint success! NFT: ${resp.nft.name}`,
-  //       duration: 4000,
-  //       color: "success",
-  //       position: "top",
-  //     });
-  //     toast.present();
-  //     await this.loadTokens();
-  //   } catch (err: any) {
-  //     console.error("❌ Error minting gatcha:", err);
-  //     const toast = await this.toastCtrl.create({
-  //       message: err.error?.error || "Mint failed",
-  //       duration: 4000,
-  //       color: "danger",
-  //       position: "top",
-  //     });
-  //     toast.present();
-  //     await this.loadTokens();
-  //   } 
-  // }
+      const toast = await this.toastCtrl.create({
+        message: "Tournament Pack Successfully Created!",
+        duration: 5000,
+        color: "success",
+        position: "top",
+      });
+      toast.present();
+    } catch (err) {
+      console.error(err);
+      const toast = await this.toastCtrl.create({
+        message: "Failed to Create Tournament Pack!",
+        duration: 5000,
+        color: "danger",
+        position: "top",
+      });
+      toast.present();
+    }
+  }
 
   // Dipanggil waktu user ubah priceUOG
   onPriceUOGChange() {
@@ -1064,4 +1051,57 @@ export class CreatesPage implements OnInit {
       usd: packUsd,
     };
   }
+
+  // async buyAndMintPack(packId: string, token: any) {
+  //   if (!this.activeWallet) {
+  //     alert("⚠️ Please login with wallet first");
+  //     return;
+  //   }
+
+  //   const packIndex = this.gatchaPacks.findIndex(p => p._id === packId);
+  //   if (packIndex === -1) return;
+
+  //   this.gatchaPacks[packIndex].finalImage = null;
+  //   this.gatchaPacks[packIndex].isShuffling = true;
+  //   await this.shufflePackRewards(packId, 30, 100);
+  //   this.gatchaPacks[packIndex].isShuffling = false;
+
+  //   try {
+  //     const resp: any = await this.http.post(
+  //       `${environment.apiUrl}/gatcha/${packId}/pull`,
+  //       {
+  //         user: this.activeWallet,
+  //         paymentMint: token.mint,   // 👈 kirim mint token yang dipilih (SOL/UOG)
+  //       },
+  //       { headers: { Authorization: `Bearer ${this.authToken}` } }
+  //     ).toPromise();
+
+  //     this.mintResult = resp;
+  //     this.txSig = resp.signature;
+
+  //     this.gatchaPacks[packIndex] = {
+  //       ...this.gatchaPacks[packIndex],
+  //       finalImage: resp.nft.image,
+  //     };
+
+  //     const toast = await this.toastCtrl.create({
+  //       message: `Mint success! NFT: ${resp.nft.name}`,
+  //       duration: 4000,
+  //       color: "success",
+  //       position: "top",
+  //     });
+  //     toast.present();
+  //     await this.loadTokens();
+  //   } catch (err: any) {
+  //     console.error("❌ Error minting gatcha:", err);
+  //     const toast = await this.toastCtrl.create({
+  //       message: err.error?.error || "Mint failed",
+  //       duration: 4000,
+  //       color: "danger",
+  //       position: "top",
+  //     });
+  //     toast.present();
+  //     await this.loadTokens();
+  //   } 
+  // }
 }

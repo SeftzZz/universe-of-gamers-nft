@@ -106,4 +106,32 @@ export class Auth {
       this.router.navigateByUrl('/login', { replaceUrl: true });
     }, 2100);
   }
+
+  async finishOAuthLogin(payload: any, idToken: string) {
+    try {
+      const resp: any = await this.http.post(`${environment.apiUrl}/auth/google`, {
+        idToken,
+        email: payload.email,
+        name: payload.name || payload.given_name,
+        picture: payload.picture,
+      }).toPromise();
+
+      if (!resp || !resp.token) {
+        throw new Error("Backend tidak mengembalikan token");
+      }
+
+      // simpan token + userId
+      this.setToken(resp.token, resp.authId);
+
+      // simpan profile ke localStorage
+      localStorage.setItem('userProfile', JSON.stringify(resp));
+
+      // success
+      return resp;
+
+    } catch (err: any) {
+      console.error("❌ OAuth Google Login failed:", err);
+      throw err;
+    }
+  }
 }

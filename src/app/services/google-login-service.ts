@@ -70,22 +70,26 @@ export class GoogleLoginService {
   /** 🔹 Login flow lengkap dengan tracing */
   async loginWithGoogle(): Promise<any> {
     const platform = Capacitor.getPlatform();
-    console.log(`🚀 Starting login on platform: ${platform}`);
+    const isNative = Capacitor.isNativePlatform();
+    const isWebView = this.isWebView();
 
-    if (platform === 'web') {
-      return this.loginWithGSI(); // 👈 pakai Google Identity Services modern
-    } else {
-      return this.loginWithPlugin(); // 👈 tetap pakai @codetrix-studio/capacitor-google-auth
+    console.log(`🚀 Starting login on platform: ${platform}, native=${isNative}, webview=${isWebView}`);
+
+    // 1️⃣ Semua Native + WebView → gunakan plugin
+    if (isNative || isWebView) {
+      return this.loginWithPlugin();
     }
+
+    // 2️⃣ Browser normal → GSI
+    return this.loginWithGSI();
   }
 
   private async loginWithGSI(): Promise<any> {
-    console.log('🌐 Using Google Identity Services (GSI) flow (with FedCM-safe)...');
+    console.log('🌐 Using GSI (silent token only)...');
 
-    // Ensure script loaded
+    // load script
     if (!(window as any).google?.accounts?.id) {
-      console.log('⬇️ Loading GSI client...');
-      await new Promise<void>((resolve) => {
+      await new Promise<void>(resolve => {
         const script = document.createElement('script');
         script.src = 'https://accounts.google.com/gsi/client';
         script.onload = () => resolve();
@@ -96,55 +100,31 @@ export class GoogleLoginService {
     return new Promise((resolve, reject) => {
       const clientId = '48240276189-d0p6iafr2in7s8lpjmnm5cblh8v1k6s3.apps.googleusercontent.com';
 
-      const handleResponse = (response: any) => {
-        try {
-          console.log('✅ GSI login success:', response);
-          const token = response.credential;
-          const payload = JSON.parse(atob(token.split('.')[1]));
-
-          resolve({
-            idToken: token,
-            email: payload.email,
-            name: payload.name || payload.given_name,
-            photo: payload.picture,
-            platform: 'web',
-          });
-        } catch (err) {
-          reject(err);
-        }
-      };
-
       const gsi = (window as any).google.accounts.id;
 
       gsi.initialize({
         client_id: clientId,
-        callback: handleResponse,
+        callback: (response: any) => {
+          try {
+            const token = response.credential;
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            resolve({
+              idToken: token,
+              email: payload.email,
+              name: payload.name || payload.given_name,
+              photo: payload.picture,
+              platform: 'web',
+            });
+          } catch (err) {
+            reject(err);
+          }
+        },
         auto_select: false,
-        cancel_on_tap_outside: true,
-        use_fedcm_for_prompt: true, // 👈 enable FedCM compliance
+        use_fedcm_for_prompt: false, // ❌ jangan tampilkan prompt
       });
 
-      // ✅ render button fallback if One Tap fails
-      gsi.renderButton(
-        document.getElementById('gsi-login-button') || document.body,
-        {
-          theme: 'outline',
-          size: 'large',
-          shape: 'pill',
-          text: 'continue_with',
-        }
-      );
-
-      gsi.prompt((notification: any) => {
-        console.log('🔔 GSI prompt status:', notification);
-
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          console.warn('⚠️ GSI prompt was skipped or not displayed.');
-          // fallback: show button explicitly if hidden
-          const btn = document.getElementById('gsi-login-button');
-          if (btn) btn.style.display = 'block';
-        }
-      });
+      // ❗ TANPA prompt & TANPA renderButton → aman untuk Ionic
+      gsi.prompt(() => {});
     });
   }
 
@@ -210,4 +190,11 @@ export class GoogleLoginService {
     }
   }
 
+  private isWebView() {
+    return (
+      (window as any).webkit?.messageHandlers ||  // iOS
+      navigator.userAgent.includes('wv') ||       // Android WebView
+      navigator.userAgent.includes('WebView')
+    );
+  }
 }

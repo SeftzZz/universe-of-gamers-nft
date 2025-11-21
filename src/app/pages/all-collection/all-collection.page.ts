@@ -79,6 +79,8 @@ export class AllCollectionPage implements OnInit {
   @ViewChild(IonContent, { read: ElementRef }) ionContentRef!: ElementRef;
   scrollIsActive = false;
 
+  prizePool: any = null;
+
   constructor(
     private auth: Auth,
     private router: Router,
@@ -102,6 +104,14 @@ export class AllCollectionPage implements OnInit {
         // bisa update UI langsung
         await this.market.loadNfts();
         await this.market.loadLatestNfts();
+      }
+      if (msg.type === "prizepool_update") {
+        console.log("⚡ PRIZEPOOL realtime update:", msg);
+
+        this.prizePool = {
+          ...this.prizePool,   // pertahankan UI local fields
+          ...msg.data          // update hanya field backend yang berubah
+        };
       }
     });
   }
@@ -132,6 +142,7 @@ export class AllCollectionPage implements OnInit {
     await this.market.loadTopCreators();
     await this.market.loadUsers();
     await this.market.loadHistory();
+    await this.market.loadPrizePool();
 
     // subscribe hasil ke variabel lokal
     this.market.getNfts().subscribe(nfts => {
@@ -142,6 +153,7 @@ export class AllCollectionPage implements OnInit {
     this.market.getTopCreators().subscribe(creators => (this.topCreators = creators));
     this.market.getUsers().subscribe(users => (this.allUsers = users));
     this.market.getHistory().subscribe(h => (this.history = h));
+    this.market.getPrizePool().subscribe(pool => {this.prizePool = pool});
   }
 
   // -------------------------------

@@ -12,7 +12,7 @@
                                       <img [src]="profile.avatar" alt="avatar" style="height: 40px;border-radius: 10px;" />
                                     </a>
                                     <span class="wallet-address">
-                                      {{ activeWallet ? shorten(activeWallet) : profile?.email }}
+                                      {{ activeWallet ? shorten(activeWallet) : profile!.email }}
                                     </span>
                                   </div>
 
@@ -68,9 +68,9 @@
                     <!-- Player -->
                     <li class="menu-item" *ngIf="profile?.player">
                       <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
-                        <span>Rank: <strong>{{ profile?.player?.rank | titlecase }}</strong></span>
+                        <span>Rank: <strong>{{ profile!.player?.rank | titlecase }}</strong></span>
                         <span class="wallet-balance">
-                          Earning Point {{ profile?.player?.totalEarning | number:'1.2-2' }}
+                          Earning Point {{ profile!.player?.totalEarning | number:'1.2-2' }}
                         </span>
                       </a>
                     </li>
@@ -78,8 +78,8 @@
                     <!-- Referral Code -->
                     <li class="menu-item" *ngIf="profile?.referral">
                       <a class="item-menu-mobile flex-between"
-                         (click)="onCopyIconClick($event, profile?.referral?.code || '')">
-                        <span>Referral Code: <strong>{{ profile?.referral?.code }}</strong></span>
+                         (click)="onCopyIconClick($event, profile!.referral?.code || '')">
+                        <span>Referral Code: <strong>{{ profile!.referral?.code }}</strong></span>
                         <ion-icon name="copy-outline"></ion-icon>
                       </a>
                     </li>
@@ -88,17 +88,17 @@
                     <li class="menu-item" *ngIf="profile?.referral">
                       <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
                         <span>Claimable:</span>
-                        <span class="wallet-balance">{{ profile?.referral?.totalClaimable | number:'1.4-4' }}</span>
+                        <span class="wallet-balance">{{ profile!.referral?.totalClaimable | number:'1.4-4' }}</span>
                       </a>
                       <a class="item-menu-mobile flex-between" (click)="closeMobileNav()">
                         <span>Claimed:</span>
-                        <span class="wallet-balance">{{ profile?.referral?.totalClaimed | number:'1.4-4' }}</span>
+                        <span class="wallet-balance">{{ profile!.referral?.totalClaimed | number:'1.4-4' }}</span>
                       </a>
 
                       <div class="flex-between mt-2">
                         <button
                           class="btn-claim"
-                          [disabled]="isClaiming || (profile?.referral?.totalClaimable ?? 0) < 0.06"
+                          [disabled]="isClaiming || (profile!.referral?.totalClaimable ?? 0) < 0.06"
                           (click)="claimReferral()">
                           {{ isClaiming ? 'Processing...' : 'Claim Reward' }}
                         </button>
@@ -116,6 +116,12 @@
                     <li class="menu-item" *ngIf="profile.role == 'admin' || profile.role == 'signer1' || profile.role == 'signer2'">
                       <a class="item-menu-mobile" (click)="closeMobileNav(); openWithdrawModal()">
                         Withdraw
+                      </a>
+                    </li>
+
+                    <li class="menu-item" *ngIf="profile.role == 'admin' || profile.role == 'signer1' || profile.role == 'signer2'">
+                      <a class="item-menu-mobile" (click)="closeMobileNav(); openPrizepoolModal()">
+                        Share Prizepool
                       </a>
                     </li>
 
@@ -153,12 +159,12 @@
 
                       <!-- 💰 Harga NFT (harga listing dalam token ini) -->
                       <h6 class="price gem">
-                        {{ treasuryBalance?.sol | number: '1.4-4' }} SOL
+                        {{ treasuryBalance!.sol | number:'1.4-4' }} SOL
                       </h6>
 
                       <!-- 👛 Tambahan: saldo pengguna -->
                       <span class="warning pt-1">
-                        ${{ treasuryBalance?.usdValue | number: '1.2-2' }}
+                        ${{ treasuryBalance!.usdValue | number:'1.2-2' }}
                       </span>
                     </div>
                   </div>
@@ -228,6 +234,120 @@
 
           </div>
         </div>
+
+        <div class="custom-modal" *ngIf="showPrizepoolModal">
+          <div class="modal-backdrop" (click)="closePrizepoolModal()"></div>
+
+          <div class="modal-sheet" [ngClass]="{ 'slide-up': !isClosingPrizepool, 'slide-down': isClosingPrizepool }">
+
+            <!-- ===========================================================
+                STEP 1 — LIST ALL ELIGIBLE PLAYERS + PRIZEPOOL SUMMARY
+            ============================================================ -->
+            <div *ngIf="!isDistributing && !distributionSuccess">
+
+              <h2 class="modal-title">Prizepool Distribution</h2>
+
+              <!-- TREASURY / PRIZEPOOL SUMMARY -->
+              <div class="widget-table-ranking pb-20">
+                <div class="table-ranking-content">
+                  <div class="fl-row-ranking">
+                    <div class="td1">
+                      <div class="item-name">
+                        <div class="pt-10">
+                          <label>Prizepool</label>
+                          <h4 class="success">{{ prizepoolFinal | number:'1.6-6' }} SOL</h4>
+                          <span class="warning">${{ treasuryBalance.usdValue | number:'1.2-2' }}</span>
+                        </div>
+
+                        <div class="pt-10">
+                          <label>Eligible Players:</label>
+                          <h5>{{ eligiblePlayers }}</h5>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ===========================================================
+                  PLAYER DISTRIBUTION LIST
+              ============================================================ -->
+              <form action="#" method="get" role="search" class="search-form relative" (submit)="$event.preventDefault()">
+                <input
+                  type="search"
+                  id="search"
+                  class="search-field style-1"
+                  placeholder="Search player..."
+                  [(ngModel)]="playerSearch"
+                  name="playerSearch"
+                />
+                <button class="search search-submit" type="submit"><i class="icon-search"></i></button>
+              </form>
+
+              <div class="widget-table-ranking pb-20" *ngIf="filteredPlayers.length > 0">
+                <div
+                  class="table-ranking-content"
+                  *ngFor="let p of filteredPlayers"
+                >
+                  <div class="fl-row-ranking">
+                    <div class="td1">
+                      <div class="item-name">
+                        <h6>{{ p.username }}</h6>
+
+                        <span class="balance-info text-sm warning pt-1">
+                          {{ p.wallet | slice:0:6 }}...{{ p.wallet | slice:-4 }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="td5">
+                      <h6 class="price gem">
+                        {{ p.shareSol | number:'1.6-6' }} SOL
+                      </h6>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ACTIONS -->
+              <div class="modal-actions pt-20">
+                <button class="btn-cancel" (click)="closePrizepoolModal()">Cancel</button>
+                <button class="btn-send" (click)="submitPrizepool()">Distribute Now</button>
+              </div>
+
+            </div>
+
+            <!-- ===========================================================
+                STEP 2 — PROCESSING / SUCCESS
+            ============================================================ -->
+            <div *ngIf="isDistributing || distributionSuccess" @fadeSlide>
+
+              <!-- PROCESSING -->
+              <div *ngIf="isDistributing">
+                <h2 class="modal-title">Processing Distribution...</h2>
+                <div class="loading-spinner">
+                  <ion-spinner name="crescent"></ion-spinner>
+                </div>
+              </div>
+
+              <!-- SUCCESS -->
+              <div *ngIf="distributionSuccess" class="success-tx" @fadeSlide>
+                <h2 class="modal-title">Distribution Simulated</h2>
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+
+                <p>Prizepool has been successfully simulated.</p>
+
+                <div class="modal-actions">
+                  <button class="btn-cancel" (click)="closePrizepoolModal()">Close</button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
     </div>
 </div>
 
