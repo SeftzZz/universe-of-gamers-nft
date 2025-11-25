@@ -134,7 +134,7 @@ export class MarketLayoutPage implements OnInit {
 
     this.userService.getUser().subscribe(u => {
       this.profile = u;
-      console.log('✅ User profile updated:', this.profile);
+      // console.log('✅ User profile updated:', this.profile);
     });
 
     this.userService.loadFromStorage();

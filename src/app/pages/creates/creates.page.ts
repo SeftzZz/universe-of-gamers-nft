@@ -126,8 +126,10 @@ export class CreatesPage implements OnInit {
   ];
   uogToSolRate: number = 0; // rate 1 UOG → SOL
   solToUogRate: number = 0; // rate 1 SOL → UOG
-  usdcToSolRate: number = 0;
+  usdcToSolRate: number = 0; // rate 1 USDC → SOL
   solToUsdcRate: number = 0;  // 1 SOL = ? USDC
+  uogToUsdcRate: number = 0; // rate 1 UOG → USD
+  usdcToUogRate: number = 0; // rate 1 USDC → UOG
   listedPrice: number = 0;
   listedSymbol: string = "SOL";
   packPriceSOL: number = 0;
@@ -166,19 +168,38 @@ export class CreatesPage implements OnInit {
   @ViewChild(IonContent, { static: false }) ionContent!: IonContent;
   scrollIsActive = false;
 
-  tournamentData = {
+  packData = {
     name: "",
     description: "",
     image: "",
     priceUOG: 0,
     priceSOL: 0,
+    priceUSD: 0,     // ⬅️ NEW
     maxParticipants: 8,
-    minLevel: 1,
-    startDate: "",
-    endDate: "",
-    totalRewardUOG: 0,
-    rewardBreakdown: "",
+    rewards: [] as {
+      rank: number;
+      rewardUOG: number;
+      description?: string;
+    }[],
   };
+
+  packRewards: {
+    rank: number;
+    rewardUSD: number;
+    rewardUOG: number;
+    rewardSOL: number;
+    percent?: number;
+    description?: string;
+  }[] = [];
+
+  tournamentData = {
+    name: "",
+    packId: "",
+    rarity: "",
+    paymentSymbol: "",
+  };
+
+  packList: any[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -219,6 +240,7 @@ export class CreatesPage implements OnInit {
     await this.loadCharacters();   // load data karakter ===add by fpp 05/09/25===
     await this.loadRunes();
     await this.loadGatchaPacks();
+    await this.loadTournamentPacks();
     await this.fetchRates();
     this.setLatestNfts();
 
@@ -833,12 +855,22 @@ export class CreatesPage implements OnInit {
     }
   }
 
-  async submitTournament() {
+  async submitTournamentPack() {
     try {
-      const resp = await this.http.post(
-        `${environment.apiUrl}/tournament/create-pack`,
-        this.tournamentData
-      ).toPromise();
+      const body = {
+        name: this.packData.name,
+        description: this.packData.description,
+        image: this.packData.image,
+        priceUOG: this.packData.priceUOG || 0,
+        priceSOL: this.packData.priceSOL || 0,
+        priceUSD: this.packData.priceUSD || 0,
+        maxParticipants: this.packData.maxParticipants || 8,
+        rewards: this.packRewards,
+      };
+
+      const resp: any = await this.http
+        .post(`${environment.apiUrl}/tournament/create-pack`, body)
+        .toPromise();
 
       const toast = await this.toastCtrl.create({
         message: "Tournament Pack Successfully Created!",
@@ -847,8 +879,28 @@ export class CreatesPage implements OnInit {
         position: "top",
       });
       toast.present();
+
+      // Reset form (BENAR)
+      this.packData = {
+        name: "",
+        description: "",
+        image: "",
+        priceUOG: 0,
+        priceSOL: 0,
+        priceUSD: 0,
+        maxParticipants: 8,
+        rewards: [] as {
+          rank: number;
+          rewardUOG: number;
+          description?: string;
+        }[],
+      };
+
+      this.packRewards = [];
+
     } catch (err) {
-      console.error(err);
+      console.error("❌ create pack error:", err);
+
       const toast = await this.toastCtrl.create({
         message: "Failed to Create Tournament Pack!",
         duration: 5000,
@@ -859,18 +911,173 @@ export class CreatesPage implements OnInit {
     }
   }
 
-  // Dipanggil waktu user ubah priceUOG
-  onPriceUOGChange() {
-    if (this.uogToSolRate > 0) {
-      this.gatchaData.priceSOL = this.gatchaData.priceUOG * this.uogToSolRate;
+  async loadTournamentPacks() {
+    const res: any = await this.http.get(`${environment.apiUrl}/tournament/packs`).toPromise();
+    this.packList = res.data;
+  }
+
+  async submitTournament() {
+    try {
+      const body = {
+        name: this.tournamentData.name,
+        packId: this.tournamentData.packId,
+        rarity: this.tournamentData.rarity,
+        paymentSymbol: this.tournamentData.paymentSymbol,
+      };
+
+      const resp = await this.http
+        .post(`${environment.apiUrl}/tournament/create`, body)
+        .toPromise();
+
+      const toast = await this.toastCtrl.create({
+        message: "Tournament Successfully Created!",
+        duration: 5000,
+        color: "success",
+        position: "top",
+      });
+      toast.present();
+
+      // reset
+      this.tournamentData = {
+        name: "",
+        packId: "",
+        rarity: "",
+        paymentSymbol: "",
+      };
+
+    } catch (err) {
+      console.error("❌ tournament create error:", err);
+
+      const toast = await this.toastCtrl.create({
+        message: "Failed to Create Tournament!",
+        duration: 5000,
+        color: "danger",
+        position: "top",
+      });
+      toast.present();
     }
   }
 
-  // Dipanggil waktu user ubah priceSOL
-  onPriceSOLChange() {
-    if (this.solToUogRate > 0) {
-      this.gatchaData.priceUOG = this.gatchaData.priceSOL * this.solToUogRate;
+  // ➕ Add new reward row
+  addTournamentReward() {
+    this.packRewards.push({
+      rank: this.packRewards.length + 1,
+      rewardUSD: 0,
+      rewardUOG: 0,
+      rewardSOL: 0,
+      description: "",
+    });
+  }
+
+  // ❌ Remove reward row (optional)
+  removeTournamentReward(i: number) {
+    this.packRewards.splice(i, 1);
+
+    // reset numbering
+    this.packRewards = this.packRewards.map((r, idx) => ({
+      ...r,
+      rank: idx + 1,
+    }));
+  }
+
+  onPackPriceUOGChange() {
+    const uog = this.packData.priceUOG || 0;
+
+    // UOG → SOL
+    if (this.uogToSolRate > 0) {
+      this.packData.priceSOL = Number((uog * this.uogToSolRate).toFixed(6));
     }
+
+    // UOG → USD
+    if (this.uogToUsdcRate > 0) {
+      this.packData.priceUSD = Number((uog * this.uogToUsdcRate).toFixed(2));
+    }
+
+    // 🔥 Auto-update rewards based on percentage
+    this.packRewards.forEach(r => {
+      const p = r.percent || 0;
+      r.rewardUOG = Number(((this.packData.priceUOG * p) / 100).toFixed(2));
+      r.rewardUSD = Number(((this.packData.priceUSD * p) / 100).toFixed(2));
+      r.rewardSOL = Number(((this.packData.priceSOL * p) / 100).toFixed(6));
+    });
+  }
+
+  onPackPriceSOLChange() {
+    const sol = this.packData.priceSOL || 0;
+
+    // SOL → UOG
+    if (this.solToUogRate > 0) {
+      this.packData.priceUOG = Number((sol * this.solToUogRate).toFixed(2));
+    }
+
+    // SOL → USD
+    if (this.solToUsdcRate > 0) {
+      this.packData.priceUSD = Number((sol * this.solToUsdcRate).toFixed(2));
+    }
+
+    this.packRewards.forEach(r => {
+      const p = r.percent || 0;
+      r.rewardUOG = Number(((this.packData.priceUOG * p) / 100).toFixed(2));
+      r.rewardUSD = Number(((this.packData.priceUSD * p) / 100).toFixed(2));
+      r.rewardSOL = Number(((this.packData.priceSOL * p) / 100).toFixed(6));
+    });
+  }
+
+  onPackPriceUSDChange() {
+    const usd = this.packData.priceUSD || 0;
+
+    // USD → UOG
+    if (this.usdcToUogRate > 0) {
+      this.packData.priceUOG = Number((usd * this.usdcToUogRate).toFixed(2));
+    }
+
+    // USD → SOL
+    if (this.usdcToSolRate > 0) {
+      this.packData.priceSOL = Number((usd * this.usdcToSolRate).toFixed(6));
+    }
+
+    this.packRewards.forEach(r => {
+      const p = r.percent || 0;
+      r.rewardUOG = Number(((this.packData.priceUOG * p) / 100).toFixed(2));
+      r.rewardUSD = Number(((this.packData.priceUSD * p) / 100).toFixed(2));
+      r.rewardSOL = Number(((this.packData.priceSOL * p) / 100).toFixed(6));
+    });
+  }
+
+  onRewardPercentChange(i: number) {
+    const reward = this.packRewards[i];
+    if (!reward) return;
+
+    const percent = reward.percent || 0;
+
+    const priceUOG = this.packData.priceUOG || 0;
+    const priceUSD = this.packData.priceUSD || 0;
+    const priceSOL = this.packData.priceSOL || 0;
+    const participants = this.packData.maxParticipants || 1;
+
+    // TOTAL PRIZE POOL per token
+    const poolUOG = priceUOG * participants;
+    const poolUSD = priceUSD * participants;
+    const poolSOL = priceSOL * participants;
+
+    console.log("========== 🎁 REWARD CALCULATION ==========");
+    console.log("Index:", i);
+    console.log("Percent:", percent + "%");
+    console.log("Pack Prices:", { priceUOG, priceUSD, priceSOL });
+    console.log("Participants:", participants);
+    console.log("Total Prize Pool:", { poolUOG, poolUSD, poolSOL });
+
+    // Hitung reward sesuai total pool
+    reward.rewardUOG = Number(((poolUOG * percent) / 100).toFixed(2));
+    reward.rewardUSD = Number(((poolUSD * percent) / 100).toFixed(6));
+    reward.rewardSOL = Number(((poolSOL * percent) / 100).toFixed(9));
+
+    console.log("Calculated Rewards:", {
+      rewardUOG: reward.rewardUOG,
+      rewardUSD: reward.rewardUSD,
+      rewardSOL: reward.rewardSOL
+    });
+    console.log("============================================");
   }
 
   formatWithZeroCount(num: number): string {
@@ -975,18 +1182,39 @@ export class CreatesPage implements OnInit {
   async fetchRates() {
     try {
       const resp: any = await this.http
-        .get("https://api.coingecko.com/api/v3/simple/price?ids=solana,usd-coin&vs_currencies=usd")
+        .get("https://api.coingecko.com/api/v3/simple/price?ids=solana,usd-coin,universe-of-gamers&vs_currencies=usd")
         .toPromise();
 
-      const solToUsd = resp["solana"].usd;      // contoh: 187.25 USD per SOL
-      const usdcToUsd = resp["usd-coin"].usd;   // contoh: 1.00 USD per USDC
+      const solToUsd = resp["solana"].usd;             // 1 SOL   = ? USD
+      const usdcToUsd = resp["usd-coin"].usd;          // 1 USDC  = ? USD
+      const uogToUsd = resp["universe-of-gamers"].usd; // 1 UOG   = ? USD
 
-      this.solToUsdcRate = solToUsd / usdcToUsd;   // 1 SOL = ? USDC
+      // ==============
+      // 🔥 SOL / USDC
+      // ==============
+      this.solToUsdcRate = solToUsd / usdcToUsd; // 1 SOL = ? USDC
       this.usdcToSolRate = 1 / this.solToUsdcRate; // 1 USDC = ? SOL
 
+      // ==============
+      // 🔥 UOG / USD
+      // ==============
+      this.uogToUsdcRate = uogToUsd;        // 1 UOG = ? USD
+      this.usdcToUogRate = 1 / uogToUsd;    // 1 USD = ? UOG
+
+      // ==============
+      // 🔥 UOG / SOL
+      // ==============
+      this.uogToSolRate = uogToUsd / solToUsd; // 1 UOG = ? SOL
+      this.solToUogRate = 1 / this.uogToSolRate; // 1 SOL = ? UOG
+
       console.log("💱 [fetchRates] Rates updated:");
-      console.log(`   • 1 SOL  = ${this.solToUsdcRate.toFixed(4)} USDC`);
+      console.log(`   • 1 SOL = ${this.solToUsdcRate.toFixed(4)} USDC`);
       console.log(`   • 1 USDC = ${this.usdcToSolRate.toFixed(6)} SOL`);
+      console.log(`   • 1 UOG = ${this.uogToUsdcRate.toFixed(6)} USD`);
+      console.log(`   • 1 USD = ${this.usdcToUogRate.toFixed(6)} UOG`);
+      console.log(`   • 1 UOG = ${this.uogToSolRate.toFixed(6)} SOL`);
+      console.log(`   • 1 SOL = ${this.solToUogRate.toFixed(2)} UOG`);
+
     } catch (err) {
       console.error("❌ Failed to fetch Coingecko rates", err);
     }

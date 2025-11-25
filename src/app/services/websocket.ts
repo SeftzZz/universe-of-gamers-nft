@@ -21,7 +21,7 @@ export class WebSocket {
     this.socket.onmessage = (event: MessageEvent) => {
       this.zone.run(() => {
         const data = JSON.parse(event.data);
-        console.log('📨 WS message:', data);
+        // console.log('📨 WS message:', data);
         this.messagesSubject.next(data);
       });
     };

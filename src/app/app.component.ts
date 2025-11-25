@@ -54,6 +54,13 @@ export class AppComponent implements AfterViewInit, OnInit {
   mintResult: any = null;
   txSig: string | null = null;
 
+  isSending = false;
+  isJoining = false;
+  joinSuccess = false;
+  joinTx: any = null;
+  hasJoinedTournament: boolean = false;
+  joinedTeam: any = null;
+
   constructor(
     private router: Router,
     private ngZone: NgZone,
@@ -318,6 +325,117 @@ export class AppComponent implements AfterViewInit, OnInit {
           toast.present();
         }
       // === SELL CONFIRM ===
+      } else if (payload.transaction && localStorage.getItem("phantomFlow") === "joinTournament") {
+
+        const signedTxBase58 = payload.transaction;
+
+        const tournamentId = localStorage.getItem("pendingTournamentId") ?? "";
+        const teamId = localStorage.getItem("pendingTournamentTeam") ?? "";
+        const walletAddress = localStorage.getItem("walletAddress") ?? "";
+
+        if (!walletAddress) {
+          nativeLog("PHANTOM_TOURNAMENT_ERROR", "❌ Missing walletAddress after signTransaction");
+          alert("Wallet address missing. Please reconnect Phantom.");
+          return;
+        }
+
+        // ➕ Ambil character & rune loadout yg disimpan sebelum redirect
+        const pendingCharacters = JSON.parse(localStorage.getItem("pendingCharacters") || "[]");
+        const pendingRunes = JSON.parse(localStorage.getItem("pendingRunes") || "{}");
+
+        nativeLog("PHANTOM_TOURNAMENT_TX_SIGNED", {
+          signedTxBase58,
+          tournamentId,
+          teamId,
+          walletAddress,
+          pendingCharacters,
+          pendingRunes
+        });
+
+        try {
+          // ============================================================
+          // 1️⃣ CALL BACKEND — SINGLE ALL-IN-ONE ENDPOINT
+          // ============================================================
+          const confirmResp: any = await this.http.post(
+            `${environment.apiUrl}/auth/tournament/${tournamentId}/confirm`,
+            {
+              signedTx: signedTxBase58,
+              walletAddress,
+              teamId,
+              characters: pendingCharacters,
+              runes: pendingRunes
+            },
+            { headers: { Authorization: `Bearer ${this.authToken}` } }
+          ).toPromise();
+
+          nativeLog("TOURNAMENT_CONFIRM_SUCCESS", confirmResp);
+
+          // ============================================================
+          // 2️⃣ UI SUCCESS HANDLING
+          // ============================================================
+
+          localStorage.setItem("tournamentJoinSuccess", "1");
+          localStorage.setItem("tournamentJoinTeam", teamId);
+          localStorage.setItem("tournamentJoinTx", confirmResp.txSignature ?? "");
+
+          window.dispatchEvent(new CustomEvent("tournament-joined", {
+            detail: {
+              team: teamId,
+              tx: confirmResp.txSignature
+            }
+          }));
+
+          await this.refreshTournamentStatus(tournamentId, walletAddress);
+
+          const toast = await this.toastCtrl.create({
+            message: `Pay Tournament successfully! TX: ${confirmResp.txSignature || "Pending"}`,
+            duration: 4000,
+            color: "success",
+            position: "top"
+          });
+          toast.present();
+
+          // update modal state
+          this.isSending = false;
+          this.isJoining = false;
+          this.joinSuccess = true;
+
+          this.joinTx = {
+            team: teamId,
+            txSignature: confirmResp.txSignature
+          };
+
+          // ============================================================
+          // 3️⃣ CLEAR CONTEXT  
+          // ============================================================
+          localStorage.removeItem("phantomFlow");
+          localStorage.removeItem("pendingTournamentId");
+          localStorage.removeItem("pendingTournamentTeam");
+          localStorage.removeItem("pendingTournamentPrice");
+          localStorage.removeItem("pendingTournamentSymbol");
+          localStorage.removeItem("pendingCharacters");
+          localStorage.removeItem("pendingRunes");
+
+        } catch (err: any) {
+
+          this.isJoining = false;
+          this.joinSuccess = false;
+
+          nativeLog("TOURNAMENT_CONFIRM_FAIL", err.message);
+
+          const toast = await this.toastCtrl.create({
+            message: "❌ Failed to confirm tournament join.",
+            duration: 4000,
+            color: "danger",
+            position: "top",
+          });
+          toast.present();
+
+          // clear minimal context
+          localStorage.removeItem("phantomFlow");
+          localStorage.removeItem("pendingTournamentId");
+          localStorage.removeItem("pendingTournamentTeam");
+        }
       } else if (payload.transaction && localStorage.getItem("phantomFlow") === "sell") {
         const signedTxBase58 = payload.transaction;
         const mintAddress = localStorage.getItem("pendingMintAddress");
@@ -814,4 +932,25 @@ export class AppComponent implements AfterViewInit, OnInit {
     });
     await toast.present();
   }
+
+  async refreshTournamentStatus(tournamentId: string, walletAddress: string) {
+    try {
+      const resp: any = await this.http
+        .get(`${environment.apiUrl}/tournament/${tournamentId}/participant/${walletAddress}`)
+        .toPromise();
+
+      this.hasJoinedTournament = resp.joined || false;
+      this.joinedTeam = resp.participant?.team || null;
+
+      nativeLog("TOURNAMENT_STATUS", {
+        joined: this.hasJoinedTournament,
+        team: this.joinedTeam
+      });
+
+    } catch (err) {
+      nativeLog("TOURNAMENT_STATUS_FAIL", err);
+      this.hasJoinedTournament = false;
+    }
+  }
+
 }

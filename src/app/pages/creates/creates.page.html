@@ -17,6 +17,9 @@
                         <span class="inner">Create Gatcha</span>
                     </li>
                     <li class="item-title">
+                      <span class="inner">Create Tournament Pack</span>
+                    </li>
+                    <li class="item-title">
                       <span class="inner">Create Tournament</span>
                     </li>
                     <!-- <li class="item-title" (click)="loadGatchaPacks()">
@@ -391,7 +394,7 @@
                                          [(ngModel)]="gatchaData.priceUOG"
                                          name="gatchaPriceUOG"
                                          step="0.1"
-                                         (ngModelChange)="onPriceUOGChange()" />
+                                         (ngModelChange)="onPackPriceUOGChange()" />
                                 </fieldset>
                                 <fieldset>
                                   <label>Price (SOL)</label>
@@ -399,7 +402,7 @@
                                          [(ngModel)]="gatchaData.priceSOL"
                                          name="gatchaPriceSOL"
                                          step="0.0001"
-                                         (ngModelChange)="onPriceSOLChange()" />
+                                         (ngModelChange)="onPackPriceSOLChange()" />
                                 </fieldset>
                               </div>
 
@@ -444,7 +447,170 @@
                     </div>
                     <div class="widget-content-inner create">
                       <div class="wrap-content w-full">
-                        <form id="tournament-form" class="comment-form" (ngSubmit)="submitTournament()" novalidate>
+                        <form id="tournament-pack-form"
+                              class="comment-form"
+                              (ngSubmit)="submitTournamentPack()"
+                              novalidate>
+
+                          <!-- 🎯 BASIC INFO -->
+                          <fieldset>
+                            <label>Pack Name *</label>
+                            <input type="text"
+                                   [(ngModel)]="packData.name"
+                                   name="packName"
+                                   placeholder="e.g., Champion Pack"
+                                   required />
+                          </fieldset>
+
+                          <fieldset>
+                            <label>Description</label>
+                            <textarea [(ngModel)]="packData.description"
+                                      name="packDesc"
+                                      rows="2"></textarea>
+                          </fieldset>
+
+                          <fieldset>
+                            <label>Banner Image URL *</label>
+                            <input type="url"
+                                   [(ngModel)]="packData.image"
+                                   name="packImage"
+                                   placeholder="https://..."
+                                   required />
+                          </fieldset>
+
+                          <div class="divider"></div>
+
+                          <!-- 💰 PRICE -->
+                          <h4>Entry Fee</h4>
+                          <div class="flex gap30">
+                            <fieldset>
+                              <label>Price (USD)</label>
+                              <input type="number"
+                                     step="0.01"
+                                     [(ngModel)]="packData.priceUSD"
+                                     name="packPriceUSD"
+                                     (ngModelChange)="onPackPriceUSDChange()" />
+                            </fieldset>
+                            
+                            <fieldset>
+                              <label>Price (UOG)</label>
+                              <input type="number"
+                                     step="0.1"
+                                     [(ngModel)]="packData.priceUOG"
+                                     name="packPriceUOG"
+                                     (ngModelChange)="onPackPriceUOGChange()" />
+                            </fieldset>
+
+                            <fieldset>
+                              <label>Price (SOL)</label>
+                              <input type="number"
+                                     step="0.0001"
+                                     [(ngModel)]="packData.priceSOL"
+                                     name="packPriceSOL"
+                                     (ngModelChange)="onPackPriceSOLChange()" />
+                            </fieldset>
+                          </div>
+
+                          <div class="divider"></div>
+
+                          <!-- 👥 PARTICIPANTS -->
+                          <h4>Participant Settings</h4>
+                          <fieldset>
+                            <label>Max Participants *</label>
+                            <input type="number"
+                                   [(ngModel)]="packData.maxParticipants"
+                                   name="maxParticipants"
+                                   placeholder="e.g., 8"
+                                   required />
+                          </fieldset>
+
+                          <div class="divider"></div>
+
+                          <!-- 🎁 REWARD POOL -->
+                          <h4>Reward Breakdown</h4>
+
+                          <div *ngFor="let r of packRewards; let i = index" class="flex gap30">
+                            <fieldset style="max-width:100px">
+                              <label>Rank</label>
+                              <input type="number"
+                                     [(ngModel)]="r.rank"
+                                     name="rewardRank{{i}}" />
+                            </fieldset>
+
+                            <fieldset style="max-width:120px">
+                              <label>%</label>
+                              <input type="number"
+                                     step="0.1"
+                                     [(ngModel)]="r.percent"
+                                     name="rewardPercent{{i}}"
+                                     (ngModelChange)="onRewardPercentChange(i)" />
+                            </fieldset>
+
+                            <!-- USD -->
+                            <fieldset style="max-width:150px">
+                              <label>Reward (USD)</label>
+                              <input type="number"
+                                     step="0.000001"
+                                     [(ngModel)]="r.rewardUSD"
+                                     name="rewardUSD{{i}}" />
+                            </fieldset>
+
+                            <!-- UOG -->
+                            <fieldset style="max-width:150px">
+                              <label>Reward (UOG)</label>
+                              <input type="number"
+                                     step="0.01"
+                                     [(ngModel)]="r.rewardUOG"
+                                     name="rewardUOG{{i}}" />
+                            </fieldset>
+
+                            <!-- SOL -->
+                            <fieldset style="max-width:150px">
+                              <label>Reward (SOL)</label>
+                              <input type="number"
+                                     step="0.000000001"
+                                     [(ngModel)]="r.rewardSOL"
+                                     name="rewardSOL{{i}}" />
+                            </fieldset>
+
+                            <fieldset>
+                              <label>Description</label>
+                              <input type="text"
+                                     [(ngModel)]="r.description"
+                                     name="rewardDesc{{i}}" />
+                            </fieldset>
+
+                            <button type="button"
+                                    class="tf-button style-1 mb-20 mr-10"
+                                    (click)="removeTournamentReward(i)"
+                                    style="color:#161616;">
+                              - Remove
+                            </button>
+                          </div>
+
+                          <button type="button"
+                                  class="tf-button style-1 mb-20"
+                                  (click)="addTournamentReward()"
+                                  style="color:#161616;">
+                            + Add Reward
+                          </button>
+
+                          <div class="btn-submit flex gap30 justify-center">
+                            <button class="tf-button style-1 w-100" type="submit">
+                              Create Tournament Pack
+                              <i class="icon-arrow-up-right2"></i>
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                    <div class="widget-content-inner create">
+                      <div class="wrap-content w-full">
+
+                        <form id="tournament-form"
+                              class="comment-form"
+                              (ngSubmit)="submitTournament()"
+                              novalidate>
 
                           <!-- 🎯 BASIC INFO -->
                           <fieldset>
@@ -456,139 +622,74 @@
                                    required />
                           </fieldset>
 
+                          <div class="divider"></div>
+
+                          <!-- 🟣 RARITY -->
+                          <h4>Tournament Rarity *</h4>
                           <fieldset>
-                            <label>Description</label>
-                            <textarea [(ngModel)]="tournamentData.description"
-                                      name="tournamentDesc"
-                                      rows="2"></textarea>
+                            <label>Rarity</label>
+                            <select [(ngModel)]="tournamentData.rarity" 
+                                    name="tournamentRarity" 
+                                    required>
+
+                              <option value="" disabled selected>Select Rarity</option>
+                              <option value="common">Common</option>
+                              <option value="rare">Rare</option>
+                              <option value="epic">Epic</option>
+                              <option value="legendary">Legendary</option>
+
+                            </select>
                           </fieldset>
 
+                          <div class="divider"></div>
+
+                          <!-- 🪙 PAYMENT TYPE -->
+                          <h4>Payment Currency *</h4>
                           <fieldset>
-                            <label>Banner Image URL *</label>
-                            <input type="url"
-                                   [(ngModel)]="tournamentData.image"
-                                   name="tournamentImage"
-                                   placeholder="https://..."
-                                   required />
+                            <label>Payment Symbol</label>
+                            <select [(ngModel)]="tournamentData.paymentSymbol" 
+                                    name="paymentSymbol" 
+                                    required>
+
+                              <option value="" disabled selected>Select Payment</option>
+                              <option value="USD">USD</option>
+                              <option value="UOG">UOG</option>
+                              <option value="SOL">SOL</option>
+
+                            </select>
                           </fieldset>
 
                           <div class="divider"></div>
 
-                          <!-- 💰 PRICE -->
-                          <h4>Tournament Entry Fee</h4>
-                          <div class="flex gap30">
-                            <fieldset>
-                              <label>Price (UOG)</label>
-                              <input type="number"
-                                     step="0.1"
-                                     [(ngModel)]="tournamentData.priceUOG"
-                                     name="tournamentPriceUOG"
-                                     (ngModelChange)="onPriceUOGChange()" />
-                            </fieldset>
-
-                            <fieldset>
-                              <label>Price (SOL)</label>
-                              <input type="number"
-                                     step="0.0001"
-                                     [(ngModel)]="tournamentData.priceSOL"
-                                     name="tournamentPriceSOL"
-                                     (ngModelChange)="onPriceSOLChange()" />
-                            </fieldset>
-                          </div>
-
-                          <div class="divider"></div>
-
-                          <!-- 🏆 PHASES -->
-                          <h4>Phases</h4>
-                          <p style="margin-top:20px;color:#888;">Tournament automatically includes 3 phases: 8 Besar → 4 Besar → Final</p>
-
-                          <div class="flex gap30">
-                            <fieldset>
-                              <label>Phase 1</label>
-                              <input type="text" value="8 Besar" disabled />
-                            </fieldset>
-                            <fieldset>
-                              <label>Phase 2</label>
-                              <input type="text" value="4 Besar" disabled />
-                            </fieldset>
-                            <fieldset>
-                              <label>Final</label>
-                              <input type="text" value="Final" disabled />
-                            </fieldset>
-                          </div>
-
-                          <div class="divider"></div>
-
-                          <!-- 👥 PARTICIPANT SETTINGS -->
-                          <h4>Participants</h4>
-                          <div class="flex gap30">
-                            <fieldset>
-                              <label>Max Participants</label>
-                              <input type="number"
-                                     [(ngModel)]="tournamentData.maxParticipants"
-                                     name="tournamentMaxParticipants"
-                                     placeholder="e.g., 8"
-                                     required />
-                            </fieldset>
-
-                            <fieldset>
-                              <label>Min Level Requirement</label>
-                              <input type="number"
-                                     [(ngModel)]="tournamentData.minLevel"
-                                     name="tournamentMinLevel"
-                                     placeholder="1" />
-                            </fieldset>
-                          </div>
-
-                          <div class="divider"></div>
-
-                          <!-- 📅 DATE SETTINGS -->
-                          <h4>Schedule</h4>
-                          <div class="flex gap30">
-                            <fieldset>
-                              <label>Start Date *</label>
-                              <input type="datetime-local"
-                                     [(ngModel)]="tournamentData.startDate"
-                                     name="tournamentStartDate"
-                                     required>
-                            </fieldset>
-                            <fieldset>
-                              <label>End Date *</label>
-                              <input type="datetime-local"
-                                     [(ngModel)]="tournamentData.endDate"
-                                     name="tournamentEndDate"
-                                     required>
-                            </fieldset>
-                          </div>
-
-                          <div class="divider"></div>
-
-                          <!-- 🎁 REWARD POOL -->
-                          <h4>Reward Pool</h4>
+                          <!-- 🎫 PACK SELECTION -->
+                          <h4>Select Tournament Pack *</h4>
                           <fieldset>
-                            <label>Total Reward (UOG)</label>
-                            <input type="number"
-                                   step="0.1"
-                                   [(ngModel)]="tournamentData.totalRewardUOG"
-                                   name="tournamentRewardUOG"
-                                   placeholder="e.g., 500" />
+                            <label>Packs</label>
+                            <select [(ngModel)]="tournamentData.packId"
+                                    name="tournamentPack"
+                                    required>
+
+                              <option value="" disabled selected>Select Pack</option>
+
+                              <option *ngFor="let p of packList" [value]="p._id">
+                                {{ p.name }} — {{ p.maxParticipants }} Players
+                              </option>
+
+                            </select>
                           </fieldset>
 
-                          <fieldset>
-                            <label>Reward Breakdown</label>
-                            <textarea [(ngModel)]="tournamentData.rewardBreakdown"
-                                      name="tournamentRewardBreakdown"
-                                      rows="3"
-                                      placeholder="1st: 70%, 2nd: 20%, 3rd: 10%">
-                            </textarea>
-                          </fieldset>
+                          <div class="divider"></div>
 
+                          <!-- SUBMIT -->
                           <div class="btn-submit flex gap30 justify-center">
                             <button class="tf-button style-1 w-100" type="submit">
-                              Create Tournament <i class="icon-arrow-up-right2"></i>
+                              Create Tournament
+                              <i class="icon-arrow-up-right2"></i>
                             </button>
                           </div>
+
                         </form>
+
                       </div>
                     </div>
                     <div class="widget-content-inner buy-gatcha">

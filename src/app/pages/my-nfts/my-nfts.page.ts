@@ -131,7 +131,7 @@ export class MyNftsPage implements OnInit {
     await new Promise((r) => setTimeout(r, 300));
 
     const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-    console.log('👤 [Profile Check Ready]:', userProfile);
+    // console.log('👤 [Profile Check Ready]:', userProfile);
 
     const provider = userProfile.authProvider || 'unknown';
     const hasWallet =
@@ -141,9 +141,9 @@ export class MyNftsPage implements OnInit {
     const hasReferral = !!(userProfile.referral && userProfile.referral.code);
     const usedReferralCode = !!userProfile.usedReferralCode;
 
-    console.log('🔎 [Profile Flags]', {
-      provider, hasWallet, hasEmail, hasReferral, usedReferralCode
-    });
+    // console.log('🔎 [Profile Flags]', {
+    //   provider, hasWallet, hasEmail, hasReferral, usedReferralCode
+    // });
 
     // tampilkan modal jika incomplete
     if (
@@ -152,7 +152,7 @@ export class MyNftsPage implements OnInit {
       (provider === 'local' && (usedReferralCode || hasReferral) && !hasWallet) ||
       (!hasEmail || !hasReferral)
     ) {
-      console.warn('⚠️ Showing setup/referral modal for provider:', provider);
+      // console.warn('⚠️ Showing setup/referral modal for provider:', provider);
       const mode =
         provider === 'google' ? 'google' :
         provider === 'wallet' ? 'wallet' :
@@ -167,11 +167,11 @@ export class MyNftsPage implements OnInit {
     }
 
     // ✅ Profil lengkap, lanjut
-    console.log('✅ Profil user valid:', {
-      provider,
-      email: userProfile.email,
-      referral: userProfile.referral?.code,
-    });
+    // console.log('✅ Profil user valid:', {
+    //   provider,
+    //   email: userProfile.email,
+    //   referral: userProfile.referral?.code,
+    // });
 
     this.wallet.getActiveWallet().subscribe((addr) => {
       this.userAddress = addr;
@@ -227,7 +227,7 @@ export class MyNftsPage implements OnInit {
     await new Promise((r) => setTimeout(r, 300));
 
     const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-    console.log('👤 [Profile Check Ready]:', userProfile);
+    // console.log('👤 [Profile Check Ready]:', userProfile);
 
     const provider = userProfile.authProvider || 'unknown';
     const hasWallet =
@@ -237,9 +237,9 @@ export class MyNftsPage implements OnInit {
     const hasReferral = !!(userProfile.referral && userProfile.referral.code);
     const usedReferralCode = !!userProfile.usedReferralCode;
 
-    console.log('🔎 [Profile Flags]', {
-      provider, hasWallet, hasEmail, hasReferral, usedReferralCode
-    });
+    // console.log('🔎 [Profile Flags]', {
+    //   provider, hasWallet, hasEmail, hasReferral, usedReferralCode
+    // });
 
     // tampilkan modal jika incomplete
     if (
@@ -248,7 +248,7 @@ export class MyNftsPage implements OnInit {
       (provider === 'local' && (usedReferralCode || hasReferral) && !hasWallet) ||
       (!hasEmail || !hasReferral)
     ) {
-      console.warn('⚠️ Showing setup/referral modal for provider:', provider);
+      // console.warn('⚠️ Showing setup/referral modal for provider:', provider);
       const mode =
         provider === 'google' ? 'google' :
         provider === 'wallet' ? 'wallet' :
@@ -263,11 +263,11 @@ export class MyNftsPage implements OnInit {
     }
 
     // ✅ Profil lengkap, lanjut
-    console.log('✅ Profil user valid:', {
-      provider,
-      email: userProfile.email,
-      referral: userProfile.referral?.code,
-    });
+    // console.log('✅ Profil user valid:', {
+    //   provider,
+    //   email: userProfile.email,
+    //   referral: userProfile.referral?.code,
+    // });
 
     this.wallet.getActiveWallet().subscribe((addr) => {
       this.userAddress = addr;
@@ -313,7 +313,7 @@ export class MyNftsPage implements OnInit {
            🟣 PRIZEPOOL REALTIME UPDATE
            ====================================== */
         case 'prizepool_update':
-          console.log("⚡ PRIZEPOOL realtime update:", msg);
+          // console.log("⚡ PRIZEPOOL realtime update:", msg);
 
           // Merge, jangan overwrite total
           this.prizePool = {
@@ -348,7 +348,7 @@ export class MyNftsPage implements OnInit {
     await new Promise((r) => setTimeout(r, 300));
 
     const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-    console.log('👤 [Profile Check Ready]:', userProfile);
+    // console.log('👤 [Profile Check Ready]:', userProfile);
 
     const provider = userProfile.authProvider || 'unknown';
     const hasWallet =
@@ -358,9 +358,9 @@ export class MyNftsPage implements OnInit {
     const hasReferral = !!(userProfile.referral && userProfile.referral.code);
     const usedReferralCode = !!userProfile.usedReferralCode;
 
-    console.log('🔎 [Profile Flags]', {
-      provider, hasWallet, hasEmail, hasReferral, usedReferralCode
-    });
+    // console.log('🔎 [Profile Flags]', {
+    //   provider, hasWallet, hasEmail, hasReferral, usedReferralCode
+    // });
 
     // tampilkan modal jika incomplete
     if (
@@ -369,7 +369,7 @@ export class MyNftsPage implements OnInit {
       (provider === 'local' && (usedReferralCode || hasReferral) && !hasWallet) ||
       (!hasEmail || !hasReferral)
     ) {
-      console.warn('⚠️ Showing setup/referral modal for provider:', provider);
+      // console.warn('⚠️ Showing setup/referral modal for provider:', provider);
       const mode =
         provider === 'google' ? 'google' :
         provider === 'wallet' ? 'wallet' :
@@ -384,11 +384,11 @@ export class MyNftsPage implements OnInit {
     }
 
     // ✅ Profil lengkap, lanjut
-    console.log('✅ Profil user valid:', {
-      provider,
-      email: userProfile.email,
-      referral: userProfile.referral?.code,
-    });
+    // console.log('✅ Profil user valid:', {
+    //   provider,
+    //   email: userProfile.email,
+    //   referral: userProfile.referral?.code,
+    // });
 
     this.wallet.getActiveWallet().subscribe((addr) => {
       this.userAddress = addr;
@@ -671,9 +671,9 @@ export class MyNftsPage implements OnInit {
   }
 
   private filterNftsByActiveWallet() {
-    console.log("🔍 [filterNftsByActiveWallet] Called");
-    console.log("   🧩 userAddress:", this.userAddress);
-    console.log("   🧮 Total fetched NFT:", this.fetchnft?.length || 0);
+    // console.log("🔍 [filterNftsByActiveWallet] Called");
+    // console.log("   🧩 userAddress:", this.userAddress);
+    // console.log("   🧮 Total fetched NFT:", this.fetchnft?.length || 0);
 
     if (!this.userAddress) {
       console.warn("⚠️ No active wallet found. Clearing NFT lists.");
@@ -694,16 +694,16 @@ export class MyNftsPage implements OnInit {
       (n) => n.rune && n.owner?.toLowerCase() === walletAddr
     );
 
-    console.log("✅ [filterNftsByActiveWallet] Done filtering:");
-    console.log("   🎭 Characters:", this.nftBC.length);
-    console.log("   🔮 Runes:", this.nftRuneBC.length);
+    // console.log("✅ [filterNftsByActiveWallet] Done filtering:");
+    // console.log("   🎭 Characters:", this.nftBC.length);
+    // console.log("   🔮 Runes:", this.nftRuneBC.length);
 
     // (Opsional) log contoh 1 item untuk memastikan struktur benar
     if (this.nftBC.length > 0) {
-      console.log("   🔹 Example Character NFT:", this.nftBC[0]);
+      // console.log("   🔹 Example Character NFT:", this.nftBC[0]);
     }
     if (this.nftRuneBC.length > 0) {
-      console.log("   🔹 Example Rune NFT:", this.nftRuneBC[0]);
+      // console.log("   🔹 Example Rune NFT:", this.nftRuneBC[0]);
     }
   }
 

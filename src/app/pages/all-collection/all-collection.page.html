@@ -1,7 +1,7 @@
 <ion-content class="ion-padding" (ionScroll)="onScroll($event)" scrollEvents="true" [fullscreen]="true">
     <div class="wrapper-content">
         <div class="inner-content" style="margin-top: 10vh;">
-            <div class="action__body w-full mb-40" *ngIf="prizePool as pool">
+            <div class="action__body mb-40" *ngIf="prizePool as pool">
                 <div class="tf-tsparticles">
                     <div id="tsparticles3" data-color="#161616" data-line="#000"></div>
                 </div>
@@ -10,7 +10,7 @@
                 <h2 style="line-height: 20px;">{{ pool.balance_SOL | number:'1.0-2' }} SOL</h2>
                 <!-- <h3>Transactions {{ pool.total_transactions }}</h3> -->
                 <div class="bg-home7">
-                    <div class="swiper-container autoslider3reverse" data-swiper='{
+                    <div class="swiper-container" data-swiper='{
                     "loop":true,
                     "slidesPerView": "auto",
                     "spaceBetween": 14,
@@ -19,7 +19,7 @@
                     "observer": true,
                     "observeParents": true,
                     "autoplay": {
-                        "delay": "0",
+                        "delay": "100",
                         "disableOnInteraction": false
                     }
                 }'>
@@ -32,7 +32,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="swiper-container autoslider4reverse" data-swiper='{
+                    <div class="swiper-container" data-swiper='{
                     "loop":true,
                     "slidesPerView": "auto",
                     "spaceBetween": 14,
@@ -41,7 +41,7 @@
                     "observer": true,
                     "observeParents": true,
                     "autoplay": {
-                        "delay": "0",
+                        "delay": "100",
                         "disableOnInteraction": false,
                         "reverseDirection": true
                     }
@@ -55,7 +55,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="swiper-container autoslider3reverse" data-swiper='{
+                    <div class="swiper-container" data-swiper='{
                     "loop":true,
                     "slidesPerView": "auto",
                     "spaceBetween": 14,
@@ -64,7 +64,7 @@
                     "observer": true,
                     "observeParents": true,
                     "autoplay": {
-                        "delay": "0",
+                        "delay": "100",
                         "disableOnInteraction": false
                     }
                 }'>
@@ -79,6 +79,51 @@
                     </div>
                 </div>
             </div>
+            <div *ngFor="let block of tournamentBlocks" class="action__body mb-40 tournament-box"
+              [ngStyle]="{
+                'background-image': block.tournament?.pack?.image 
+                    ? 'url(' + block.tournament.pack.image + ')' 
+                    : 'none'
+              }">
+
+              <div class="flex items-center justify-between">
+                <h2 class="title-widget">
+                  {{ block.tournament.name }} – {{ block.currentPhase | titlecase }}
+                </h2>
+              </div>
+
+              <!-- Jika sudah ada bracket -->
+              <div class="widget widget-creators" *ngIf="block.matches.length > 0; else joinBlock">
+                <div *ngFor="let m of block.matches; let i = index"
+                    class="widget-creators-item flex items-center mb-20 bracket-item"
+                    (click)="openMatchDetail(block.tournament._id, m)">
+
+                  <div class="order">{{ i + 1 }}.</div>
+
+                  <div class="author player-side">
+                    <h6>{{ shorten(m.creator1?.name) }}</h6>
+                  </div>
+
+                  <h2 class="vs-label">VS</h2>
+
+                  <div class="author player-side">
+                    <h6>{{ shorten(m.creator2?.name) }}</h6>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- Join Button -->
+              <ng-template #joinBlock>
+                <button 
+                  (click)="openJoinModal(block.tournament)"
+                  class="w-100 join-btn"
+                  [disabled]="block.hasJoined">
+                  {{ block.hasJoined ? 'Already Joined' : 'Join Now' }}
+                </button>
+              </ng-template>
+            </div>
+
             <div class="heading-section">
                 <h2 class="tf-title pb-30">All Collection</h2>
             </div>
@@ -287,9 +332,201 @@
         </div>
     </div>
 
-    <div class="progress-wrap" [class.active-progress]="scrollIsActive" (click)="scrollToTop()">
-        <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
-        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" style="transition: stroke-dashoffset 10ms linear 0s; stroke-dasharray: 307.919, 307.919; stroke-dashoffset: 286.138;"></path>
-        </svg>
+    <div class="custom-modal" *ngIf="showJoinModal">
+        <div class="modal-backdrop" (click)="resetJoinModal()"></div>
+
+        <div class="modal-sheet" [ngClass]="{ 'slide-up': !isClosingJoin, 'slide-down': isClosingJoin }">
+
+            <!-- ======================================================== -->
+            <!-- STEP 1 — SELECT TOKEN + CHARACTER & RUNES                -->
+            <!-- ======================================================== -->
+            <div *ngIf="!isJoining && !joinSuccess">
+
+                <h2 class="modal-title">Join Tournament {{ activeTournament?.name }}</h2>
+
+                <!-- ========================== TOKEN LIST ========================== -->
+                <h3 class="modal-subtitle mt-10">Choose Payment Token</h3>
+
+                <div class="widget-table-ranking pb-20"
+                     *ngIf="tournamentTokens && tournamentTokens.length > 0">
+
+                    <div class="table-ranking-content"
+                         *ngFor="let token of tournamentTokens"
+                         [class.disabled]="!token.selectable"
+                         (click)="token.selectable && selectTournamentToken(token)">
+
+                        <div class="fl-row-ranking">
+
+                            <!-- LEFT -->
+                            <div class="td1">
+                                <div class="item-avatar">
+                                    <img [src]="token.logoURI" alt="{{ token.symbol }}" />
+                                </div>
+
+                                <div class="item-name">
+                                    <h6 class="price gem">
+                                        {{ getTournamentPriceDisplay(token).amount | number:'1.4-4' }}
+                                        {{ token.symbol }}
+                                    </h6>
+
+                                    <span class="balance-info text-sm warning pt-1">
+                                        Balance: {{ token.amount | number:'1.4-4' }} {{ token.symbol }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- RIGHT -->
+                            <div class="td5">
+                                <h6 class="price gem">
+                                    {{ getTournamentPriceDisplay(token).usd !== null
+                                        ? ('$' + (getTournamentPriceDisplay(token).usd | number:'1.2-2'))
+                                        : 'Loading...' }}
+                                </h6>
+
+                                <ion-icon name="checkmark-circle-outline"
+                                          *ngIf="selectedToken?.mint === token.mint"
+                                          style="font-size: 24px; color:#00ffa2; margin-left: 8px;">
+                                </ion-icon>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ========================== CHARACTER & RUNES ========================== -->
+                <h3 class="modal-subtitle mt-20">Select Character & Items</h3>
+
+                <div class="widget-content-tab">
+
+                    <!-- ================= CHARACTER SECTION ================= -->
+                    <div class="widget-content-inner">
+
+                        <div *ngIf="isLoading" class="loading-state">
+                            <ion-spinner name="crescent"></ion-spinner>
+                            <p>Loading NFTs...</p>
+                        </div>
+
+                        <div *ngIf="!isLoading && nftBC.length === 0" class="empty-state">
+                            <p>No character NFTs found for this wallet.</p>
+                        </div>
+
+                        <div *ngIf="nftBC.length > 0">
+                            <div class="wrap-box-card">
+
+                                <div class="col-lg-4 col-md-6 col-6"
+                                     *ngFor="let nft of nftBC | slice:0:itemsToShowCharacter"
+                                     (click)="selectCharacter(nft)"
+                                     [ngClass]="{'selected-nft': selectedCharacter.includes(nft._id)}">
+
+                                    <div class="tf-card-box style-4">
+
+                                        <!-- ========================================================= -->
+                                        <!-- RUNE STRIP — ONLY FOR ACTIVE CHARACTER                    -->
+                                        <!-- ========================================================= -->
+                                        <div *ngIf="activeCharacterId === nft._id"
+                                             class="rune-strip-wrapper">
+
+                                            <h3 class="modal-subtitle">
+                                                Equip Runes {{ characterRuneCache[nft._id]?.length || 0 }}/9
+                                            </h3>
+
+                                            <div class="rune-flex-strip">
+
+                                                <div  class="rune-item"
+                                                      *ngFor="let rune of filteredRunes"
+                                                      (click)="!rune.disabled && toggleRuneEquip(rune)"
+                                                      [class.selected]="(characterRuneCache[nft._id] || []).includes(rune._id)"
+                                                      [class.disabled]="rune.disabled">
+                                                    <img class="rune-img" [src]="rune.image" />
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                        <!-- ========================================================= -->
+                                        <!-- CHARACTER CARD IMAGE                                      -->
+                                        <!-- ========================================================= -->
+                                        <div class="card-media">
+                                            <img [src]="nft.image" alt="">
+
+                                            <div class="checkmark-selected"
+                                                 *ngIf="selectedCharacter.includes(nft._id)">
+                                                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                                            </div>
+                                        </div>
+
+                                        <!-- RARITY -->
+                                        <h6 class="price gem rarity-tag"
+                                            [ngClass]="(typeof nft.character === 'object' ? nft.character.rarity?.toLowerCase() : '')">
+                                            {{ typeof nft.character === 'object' ? nft.character.rarity : '' }}
+                                        </h6>
+
+                                        <!-- NAME -->
+                                        <h5 class="name">{{ nft.name }}</h5>
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- Load more characters -->
+                            <div *ngIf="itemsToShowCharacter < nftBC.length" class="col-md-12 load-more">
+                                <a class="tf-button-loadmore" (click)="loadMoreCharacter()">
+                                    <span>Load More</span><i class="icon-loading-1"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ========================== ACTION BUTTONS ========================== -->
+                <div class="modal-actions">
+
+                    <button type="button" class="btn-cancel" (click)="resetJoinModal()">Cancel</button>
+
+                    <button type="button"
+                            class="btn-send"
+                            [disabled]="selectedCharacter.length !== 3 || !selectedToken"
+                            (click)="payTournament(selectedToken.mint)">
+                        Join Tournament
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- ===================== LOADING ===================== -->
+            <div *ngIf="isJoining && !joinSuccess" @fadeSlide>
+                <h2 class="modal-title">Processing...</h2>
+                <div class="loading-spinner">
+                    <ion-spinner name="crescent"></ion-spinner>
+                </div>
+            </div>
+
+            <!-- ===================== SUCCESS ===================== -->
+            <div *ngIf="joinSuccess" @fadeSlide>
+                <h2 class="modal-title">Successfully Joined!</h2>
+
+                <ion-icon name="checkmark-circle-outline"
+                          style="font-size: 80px; color:#00ff99;">
+                </ion-icon>
+
+                <p>
+                    Your team has joined the tournament!<br />
+                    Character: <strong>{{ selectedCharacter }}</strong><br />
+                    Items: <strong>{{ selectedRunes.length }}</strong><br />
+                    <span *ngIf="joinTx?.txSignature">
+                        TX: <strong>{{ joinTx.txSignature }}</strong>
+                    </span>
+                </p>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-send" (click)="resetJoinModal()">Close</button>
+                </div>
+            </div>
+
+        </div>
     </div>
+
 </ion-content>
